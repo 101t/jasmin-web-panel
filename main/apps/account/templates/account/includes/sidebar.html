@@ -1,0 +1,69 @@
+<div class="sidebar" data-color="{% if request.user.is_superuser %}blue{% else %}purple{% endif %}"
+     data-image="/static/assets/img/sidebar-2.jpg">
+    <!--
+
+        Tip 1: you can change the color of the sidebar using: data-color="blue | azure | green | orange | red | purple"
+        Tip 2: you can also add an image using data-image tag
+
+    -->
+    <div class="sidebar-wrapper">
+        <div class="logo">
+            <a href="{% url 'dashboard_view' %}" class="simple-text">
+                Jasmin Smpp Server
+            </a>
+        </div>
+
+        <ul class="nav">
+            {% if request.user.is_superuser %}
+                <li{% if item == "smppccm" %} class="active"{% endif %}>
+                    <a href="{% url 'smppccm_view' %}">
+                        <i class="pe-7s-science"></i>
+                        <p>SMPPCCM</p>
+                    </a>
+                </li>
+                <li{% if item == "httpccm" %} class="active"{% endif %}>
+                    <a href="{% url 'httpccm_view' %}">
+                        <i class="pe-7s-science"></i>
+                        <p>HTTPCCM</p>
+                    </a>
+                </li>
+                <li{% if item == "users" %} class="active"{% endif %}>
+                    <a href="{% url 'users_view' %}">
+                        <i class="pe-7s-user"></i>
+                        <p>Users</p>
+                    </a>
+                </li>
+                <li{% if item == "groups" %} class="active"{% endif %}>
+                    <a href="{% url 'groups_view' %}">
+                        <i class="pe-7s-users"></i>
+                        <p>Groups</p>
+                    </a>
+                </li>
+                <li{% if item == "filters" %} class="active"{% endif %}>
+                    <a href="{% url 'filters_view' %}">
+                        <i class="pe-7s-filter"></i>
+                        <p>Filters</p>
+                    </a>
+                </li>
+                <li{% if item == "mtrouter" %} class="active"{% endif %}>
+                    <a href="{% url 'mtrouter_view' %}">
+                        <i class="pe-7s-cloud-download"></i>
+                        <p>MT Router</p>
+                    </a>
+                </li>
+                <li{% if item == "morouter" %} class="active"{% endif %}>
+                    <a href="{% url 'morouter_view' %}">
+                        <i class="pe-7s-cloud-upload"></i>
+                        <p>MO Router</p>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'logout_view' %}">
+                        <i class="pe-7s-power"></i>
+                        <p>Logout</p>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+</div>

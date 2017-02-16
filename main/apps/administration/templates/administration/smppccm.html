@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+{% block title %}SMPP Client Connector Manager{% endblock %}
+{% block extracss %}
+<style type="text/css">
+.help-block{font-size:9px;}
+.text-default{color:#999;}
+.form-group{min-height: 110px;}/*margin-bottom: 15px;*/
+</style>
+{% endblock %}
+{% block content %}
+{% include "account/includes/sidebar.html" with item="smppccm" %}
+<div class="main-panel">
+	<div class="content">
+        <div class="container-fluid">
+            <div class="row">
+	            <div class"col-md-12">
+	            	<div class="card">
+	            		<div class="header">
+	            			<h4 class="title">SMPP Client Connector Manager <button class="btn btn-info pull-right" data-toggle="modal" data-target="#add_smppccm_modal">Add New</button></h4>
+	            		</div>
+	            		<div class="content table-responsive table-full-width">
+	            			<table class="table table-hover table-striped">
+	            				<thead>
+	            					<tr>
+	            						<th>#</th>
+	            						<th>CID Name</th>
+		            					<th>Host</th>
+		            					<th>Port</th>
+		            					<th>Username</th>
+		            					<th>Password</th>
+		            					<th class="text-center">Status</th>
+		            					<th class="text-center">Option</th>
+	            					</tr>
+	            				</thead>
+	            				<tbody id="table_result">
+	            				</tbody>
+	            			</table>
+	            		</div>
+	            	</div>
+	            </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal" id="add_smppccm_modal" tabindex="-1" role="dialog" aria-labelledby="defModalHead" aria-hidden="true">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<form class="form-horizontal" action="{% url 'smppccm_view_manage' %}" method="POST" id="add_smppccm_form">{% csrf_token %}<input type="hidden" name="s" value="add">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title" id="defModalHead">Add New SMPP Client Connector</h4>
+				</div>
+				<div class="modal-body">
+					<div class="container-fluid">
+						<div class="row">
+							<div class="col-md-12">
+								<div class="alert alert-info">
+									<span>When adding a SMPP Client connector, only it’s cid is required, all the other parameters will be set to their respective defaults.</span>
+								</div>
+								<div class="form-group">
+									<label>CID</label>
+									<input type="text" name="cid" class="form-control" placeholder="CID Name" required="required">
+								</div>
+								<div class="form-group">
+									<label>Host</label>
+									<input type="text" name="host" class="form-control" placeholder="Host" required="required">
+								</div>
+								<div class="form-group">
+									<label>Port</label>
+									<input type="text" name="port"  class="form-control" placeholder="Port" oninput="this.value = this.value.replace(/[^0-9.]/g, ''); this.value = this.value.replace(/(\..*)\./g, '$1');" required="required">
+								</div>
+								<div class="form-group">
+									<label>Username</label>
+									<input type="text" name="username" class="form-control" placeholder="smppclient1" required="required">
+								</div>
+								<div class="form-group">
+									<label>Password</label>
+									<input type="text" name="password" class="form-control" maxlength="8" placeholder="pass123" required="required">
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default btn-fill pull-left" data-dismiss="modal"><i class="fa fa-times"></i> Close</button>
+					<button type="submit" class="btn btn-info btn-fill pull-right"><i class="fa fa-plus"></i> Add</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+<div class="modal" id="edit_smppccm_modal" tabindex="-1" role="dialog" aria-labelledby="defModalHead" aria-hidden="true">
+	<div class="modal-dialog modal-lg" style="width:1200px;">
+		<div class="modal-content">
+			<form class="form-horizontal" action="{% url 'smppccm_view_manage' %}" method="POST" id="edit_smppccm_form">{% csrf_token %}<input type="hidden" name="s" value="edit">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title" id="defModalHead">Edit SMPP Client Connector</h4>
+				</div>
+				<div class="modal-body">
+					<div class="container-fluid">
+						<div class="row">
+							<div class="col-md-12">
+								<div class="alert alert-info">
+									<span>Connector restart is required only when changing the following parameters: <strong>host, port, username, password, systemType, logfile, loglevel</strong>; any other change is applied without requiring connector to be restarted.</span>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-6" style="padding-right:20px;">
+								<div class="form-group">
+									<label>CID</label>
+									<input type="text" name="cid" class="form-control" placeholder="CID Name" required="required">
+									<span class="help-block">Connector ID (must be unique)</span>
+								</div>
+								<div class="form-group">
+									<label>Logfile</label>
+									<input type="text" name="logfile" class="form-control" placeholder="Log File">
+								</div>
+								<div class="form-group">
+									<label>Log Rotate</label>
+									<input type="text" name="logrotate" class="form-control" placeholder="Log Rotate">
+									<span class="help-block">When to rotate the log file, possible values: S=Seconds, M=Minutes, H=Hours, D=Days, W0-W6=Weekday (0=Monday) and midnight=Roll over at midnight</span>
+								</div>
+								<div class="form-group">
+									<label>Log Level</label>
+									<input type="text" name="loglevel" class="form-control" placeholder="Log Level">
+									<span class="help-block">Logging numeric level: 10=DEBUG, 20=INFO, 30=WARNING, 40=ERROR, 50=CRITICCAL</span>
+								</div>
+								<div class="form-group">
+									<label>Host</label>
+									<input type="text" name="host" class="form-control" placeholder="Host" required="required">
+									<span class="help-block">Server that runs SMSC</span>
+								</div>
+								<div class="form-group">
+									<label>Port</label>
+									<input type="text" name="port"  class="form-control" placeholder="Port" oninput="this.value = this.value.replace(/[^0-9.]/g, ''); this.value = this.value.replace(/(\..*)\./g, '$1');" maxlength="8" required="required">
+									<span class="help-block">The port number for the connection to the SMSC.</span>
+								</div>
+								<div class="form-group">
+									<label>SSL</label>
+									<input type="text" name="ssl" class="form-control" placeholder="SSL">
+									<span class="help-block">Activate ssl connection</span>
+								</div>
+								<div class="form-group">
+									<label>Username</label>
+									<input type="text" name="username" class="form-control" placeholder="smppclient1" required="required">
+								</div>
+								<div class="form-group">
+									<label>Password</label>
+									<input type="text" name="password" class="form-control" maxlength="8" placeholder="pass123" required="required">
+								</div>
+								<div class="form-group">
+									<label>bind</label>
+									<select name="bind" class="form-control" placeholder="Bind">
+										<option>transceiver</option><option>receiver</option><option>transmitter</option>
+									</select>
+									<span class="help-block">Bind type: transceiver, receiver or transmitter</span>
+								</div>
+								<div class="form-group">
+									<label>Bind To</label>
+									<input type="text" name="bind_to" class="form-control" placeholder="Bind To">
+									<span class="help-block">Timeout for response to bind request</span>
+								</div>
+								<div class="form-group">
+									<label>Trx To</label>
+									<input type="text" name="trx_to" class="form-control" placeholder="Trx To">
+									<span class="help-block">Maximum time lapse allowed between transactions, after which, the connection is considered as inactive and will reconnect</span>
+								</div>
+								<div class="form-group">
+									<label>Res To</label>
+									<input type="text" name="res_to" class="form-control" placeholder="Res To">
+									<span class="help-block">Timeout for responses to any request PDU</span>
+								</div>
+								<div class="form-group">
+									<label>PDU Red To</label>
+									<input type="text" name="pdu_red_to" class="form-control" placeholder="PDU Red To">
+									<span class="help-block">Timeout for reading a single PDU, this is the maximum lapse of time between receiving PDU’s header and its complete read, if the PDU reading timed out, the connection is considered as ‘corrupt’ and will reconnect</span>
+								</div>
+								<div class="form-group">
+									<label>Con. Loss Retry</label>
+									<select name="con_loss_retry" class="form-control" placeholder="Con. Loss Retry">
+										<option>yes</option><option>no</option>
+									</select>
+									<span class="help-block">Reconnect on connection loss ? (yes, no)</span>
+								</div>
+								<div class="form-group">
+									<label>Con. Loss Delay</label>
+									<input type="text" name="con_loss_delay" class="form-control" placeholder="Con. Loss Delay">
+									<span class="help-block">Reconnect delay on connection loss (seconds)</span>
+								</div>
+								<div class="form-group">
+									<label>Con. Fail Retry</label>
+									<select name="con_fail_retry" class="form-control" placeholder="Con. Fail Retry">
+										<option>yes</option><option>no</option>
+									</select>
+									<span class="help-block">Reconnect on connection failure ? (yes, no)</span>
+								</div>
+								<div class="form-group">
+									<label>Con. Fail Delay</label>
+									<input type="text" name="con_fail_delay" class="form-control" placeholder="Con. Fail Delay">
+									<span class="help-block">Reconnect delay on connection failure (seconds)</span>
+								</div>
+								<div class="form-group">
+									<label>Src. Addr.</label>
+									<input type="text" name="src_addr" class="form-control" placeholder="Src. Addr.">
+									<span class="help-block">Default source adress of each SMS-MT if not set while sending it, can be numeric or alphanumeric, when not defined it will take SMSC default</span>
+								</div>
+								<div class="form-group">
+									<label>Src. TON</label>
+									<input type="text" name="src_ton" class="form-control" placeholder="Src. TON">
+									<span class="help-block">Source address TON setting for the link: 0=Unknown, 1=International, 2=National, 3=Network specific, 4=Subscriber number, 5=Alphanumeric, 6=Abbreviated</span>
+								</div>
+							</div>
+							<div class="col-md-6" style="padding-left:20px;">
+								<div class="form-group">
+									<label>Src. NPI</label>
+									<input type="text" name="src_npi" class="form-control" placeholder="Src. NPI">
+									<span class="help-block">Source address NPI setting for the link: 0=Unknown, 1=ISDN, 3=Data, 4=Telex, 6=Land mobile, 8=National, 9=Private, 10=Ermes, 14=Internet, 18=WAP Client ID</span>
+								</div>
+								<div class="form-group">
+									<label>Dst. TON</label>
+									<input type="text" name="dst_ton" class="form-control" placeholder="Dst. TON">
+									<span class="help-block">Destination address TON setting for the link: 0=Unknown, 1=International, 2=National, 3=Network specific, 4=Subscriber number, 5=Alphanumeric, 6=Abbreviated</span>
+								</div>
+								<div class="form-group">
+									<label>Dst. NPI</label>
+									<input type="text" name="dst_npi" class="form-control" placeholder="Dst. NPI">
+									<span class="help-block">Destination address NPI setting for the link: 0=Unknown, 1=ISDN, 3=Data, 4=Telex, 6=Land mobile, 8=National, 9=Private, 10=Ermes, 14=Internet, 18=WAP Client ID</span>
+								</div>
+								<div class="form-group">
+									<label>Bind TON</label>
+									<input type="text" name="bind_ton" class="form-control" placeholder="Bind TON">
+									<span class="help-block">Bind address TON setting for the link: 0=Unknown, 1=International, 2=National, 3=Network specific, 4=Subscriber number, 5=Alphanumeric, 6=Abbreviated</span>
+								</div>
+								<div class="form-group">
+									<label>Bind NPI</label>
+									<input type="text" name="bind_npi" class="form-control" placeholder="Bind NPI">
+									<span class="help-block">Bind address NPI setting for the link: 0=Unknown, 1=ISDN, 3=Data, 4=Telex, 6=Land mobile, 8=National, 9=Private, 10=Ermes, 14=Internet, 18=WAP Client ID</span>
+								</div>
+								<div class="form-group">
+									<label>Validity</label>
+									<input type="text" name="validity" class="form-control" placeholder="Validity">
+									<span class="help-block">Default validity period of each SMS-MT if not set while sending it, when not defined it will take SMSC default (seconds)</span>
+								</div>
+								<div class="form-group">
+									<label>Priority</label>
+									<input type="text" name="priority" class="form-control" placeholder="Priority">
+									<span class="help-block">SMS-MT default priority if not set while sending it: 0, 1, 2 or 3</span>
+								</div>
+								<div class="form-group">
+									<label>Requeue Delay</label>
+									<input type="text" name="requeue_delay" class="form-control" placeholder="Requeue Delay">
+									<span class="help-block">Delay to be considered when requeuing a rejected message</span>
+								</div>
+								<div class="form-group">
+									<label>Addr. Range</label>
+									<input type="text" name="addr_range" class="form-control" placeholder="Addr. Range">
+									<span class="help-block">Indicates which MS’s can send messages to this connector, seems to be an informative value</span>
+								</div>
+								<div class="form-group">
+									<label>SysType</label>
+									<input type="text" name="systype" class="form-control" placeholder="SysType">
+									<span class="help-block">The system_type parameter is used to categorize the type of ESME that is binding to the SMSC. Examples include “VMS” (voice mail system) and “OTA” (over-the-air activation system).</span>
+								</div>
+								<div class="form-group">
+									<label>Dlr. Expiry</label>
+									<input type="text" name="dlr_expiry" class="form-control" placeholder="Dlr. Expiry">
+									<span class="help-block">When a SMS-MT is not acked, it will remain waiting in memory for dlr_expiry seconds, after this period, any received ACK will be ignored</span>
+								</div>
+								<div class="form-group">
+									<label>Submit Throughput</label>
+									<input type="text" name="submit_throughput" class="form-control" placeholder="Submit Throughput">
+									<span class="help-block">Active SMS-MT throttling in MPS (Messages per second), set to 0 (zero) for unlimited throughput</span>
+								</div>
+								<div class="form-group">
+									<label>Proto ID</label>
+									<input type="text" name="proto_id" class="form-control" placeholder="Proto ID">
+									<span class="help-block">Used to indicate protocol id in SMS-MT and SMS-MO</span>
+								</div>
+								<div class="form-group">
+									<label>Coding</label>
+									<input type="text" name="coding" class="form-control" placeholder="Coding">
+									<span class="help-block">Default coding of each SMS-MT if not set while sending it: 0=SMSC Default, 1=IA5 ASCII, 2=Octet unspecified, 3=Latin1, 4=Octet unspecified common, 5=JIS, 6=Cyrillic, 7=ISO-8859-8, 8=UCS2, 9=Pictogram, 10=ISO-2022-JP, 13=Extended Kanji Jis, 14=KS C 5601</span>
+								</div>
+								<div class="form-group">
+									<label>Enquire Link Interval</label>
+									<input type="text" name="elink_interval" class="form-control" placeholder="Enquire Link Interval">
+									<span class="help-block">Enquire link interval (seconds)</span>
+								</div>
+								<div class="form-group">
+									<label>Def. Msg ID</label>
+									<input type="text" name="def_msg_id" class="form-control" placeholder="Def. Msg ID">
+									<span class="help-block">Specifies the SMSC index of a pre-defined (‘canned’) message.</span>
+								</div>
+								<div class="form-group">
+									<label>RIPF</label>
+									<input type="text" name="ripf" class="form-control" placeholder="RIPF">
+									<span class="help-block">Replace if present flag: 0=Do not replace, 1=Replace</span>
+								</div>
+								<div class="form-group">
+									<label>Dlr. MSJ ID</label>
+									<input type="text" name="dlr_msgid" class="form-control" placeholder="Dlr. MSJ ID">
+									<span class="help-block">Indicates how to read msg id when receiving a receipt: 0=msg id is identical in submit_sm_resp and deliver_sm, 1=submit_sm_resp msg-id is in hexadecimal base, deliver_sm msg-id is in decimal base, 2=submit_sm_resp msg-id is in decimal base, deliver_sm msg-id is in hexadecimal base.</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default btn-fill pull-left" data-dismiss="modal"><i class="fa fa-times"></i> Close</button>
+					<button type="submit" class="btn btn-info btn-fill pull-right"><i class="fa fa-edit"></i> Update</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+<div class="modal" id="service_smppccm_modal" tabindex="-1" role="dialog" aria-labelledby="defModalHead" aria-hidden="true">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<form class="form-horizontal" action="{% url 'smppccm_view_manage' %}" method="POST" id="service_smppccm_form">{% csrf_token %}
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title" id="defModalHead">Service SMPP Client Connector</h4>
+				</div>
+				<div class="modal-body">
+					<div class="container-fluid">
+						<div class="row">
+							<div class="col-md-12">
+								<div class="form-group">
+									<label>CID</label>
+									<input type="text" name="cid" class="form-control" placeholder="CID Name" required="required" readonly="readonly">
+								</div>
+								<div class="form-group">
+									<label>Service</label>
+									<select name="s" class="form-control" required="required">
+										<option value="restart">Restart</option><option value="start">Start</option><option value="stop">Stop</option>
+									</select>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default btn-fill pull-left" data-dismiss="modal"><i class="fa fa-times"></i> Close</button>
+					<button type="submit" class="btn btn-info btn-fill pull-right"><i class="fa fa-check-circle"></i> Submit</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+<input type="hidden" name="urlto" value="{% url 'smppccm_view_manage' %}">{% csrf_token %}
+{% endblock %}
+{% block extrajs %}
+<script type="text/javascript" src="/static/administration/js/smppccm.js"></script>
+{% endblock %}

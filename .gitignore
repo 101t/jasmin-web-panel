@@ -1,0 +1,79 @@
+### OSX ###
+.DS_Store
+.AppleDouble
+.LSOverride
+
+### SublimeText ###
+# cache files for sublime text
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+
+# workspace files are user-specific
+*.sublime-workspace
+
+# project files should be checked into the repository, unless a significant
+# proportion of contributors will probably not be using SublimeText
+# *.sublime-project
+
+# sftp configuration file
+sftp-config.json
+
+# Basics
+*.py[cod]
+*.pyc
+__pycache__
+
+# Logs
+*.log
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
+.tox
+nosetests.xml
+htmlcov
+
+# Translations
+*.mot
+*.pot
+
+# Pycharm
+.idea
+
+# Vim
+
+*~
+*.swp
+*.swo
+
+# npm
+node_modules/
+
+# Compass
+.sass-cache
+
+staticfiles
+
+# virtual environments
+.env
+env/
+db.sqlite3
+
+# User-uploaded media
+lms/media/
+
+# Hitch directory
+tests/.hitch
+
+# Docker Compose
+/docker-compose.yml
+
+#sunucudaki static ve medya ve dosyalarının konumu
+/public/*
+
+flower
+celerybeat-schedule
+celerybeat.pid
+
+.vagrant/

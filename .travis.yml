@@ -1,0 +1,17 @@
+sudo: false
+language: python
+python:
+  - '2.7'
+before_script:
+  # install requirements:
+  - pip install -r requirements.pip
+before_install:
+  - virtualenv env
+  - source env/bin/activate
+addons:
+  apt:
+    packages:
+      - python-dev
+      - python-setuptools
+      - python-pip
+      - git

@@ -1,0 +1,48 @@
+{
+  "users": [{
+    "username": "234",
+    "mt_messaging_cred": {
+      "valuefilter": {
+        "priority": "^[0-3]$",
+        "content": ".*",
+        "src_addr": ".*",
+        "dst_addr": ".*",
+        "validity_period": "^\\d+$"
+      },
+      "defaultvalue": {
+        "src_addr": "None"
+      },
+      "quota": {
+        "http_throughput": "ND",
+        "balance": "ND",
+        "smpps_throughput": "ND",
+        "early_percent": "ND",
+        "sms_count": "ND"
+      },
+      "authorization": {
+        "dlr_level": "True",
+        "http_long_content": "True",
+        "http_send": "True",
+        "http_dlr_method": "True",
+        "validity_period": "True",
+        "priority": "True",
+        "http_bulk": "False",
+        "src_addr": "True",
+        "http_rate": "True",
+        "http_balance": "True",
+        "smpps_send": "True"
+      }
+    },
+    "uid": "324",
+    "smpps_cred": {
+      "quota": {
+        "max_bindings": "ND"
+      },
+      "authorization": {
+        "bind": "True"
+      }
+    },
+    "gid": "Pasifik4",
+    "status": "enabled"
+  }]
+}

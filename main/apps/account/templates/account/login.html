@@ -1,0 +1,30 @@
+<title>Login</title>
+<link rel="stylesheet" type="text/css" href="/static/account/login.css">
+<script type="text/javascript" src="/static/account/login.js"></script>
+<hgroup>
+  <h1>Jasmin SMPP Panel</h1>
+    {% if messages %}
+    <div class="messages">
+    {% for message in messages %}
+      <div class="alert alert-dismissable alert-{% if message.tags %}{{message.tags|lower}}{% endif %}">
+        <!--<button type="button" class="close" data-dismiss="alert">×</button>-->
+        <p>{{ message|safe }}</p>
+      </div>
+    {% endfor %}
+    </div>
+  {% endif %}
+</hgroup>
+<form action="{% url 'login_view' %}{% if next %}?next={{next}}{% endif %}" method="post">{% csrf_token %}
+  <input type="hidden" name="next" value="{{ next }}">
+  <div class="group">
+    <input type="text" name="username"><span class="highlight"></span><span class="bar"></span>
+    <label>Username</label>
+  </div>
+  <div class="group">
+    <input type="password" name="password"><span class="highlight"></span><span class="bar"></span>
+    <label>Password</label>
+  </div>
+  <button type="submit" class="button buttonBlue">Login
+    <div class="ripples buttonRipples"><span class="ripplesCircle"></span></div>
+  </button>
+</form>

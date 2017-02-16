@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block extracss %}
+<style type="text/css">
+.help-block{font-size:9px;}
+.text-default{color:#999;}  
+</style>
+{% endblock %}
+{% block content %}
+{% include "account/includes/sidebar.html" with item="users" %}
+<div class="main-panel">
+	<div class="content">
+        <div class="container-fluid">
+        	<div class="row">
+        		<div class="col-md-12">
+        			<div class="card">
+        				<div class="header">
+        					<h4 class="title">Users <button class="btn btn-info pull-right" data-toggle="modal" data-target="#add_users_modal">Add New</button></h4>
+        				</div>
+        				<div class="content table-responsive table-full-width">
+        					<table class="table table-hover table-striped table-bordered">
+        						<thead>
+        							<tr>
+        								<th rowspan="2">#</th>
+        								<th rowspan="2">UID</th>
+        								<th rowspan="2">GID</th>
+        								<th rowspan="2">Username</th>
+        								<th rowspan="2" class="text-center">Status</th>
+        								<th colspan="2">MT Messaging Credentials</th>
+        								<th rowspan="2" class="text-center">Option</th>
+        							</tr>
+        							<tr>
+        								<th>Balance</th>
+        								<th>SMS Count</th>
+        							</tr>
+        						</thead>
+        						<tbody id="table_result">
+        						</tbody>
+        					</table>
+        				</div>
+        			</div>
+        		</div>
+        	</div>
+        </div>
+    </div>
+</div>
+<div class="modal" id="add_users_modal" tabindex="-1" role="dialog" aria-labelledby="defModalHead" aria-hidden="true">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<form class="form-horizontal" action="{% url 'users_view_manage' %}" method="POST" id="add_users_form">{% csrf_token %}<input type="hidden" name="s" value="add">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title" id="defModalHead">Add New User</h4>
+				</div>
+				<div class="modal-body">
+					<div class="container-fluid">
+						<div class="row">
+							<div class="col-md-12">
+								<div class="form-group">
+									<label>UID</label>
+									<input type="text" name="uid" class="form-control" placeholder="UID Name" required="required">
+								</div>
+								<div class="form-group">
+									<label>GID</label>
+									<select name="gid" id="gid_select" class="form-control" required="required">
+
+									</select>
+								</div>
+								<div class="form-group">
+									<label>Username</label>
+									<input type="text" name="username" class="form-control" placeholder="Username" required="required">
+								</div>
+								<div class="form-group">
+									<label>Password</label>
+									<input type="text" name="password"  class="form-control" placeholder="Password" maxlength="8" required="required">
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default btn-fill pull-left" data-dismiss="modal"><i class="fa fa-times"></i> Close</button>
+					<button type="submit" class="btn btn-info btn-fill pull-right"><i class="fa fa-plus"></i> Add</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+<div class="modal" id="edit_users_modal" tabindex="-1" role="dialog" aria-labelledby="defModalHead" aria-hidden="true">
+	<div class="modal-dialog modal-lg" style="width:1200px;">
+		<div class="modal-content">
+			<form class="form-horizontal" action="{% url 'users_view_manage' %}" method="POST" id="edit_users_form">{% csrf_token %}<input type="hidden" name="s" value="edit">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title" id="defModalHead">Edit User</h4>
+				</div>
+				<div class="modal-body">
+					<div class="container-fluid">
+						<div class="row">
+							<div class="col-md-6">
+								<div class="form-group">
+									<label>Username</label>
+									<input type="text" name="username" class="form-control" placeholder="Username" required="required">
+									<span class="help-block">A unique username used for authentication</span>
+								</div>
+								<div class="form-group">
+									<label>Password</label>
+									<input type="text" name="password"  class="form-control" placeholder="Password">
+									<span class="help-block"></span>
+								</div>
+							</div>
+							<div class="col-md-6">
+								<div class="form-group">
+									<label>UID</label>
+									<input type="text" name="uid" class="form-control" placeholder="UID Name" required="required">
+									<span class="help-block">A unique identifier, can be same as username</span>
+								</div>
+								<div class="form-group">
+									<label>GID</label>
+									<select name="gid" id="gid_select_edit" class="form-control" required="required">
+
+									</select>
+									<span class="help-block">Group Identfier</span>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-12">
+								<h3>Quota</h3>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-6">
+								<div claass="form-group">
+									<label>Balance</label>
+									<input type="text" class="form-control" name="balance" placeholder="Balance">
+									<span class="help-block">c.f. <a href="http://docs.jasminsms.com/en/latest/billing/index.html#billing-type-1" target="_blank">1. Balance quota</a></span>
+								</div>
+								<div claass="form-group">
+									<label>SMS Count</label>
+									<input type="text" class="form-control" name="sms_count" placeholder="SMS Count">
+									<span class="help-block">c.f. <a href="http://docs.jasminsms.com/en/latest/billing/index.html#billing-type-2" target="_blank">2. sms_count quota</a></span>
+								</div>
+								<div claass="form-group">
+									<label>Early Percent</label>
+									<input type="text" class="form-control" name="early_percent" placeholder="Early Percent">
+									<span class="help-block">c.f. <a href="http://docs.jasminsms.com/en/latest/billing/index.html#billing-async" target="_blank">Asynchronous billing</a></span>
+								</div>
+							</div>
+							<div class="col-md-6">
+								<div claass="form-group">
+									<label>HTTP Throughput</label>
+									<input type="text" class="form-control" name="http_throughput" placeholder="HTTP Throughput">
+									<span class="help-block">Max. number of messages per second to accept through HTTP API</span>
+								</div>
+								<div claass="form-group">
+									<label>SMPPs Throughput</label>
+									<input type="text" class="form-control" name="smpps_throughput" placeholder="SMPPs Throughput">
+									<span class="help-block">Max. number of messages per second to accept through SMPP Server</span>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-12">
+								<h3>Authorization</h3>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-4">
+								<div class="form-group">
+									<label>
+										<input type="checkbox" name="http_send"> HTTP Send
+									</label>
+									<span class="help-block">Privilege to send SMS through <a href="http://docs.jasminsms.com/en/latest/apis/ja-http/index.html#sending-sms-mt" target="_blank">Sending SMS-MT</a></span>
+								</div>
+								<div class="form-group">
+									<label>
+										<input type="checkbox" name="http_balance"> http_balance
+									</label>
+									<span class="help-block">Privilege to check balance through <a href="http://docs.jasminsms.com/en/latest/apis/ja-http/index.html#check-balance" target="_blank">Checking account balance </a></span>
+								</div>
+								<div class="form-group">
+									<label>
+										<input type="checkbox" name="http_rate"> http_rate
+									</label>
+									<span class="help-block">Privilege to check a message rate through <a href="http://docs.jasminsms.com/en/latest/apis/ja-http/index.html#check-rate" target="_blank">Checking rate price</a></span>
+								</div>
+								<div class="form-group">
+									<label>
+										<input type="checkbox" name="http_bulk"> http_bulk
+									</label>
+									<span class="help-block">Privilege to send bulks through http api (Not implemented yet)</span>
+								</div>
+							</div>
+							<div class="col-md-4">
+								<div class="form-group">
+									<label>
+										<input type="checkbox" name="smpps_send"> smpps_send
+									</label>
+									<span class="help-block">Privilege to send SMS through <a href="http://docs.jasminsms.com/en/latest/apis/smpp-server/index.html" target="_blank">SMPP Server API</a></span>
+								</div>
+								<div class="form-group">
+									<label>
+										<input type="checkbox" name="http_long_content"> http_long_content
+									</label>
+									<span class="help-block">Privilege to send long content SMS through <a href="http://docs.jasminsms.com/en/latest/apis/ja-http/index.html#sending-sms-mt" target="_blank">Sending SMS-MT</a></span>
+								</div>
+								<div class="form-group">
+									<label>
+										<input type="checkbox" name="dlr_level"> dlr_level
+									</label>
+									<span class="help-block">Privilege to set dlr-level parameter (default is 1)</span>
+								</div>
+								<div class="form-group">
+									<label>
+										<input type="checkbox" name="http_dlr_method"> http_dlr_method
+									</label>
+									<span class="help-block">Privilege to set dlr-method HTTP parameter (default is GET)</span>
+								</div>
+							</div>
+							<div class="col-md-4">
+								<div class="form-group">
+									<label>
+										<input type="checkbox" name="src_addr"> src_addr
+									</label>
+									<span class="help-block">Privilege to defined source address of SMS-MT</span>
+								</div>
+								<div class="form-group">
+									<label>
+										<input type="checkbox" name="priority"> priority
+									</label>
+									<span class="help-block">Privilege to defined priority of SMS-MT (default is 0)</span>
+								</div>
+								<div class="form-group">
+									<label>
+										<input type="checkbox" name="validity_period"> validity_period
+									</label>
+									<span class="help-block">Privilege to defined validity_period of SMS-MT (default is NOT SET)</span>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-12">
+								<h3>Value Filter</h3>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-6">
+								<div claass="form-group">
+									<label>Src. Address</label>
+									<input type="text" class="form-control" name="src_addr_f" placeholder="Src. Addr.">
+									<span class="help-block">Regex pattern to validate source address of SMS-MT</span>
+								</div>
+								<div claass="form-group">
+									<label>Dst. Address</label>
+									<input type="text" class="form-control" name="dst_addr_f" placeholder="Dst. Addr.">
+									<span class="help-block">Regex pattern to validate destination address of SMS-MT</span>
+								</div>
+								<div claass="form-group">
+									<label>Content</label>
+									<input type="text" class="form-control" name="content_f" placeholder="Content">
+									<span class="help-block">Regex pattern to validate content of SMS-MT</span>
+								</div>
+							</div>
+							<div class="col-md-6">
+								<div claass="form-group">
+									<label>Priority</label>
+									<input type="text" class="form-control" name="priority_f" placeholder="Priority">
+									<span class="help-block">Regex pattern to validate priority of SMS-MT</span>
+								</div>
+								<div claass="form-group">
+									<label>Validity Period</label>
+									<input type="text" class="form-control" name="validity_period_f" placeholder="Validity Period">
+									<span class="help-block">Regex pattern to validate validity_period of SMS-MT</span>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-12">
+								<h3>Default Value</h3>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-md-12">
+								<div claass="form-group">
+									<label>Src. Address</label>
+									<input type="text" class="form-control" name="src_addr_d" placeholder="Src. Addr.">
+									<span class="help-block">Default source address of SMS-MT</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default btn-fill pull-left" data-dismiss="modal"><i class="fa fa-times"></i> Close</button>
+					<button type="submit" class="btn btn-info btn-fill pull-right"><i class="fa fa-edit"></i> Edit</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+<div class="modal" id="service_users_modal" tabindex="-1" role="dialog" aria-labelledby="defModalHead" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form class="form-horizontal" action="{% url 'users_view_manage' %}" method="POST" id="service_users_form">{% csrf_token %}
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title" id="defModalHead">Service User</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>UID Name</label>
+                                    <input type="text" name="uid" class="form-control" placeholder="UID Name" required="required" readonly="readonly">
+                                </div>
+                                <div class="form-group">
+                                    <label>Status</label>
+                                    <select name="s" class="form-control" required="required">
+                                        <option value="enable">Enable</option><option value="disable">Disable</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default btn-fill pull-left" data-dismiss="modal"><i class="fa fa-times"></i> Close</button>
+                    <button type="submit" class="btn btn-info btn-fill pull-right"><i class="fa fa-check-circle"></i> Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<input type="hidden" name="urlto" value="{% url 'users_view_manage' %}">{% csrf_token %}
+<input type="hidden" name="urltogroups" value="{% url 'groups_view_manage' %}">
+{% endblock %}
+{% block extrajs %}
+<script type="text/javascript" src="/static/administration/js/users.js"></script>
+{% endblock %}

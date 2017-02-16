@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Filters{% endblock %}
+{% block extracss %}{% endblock %}
+{% block content %}
+{% include "account/includes/sidebar.html" with item="filters" %}
+<div class="main-panel">
+	<div class="content">
+        <div class="container-fluid">
+        	<div class="row">
+        		<div class="col-md-12">
+        			<div class="card">
+        				<div class="header">
+        					<h4 class="title">Filters <button class="btn btn-info pull-right" data-toggle="modal" data-target="#add_filters_modal">Add New</button></h4>
+        				</div>
+        				<div class="content table-responsive table-full-width">
+        					<table class="table table-hover table-striped">
+        						<thead>
+        							<tr>
+        								<th>#</th>
+        								<th>FID Name</th>
+        								<th>Type</th>
+                                        <th>Routes</th>
+                                        <th>Description</th>
+        								<th class="text-center">Option</th>
+        							</tr>
+        						</thead>
+        						<tbody id="table_result">
+        						</tbody>
+        					</table>
+        				</div>
+        			</div>
+        		</div>
+        	</div>
+        </div>
+    </div>
+</div>
+<div class="modal" id="add_filters_modal" tabindex="-1" role="dialog" aria-labelledby="defModalHead" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form class="form-horizontal" action="{% url 'filters_view_manage' %}" method="POST" id="add_filters_form">{% csrf_token %}<input type="hidden" name="s" value="add">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title" id="defModalHead">Add New Filter</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>Type</label>
+                                    <select name="type" id="type_select" class="form-control" required="required">
+                                        <option>TransparentFilter</option><option>ConnectorFilter</option><option>UserFilter</option><option>GroupFilter</option><option>SourceAddrFilter</option><option>DestinationAddrFilter</option><option>ShortMessageFilter</option><option>DateIntervalFilter</option><option>TimeIntervalFilter</option><option>TagFilter</option><option>EvalPyFilter</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>FID Name</label>
+                                    <input type="text" name="fid" class="form-control" placeholder="FID" required="required">
+                                </div>
+                                <div class="form-group">
+                                    <label>Parameter</label>
+                                    <input type="text" name="parameter" class="form-control" placeholder="Parameter">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default btn-fill pull-left" data-dismiss="modal"><i class="fa fa-times"></i> Close</button>
+                    <button type="submit" class="btn btn-info btn-fill pull-right"><i class="fa fa-plus"></i> Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<input type="hidden" name="urlto" value="{% url 'filters_view_manage' %}">{% csrf_token %}
+{% endblock %}
+{% block extrajs %}
+<script type="text/javascript" src="/static/administration/js/filters.js"></script>
+{% endblock %}
