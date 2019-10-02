@@ -1,4 +1,7 @@
 # Jasmin Web Panel
+
+[![Build Status](https://travis-ci.org/101t/jasmin-web-panel.svg?branch=master)](https://travis-ci.org/101t/jasmin-web-panel)
+
 Jasmin SMS Web Interface for Jasmin SMS Gateway
 
 ## Installation
