@@ -10,8 +10,6 @@ before_install:
   - source env/bin/activate
 addons:
   apt:
-    sources:
-      - ppa:chris-lea/redis-server
     packages:
       - python-dev
       - python-setuptools
