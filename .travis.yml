@@ -4,7 +4,7 @@ python:
   - '2.7'
 before_script:
   # install requirements:
-  - pip install -r requirements.pip
+  - pip install -r requirements.txt
 before_install:
   - virtualenv env
   - source env/bin/activate
