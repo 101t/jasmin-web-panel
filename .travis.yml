@@ -15,5 +15,7 @@ addons:
       - python-setuptools
       - python-pip
       - git
+env:
+  - DJANGO_SETTINGS_MODULE=main.settings
 script:
   - python manage.py makemigrations && python manage.py migrate && python manage.py test
