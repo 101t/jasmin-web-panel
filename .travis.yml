@@ -10,11 +10,15 @@ before_install:
   - source env/bin/activate
 addons:
   apt:
+    sources:
+      - ppa:chris-lea/redis-server
     packages:
       - python-dev
       - python-setuptools
       - python-pip
       - git
+      - virtualenv
+      - redis-server
 env:
   - DJANGO_SETTINGS_MODULE=main.settings
 script:
