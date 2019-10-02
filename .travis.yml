@@ -1,4 +1,4 @@
-sudo: false
+sudo: no
 language: python
 python:
   - '2.7'
@@ -15,3 +15,5 @@ addons:
       - python-setuptools
       - python-pip
       - git
+script:
+  - python manage.py makemigrations && python manage.py migrate && python manage.py runserver
