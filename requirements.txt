@@ -1,6 +1,6 @@
 CherryPy==8.9.0
 coreapi==2.1.1
-Django==1.11.25
+Django==1.11.28
 django-rest-swagger==2.1.1
 djangorestframework==3.9.1
 itypes==1.1.0
