@@ -10,8 +10,10 @@ We recommend installing in a virtualenv
 
 Install dependencies:
 
+> This version using `python2.7` make sure you have installed
+
 ```shell
-$ pip install -r requirements.pip
+$ pip install -r requirements.txt
 ```
 cd to **JasminWebPanel** and run:
 ```shell
