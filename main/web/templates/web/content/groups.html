@@ -1,0 +1,93 @@
+{% extends "web/base.html" %}
+{% load static i18n %}
+{% block title %}{% trans "Groups" %}{% endblock title %}
+{% block extracss %}{% endblock extracss %}
+{% block content %}
+<h1 class="h3 mb-2 text-gray-800">{% trans "Groups" %}</h1>
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h4>
+            <button class="btn btn-success btn-sm float-right" id="add_new_obj"><i class="fas fa-plus"></i> {% trans "Add New" %}</button>
+        </h4>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>{% trans "GID Name" %}</th>
+                        <th class="text-center">{% trans "Status" %}</th>
+                        <th class="text-center">{% trans "Option" %}</th>
+                    </tr>
+                </thead>
+                <tbody id="collectionlist"></tbody>
+                <tbody class="isEmpty" style="display:none;">
+                    <tr>
+                        <td colspan="4" class="text-center"><i class="fas fa-users text-metal" style="font-size:5rem;"></i><br>{% trans "No Group" %}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="collection_modal" tabindex="-1" role="dialog" aria-labelledby="collection_modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <form id="add_modal_form" style="display:none" action="{% url 'web:groups_view_manage' %}" method="post">{% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="collection_modalLabel">{% trans "Add New Group" %}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "GID" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="gid" class="form-control" placeholder="{% trans 'GID Name' %}">
+                            <small class="text-muted">{% trans "Group ID" %}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary">{% trans "Add New Group" %}</button>
+                </div>
+                <input type="hidden" name="s" value="add">
+            </form>
+            <form id="service_modal_form" style="display:none" action="{% url 'web:groups_view_manage' %}" method="post">{% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="collection_modalLabel">{% trans "Service Group" %}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "GID" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="gid" class="form-control" placeholder="{% trans 'GID Name' %}" readonly>
+                            <small class="text-muted">{% trans "Group ID" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Status" %}</label>
+                        <div class="col-sm-10">
+                            <select name="s" class="form-control" required="required">
+                                <option value="enable">{% trans "Enable" %}</option><option value="disable">{% trans "Disable" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary">{% trans "Submit" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+{% block extrajs %}
+<script>
+var main_trans = {};
+</script>
+<script src="{% static 'web/content/groups.js' %}"></script>
+{% endblock extrajs %}

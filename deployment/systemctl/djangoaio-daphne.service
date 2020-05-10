@@ -1,0 +1,21 @@
+[Unit]
+Description=Django-AIO Daphne
+Requires=postgresql.service
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+SyslogIdentifier=djangoaiodaphne
+PermissionsStartOnly=true
+User=username
+Group=username
+Environment="DJANGO_SETTINGS_MODULE=config.settings.pro"
+WorkingDirectory=/home/username/projects/django-aio
+ExecStart=/home/username/projects/django-aio/env/bin/daphne -b 0.0.0.0 -p 8000 config.asgi:application
+StandardOutput=file:/home/username/projects/django-aio/logs/daphne.log
+StandardError=file:/home/username/projects/django-aio/logs/daphne.log
+StandardOutput=journal+console
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

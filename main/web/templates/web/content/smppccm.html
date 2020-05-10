@@ -1,0 +1,405 @@
+{% extends "web/base.html" %}
+{% load static i18n %}
+{% block title %}{% trans "SMPP Client Connector Manager" %}{% endblock title %}
+{% block extracss %}{% endblock extracss %}
+{% block content %}
+<h1 class="h3 mb-2 text-gray-800">{% trans "SMPP Client Connector Manager" %}</h1>
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h4>
+            <button class="btn btn-success btn-sm float-right" id="add_new_obj"><i class="fas fa-plus"></i> {% trans "Add New" %}</button>
+        </h4>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>{% trans "CID Name" %}</th>
+                        <th>{% trans "Host" %}</th>
+                        <th>{% trans "Port" %}</th>
+                        <th>{% trans "Username" %}</th>
+                        <th>{% trans "Password" %}</th>
+                        <th class="text-center">{% trans "Status" %}</th>
+                        <th class="text-center">{% trans "Option" %}</th>
+                    </tr>
+                </thead>
+                <tbody id="collectionlist"></tbody>
+                <tbody class="isEmpty" style="display:none;">
+                    <tr>
+                        <td colspan="8" class="text-center"><i class="fas fa-atom text-metal" style="font-size:5rem;"></i><br>{% trans "No SMPPCCM" %}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="collection_modal" tabindex="-1" role="dialog" aria-labelledby="collection_modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <form id="add_modal_form" style="display:none" action="{% url 'web:smppccm_view_manage' %}" method="post">{% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="collection_modalLabel">{% trans "Add New SMPP Client Connector" %}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <span>{% trans "When adding a SMPP Client connector, only it’s cid is required, all the other parameters will be set to their respective defaults." %}</span>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "CID" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="cid" class="form-control" placeholder="{% trans 'CID Name' %}">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Host" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="host" class="form-control" placeholder="{% trans 'Hostname or IP Address' %}">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Port" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="port" class="form-control" placeholder="{% trans 'Port Number' %}">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Username" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="username" class="form-control" placeholder="{% trans 'Username' %}">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Password" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="password" class="form-control" placeholder="{% trans 'Password' %}">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary">{% trans "Add New SMPPCCM" %}</button>
+                </div>
+                <input type="hidden" name="s" value="add">
+            </form>
+            <form id="edit_modal_form" style="display:none" action="{% url 'web:smppccm_view_manage' %}" method="post">{% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="collection_modalLabel">{% trans "Edit SMPP Client Connector" %}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <span>{% trans "Connector restart is required only when changing the following parameters:" %}
+                        <strong>host, port, username, password, systemType, logfile, loglevel</strong>
+                        {% trans "any other change is applied without requiring connector to be restarted." %}
+                        </span>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "CID" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="cid" class="form-control" placeholder="{% trans 'CID Name' %}">
+                            <small class="text-muted">{% trans "Connector ID (must be unique)" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Log File" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="logfile" class="form-control" placeholder="{% trans 'Log File' %}">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Log Rotate" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="logrotate" class="form-control" placeholder="{% trans 'Log Rotate' %}">
+                            <small class="text-muted">{% trans "When to rotate the log file, possible values: S=Seconds, M=Minutes, H=Hours, D=Days, W0-W6=Weekday (0=Monday) and midnight=Roll over at midnight" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Host" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="host" class="form-control" placeholder="{% trans 'Host' %}">
+                            <small class="text-muted">{% trans "Server that runs SMSC" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Port" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="port" class="form-control" placeholder="{% trans 'Port' %}">
+                            <small class="text-muted">{% trans "The port number for the connection to the SMSC." %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "SSL" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="ssl" class="form-control" placeholder="{% trans 'SSL' %}">
+                            <small class="text-muted">{% trans "Activate ssl connection" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Username" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="username" class="form-control" placeholder="{% trans 'Username' %}">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Password" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="password" class="form-control" placeholder="{% trans 'Password' %}">
+                        </div>
+                    </div>
+                    <hr class="mt-2 pb-2">
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Bind" %}</label>
+                        <div class="col-sm-10">
+                            <select name="bind" class="form-control" placeholder="Bind">
+								<option>transceiver</option><option>receiver</option><option>transmitter</option>
+							</select>
+                            <small class="text-muted">{% trans "Bind type: transceiver, receiver or transmitter" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Bind To" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="bind_to" class="form-control" placeholder="{% trans 'Bind To' %}">
+                            <small class="text-muted">{% trans "Timeout for response to bind request" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Transaction To" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="trx_to" class="form-control" placeholder="{% trans 'Transaction To' %}">
+                            <small class="text-muted">{% trans "Maximum time lapse allowed between transactions, after which, the connection is considered as inactive and will reconnect" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Response To" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="res_to" class="form-control" placeholder="{% trans 'Response To' %}">
+                            <small class="text-muted">{% trans "Timeout for responses to any request PDU" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "PDU Read To" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="pdu_red_to" class="form-control" placeholder="{% trans 'PDU Read To' %}">
+                            <small class="text-muted">{% trans "Timeout for reading a single PDU, this is the maximum lapse of time between receiving PDU’s header and its complete read, if the PDU reading timed out, the connection is considered as ‘corrupt’ and will reconnect" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Retry Connection Loss" %}</label>
+                        <div class="col-sm-10">
+                            <select name="con_loss_retry" class="form-control" placeholder="Con. Loss Retry">
+                                <option>yes</option><option>no</option>
+                            </select>
+                            <small class="text-muted">{% trans "Reconnect on connection loss ? (yes, no)" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Delay on Connection Loss" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="con_loss_delay" class="form-control" placeholder="{% trans 'Delay on Connection Loss' %}">
+                            <small class="text-muted">{% trans "Reconnect delay on connection loss (seconds)" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Retry Connection Failed" %}</label>
+                        <div class="col-sm-10">
+                            <select name="con_fail_retry" class="form-control" placeholder="Con. Fail Retry">
+                                <option>yes</option><option>no</option>
+                            </select>
+                            <small class="text-muted">{% trans "Reconnect on connection failure ? (yes, no)" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Delay on Connection Failed" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="con_fail_delay" class="form-control" placeholder="{% trans 'Delay on Connection Failed' %}">
+                            <small class="text-muted">{% trans "Reconnect delay on connection failure (seconds)" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Default Source Address" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="src_addr" class="form-control" placeholder="{% trans 'Default Source Address' %}">
+                            <small class="text-muted">{% trans "Default source adress of each SMS-MT if not set while sending it, can be numeric or alphanumeric, when not defined it will take SMSC default" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Source Address TON Setting" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="src_ton" class="form-control" placeholder="{% trans 'Source Address TON Setting' %}">
+                            <small class="text-muted">{% trans "Source address TON setting for the link: 0=Unknown, 1=International, 2=National, 3=Network specific, 4=Subscriber number, 5=Alphanumeric, 6=Abbreviated" %}</small>
+                        </div>
+                    </div>
+                    <hr class="mt-2 pb-2">
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Source Address NPI" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="src_npi" class="form-control" placeholder="{% trans 'Source Address NPI' %}">
+                            <small class="text-muted">{% trans "Source address NPI setting for the link: 0=Unknown, 1=ISDN, 3=Data, 4=Telex, 6=Land mobile, 8=National, 9=Private, 10=Ermes, 14=Internet, 18=WAP Client ID" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Destination Address TON" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="dst_ton" class="form-control" placeholder="{% trans 'Destination Address TON' %}">
+                            <small class="text-muted">{% trans "Destination address TON setting for the link: 0=Unknown, 1=International, 2=National, 3=Network specific, 4=Subscriber number, 5=Alphanumeric, 6=Abbreviated" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Destination Address NPI" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="dst_npi" class="form-control" placeholder="{% trans 'Destination Address NPI' %}">
+                            <small class="text-muted">{% trans "Destination address NPI setting for the link: 0=Unknown, 1=ISDN, 3=Data, 4=Telex, 6=Land mobile, 8=National, 9=Private, 10=Ermes, 14=Internet, 18=WAP Client ID" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Bind Address TON" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="bind_ton" class="form-control" placeholder="{% trans 'Bind Address TON' %}">
+                            <small class="text-muted">{% trans "Bind address TON setting for the link: 0=Unknown, 1=International, 2=National, 3=Network specific, 4=Subscriber number, 5=Alphanumeric, 6=Abbreviated" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Bind Address NPI" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="bind_npi" class="form-control" placeholder="{% trans 'Bind Address NPI' %}">
+                            <small class="text-muted">{% trans "Bind address NPI setting for the link: 0=Unknown, 1=ISDN, 3=Data, 4=Telex, 6=Land mobile, 8=National, 9=Private, 10=Ermes, 14=Internet, 18=WAP Client ID" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Validity Period" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="validity" class="form-control" placeholder="{% trans 'Validity Period' %}">
+                            <small class="text-muted">{% trans "Default validity period of each SMS-MT if not set while sending it, when not defined it will take SMSC default (seconds)" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "SMS-MT Priority" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="priority" class="form-control" placeholder="{% trans 'SMS-MT Priority' %}">
+                            <small class="text-muted">{% trans "SMS-MT default priority if not set while sending it: 0, 1, 2 or 3" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Requeue Delay" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="requeue_delay" class="form-control" placeholder="{% trans 'Requeue Delay' %}">
+                            <small class="text-muted">{% trans "Delay to be considered when requeuing a rejected message" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Address Range" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="addr_range" class="form-control" placeholder="{% trans 'Address Range' %}">
+                            <small class="text-muted">{% trans "Indicates which MS’s can send messages to this connector, seems to be an informative value" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "System Type" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="systype" class="form-control" placeholder="{% trans 'System Type' %}">
+                            <small class="text-muted">{% trans "The system_type parameter is used to categorize the type of ESME that is binding to the SMSC. Examples include “VMS” (voice mail system) and “OTA” (over-the-air activation system)." %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Deliver Expiry" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="dlr_expiry" class="form-control" placeholder="{% trans 'Deliver Expiry' %}">
+                            <small class="text-muted">{% trans "When a SMS-MT is not acked, it will remain waiting in memory for dlr_expiry seconds, after this period, any received ACK will be ignored" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Submit Throughput" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="submit_throughput" class="form-control" placeholder="{% trans 'Submit Throughput' %}">
+                            <small class="text-muted">{% trans "Active SMS-MT throttling in MPS (Messages per second), set to 0 (zero) for unlimited throughput" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Protocol ID" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="proto_id" class="form-control" placeholder="{% trans 'Protocol ID' %}">
+                            <small class="text-muted">{% trans "Used to indicate protocol id in SMS-MT and SMS-MO" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Coding" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="coding" class="form-control" placeholder="{% trans 'Coding' %}">
+                            <small class="text-muted">{% trans "Default coding of each SMS-MT if not set while sending it: 0=SMSC Default, 1=IA5 ASCII, 2=Octet unspecified, 3=Latin1, 4=Octet unspecified common, 5=JIS, 6=Cyrillic, 7=ISO-8859-8, 8=UCS2, 9=Pictogram, 10=ISO-2022-JP, 13=Extended Kanji Jis, 14=KS C 5601" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Enquire Link Interval" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="elink_interval" class="form-control" placeholder="{% trans 'Enquire Link Interval' %}">
+                            <small class="text-muted">{% trans "Enquire link interval (seconds)" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Default Msg ID" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="def_msg_id" class="form-control" placeholder="{% trans 'Default Msg ID' %}">
+                            <small class="text-muted">{% trans "Specifies the SMSC index of a pre-defined (‘canned’) message." %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "RIPF" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="ripf" class="form-control" placeholder="{% trans 'RIPF' %}">
+                            <small class="text-muted">{% trans "Replace if present flag: 0=Do not replace, 1=Replace" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Deliver Msg ID" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="dlr_msgid" class="form-control" placeholder="{% trans 'Deliver Msg ID' %}">
+                            <small class="text-muted">{% trans "Indicates how to read msg id when receiving a receipt: 0=msg id is identical in submit_sm_resp and deliver_sm, 1=submit_sm_resp msg-id is in hexadecimal base, deliver_sm msg-id is in decimal base, 2=submit_sm_resp msg-id is in decimal base, deliver_sm msg-id is in hexadecimal base." %}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary">{% trans "Update" %}</button>
+                </div>
+                <input type="hidden" name="s" value="edit">
+            </form>
+            <form id="service_modal_form" style="display:none" action="{% url 'web:smppccm_view_manage' %}" method="post">{% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="collection_modalLabel">{% trans "Edit SMPP Client Connector" %}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "CID" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="cid" class="form-control" placeholder="{% trans 'CID Name' %}" readonly>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Service" %}</label>
+                        <div class="col-sm-10">
+                            <select name="s" class="form-control">
+                                <option value="restart">{% trans "Restart" %}</option><option value="start">{% trans "Start" %}</option><option value="stop">{% trans "Stop" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary">{% trans "Submit" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+{% block extrajs %}
+<script>
+var main_trans = {};
+</script>
+<script src="{% static 'web/content/smppccm.js' %}"></script>
+{% endblock extrajs %}

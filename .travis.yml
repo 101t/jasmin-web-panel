@@ -1,7 +1,7 @@
 sudo: no
 language: python
 python:
-  - '2.7'
+  - '3.7'
 before_script:
   # install requirements:
   - pip install -r requirements.txt
@@ -18,6 +18,6 @@ addons:
       - virtualenv
       - redis-server
 env:
-  - DJANGO_SETTINGS_MODULE=main.settings
+  - DJANGO_SETTINGS_MODULE=config.settings.pro
 script:
-  - python manage.py makemigrations && python manage.py migrate && python manage.py test
+  - ./load_data.sh

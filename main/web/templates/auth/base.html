@@ -1,0 +1,32 @@
+{% load static i18n %}
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>{% block title %}{% trans "Sign In" %}{% endblock title %}</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<meta name="robots" content="all,follow">
+	<link rel="stylesheet" type="text/css" href="{% static 'assets/css/base.css' %}">
+	{% block extracss %}{% endblock extracss %}
+</head>
+<body class="bg-gradient-primary">
+	<div class="container">
+		<div class="row justify-content-center">
+			<div class="col-xl-10 col-lg-12 col-md-9">
+				<div class="card o-hidden border-0 shadow-lg my-5">
+					<div class="card-body p-0">
+						{% block content %}{% endblock content %}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+<script src="{% static 'assets/vendor/jquery/jquery.min.js' %}"></script>
+<script src="{% static 'assets/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'assets/vendor/jquery-easing/jquery.easing.min.js' %}"></script>
+<script src="{% static 'assets/js/sb-admin-2.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'auth/global.js' %}"></script>
+{% block extrajs %}{% endblock extrajs %}
+</body>
+</html>

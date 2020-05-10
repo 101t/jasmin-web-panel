@@ -1,0 +1,49 @@
+{% extends "auth/base.html" %}
+{% load static i18n %}
+{% block title %}{% trans "Sign In" %}{% endblock title %}
+{% block extracss %}{% endblock extracss %}
+{% block content %}
+<div class="row">
+    <div class="col-lg-6 d-none d-lg-block bg-login-image1 text-center">
+        <img src="/static/assets/img/svg/login.svg" style="width:50%; margin-top:12%;" alt="Login">
+    </div>
+    <div class="col-lg-6">
+        <div class="p-5">
+            <div class="text-center">
+                <h1 class="h4 text-gray-900 mb-4">{% trans 'Welcome Back!' %}</h1>
+            </div>
+            {% if messages %}
+                <div class="messages">
+                {% for message in messages %}
+                <div class="alert alert-dismissable alert-{% if message.tags %}{{message.tags|lower}}{% endif %}">
+                    <p>{{ message|safe }}</p>
+                </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+            <form class="user" action="{% url 'users:signin_view' %}{% if next %}?next={{next}}{% endif %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next }}">
+                <div class="form-group">
+                    <input type="text" name="username" class="form-control form-control-user" id="exampleInputEmail" aria-describedby="emailHelp" placeholder="{% trans 'Username' %}">
+                </div>
+                <div class="form-group">
+                    <input type="password" name="password" class="form-control form-control-user" id="exampleInputPassword" placeholder="{% trans 'Password' %}">
+                </div>
+                <div class="form-group">
+                    <div class="custom-control custom-checkbox small">
+                        <input type="checkbox" class="custom-control-input" id="customCheck">
+                        <label class="custom-control-label" for="customCheck">{% trans 'Remember Me' %}</label>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-user btn-block">{% trans 'Login' %}</button>
+            </form>
+            <hr>
+            <div class="text-center"><a class="small" href="">{% trans 'Forgot Password?' %}</a></div>
+            <!--<div class="text-center"><a class="small" href="">{% trans 'Create an Account!' %}</a></div>-->
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+{% block extrajs %}{% endblock extrajs %}

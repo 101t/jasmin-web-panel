@@ -1,0 +1,44 @@
+{% extends "web/base.html" %}
+{% load static i18n %}
+{% block title %}{% trans "Welcome to Django AIO" %}{% endblock title %}
+{% block extracss %}
+<link href="https://fonts.googleapis.com/css?family=Raleway:400,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<style>
+    * {font-family: 'Raleway', sans-serif;}
+    a {text-decoration: none; color: #0a3724;font-size: 13px;}
+    h2 {color: #0a3724;}
+    body {display: table;width: 100%;height:100vh;}
+	body div {display: table-cell;text-align: center;vertical-align: middle;}
+    ul {list-style-type: none;margin: 0;padding: 0;font-size:13px;}
+	ul > li {display: inline-block;}
+	ul > li > a {text-decoration: none;color:black;}
+	ul > li > a:hover{text-decoration: none; color:#142038;}
+</style>
+{% endblock extracss %}
+{% block content %}
+<div>
+    <p>
+        <img src="{% static 'assets/img/django-aio.png' %}" alt="Django AIO">
+    </p>
+    <h2>Welcome to Django-AIO</h2>
+    <ul>
+        <li>
+            <strong>Django:</strong> {{ django_version }}
+        </li>
+        <li>&bull;</li>
+        <li>
+            <strong>Python:</strong> {{ python_version }}
+        </li>
+        <li>&bull;</li>
+        <li>
+            <strong>Platform:</strong> {{ platform|title }}
+        </li>
+        <li>&bull;</li>
+        <li>
+            <a href="https://github.com/101t/django-aio"><strong>Github</strong></a>
+        </li>
+    </ul>
+</div>
+{% endblock content %}
+{% block extrajs %}{% endblock extrajs %}

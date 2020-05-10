@@ -1,0 +1,342 @@
+{% extends "web/base.html" %}
+{% load static i18n %}
+{% block title %}{% trans "Users" %}{% endblock title %}
+{% block extracss %}{% endblock extracss %}
+{% block content %}
+<h1 class="h3 mb-2 text-gray-800">{% trans "Users" %}</h1>
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h4>
+            <button class="btn btn-success btn-sm float-right" id="add_new_obj"><i class="fas fa-plus"></i> {% trans "Add New" %}</button>
+        </h4>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped table-bordered table-sm">
+                <thead>
+                    <tr>
+                        <th rowspan="2">#</th>
+                        <th rowspan="2">{% trans "UID" %}</th>
+                        <th rowspan="2">{% trans "GID" %}</th>
+                        <th rowspan="2">{% trans "Username" %}</th>
+                        <th rowspan="2" class="text-center">{% trans "Status" %}</th>
+                        <th colspan="2">{% trans "MT Messaging Credentials" %}</th>
+                        <th rowspan="2" class="text-center">{% trans "Option" %}</th>
+                    </tr>
+                    <tr>
+                        <th>{% trans "Balance" %}</th>
+                        <th>{% trans "SMS Count" %}</th>
+                    </tr>
+                </thead>
+                <tbody id="collectionlist"></tbody>
+                <tbody class="isEmpty" style="display:none;">
+                    <tr>
+                        <td colspan="8" class="text-center"><i class="fas fa-user text-metal" style="font-size:5rem;"></i><br>{% trans "No User" %}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="collection_modal" tabindex="-1" role="dialog" aria-labelledby="collection_modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <form id="add_modal_form" style="display:none" action="{% url 'web:users_view_manage' %}" method="post">{% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="collection_modalLabel">{% trans "Add New User" %}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "UID" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="uid" class="form-control" placeholder="{% trans 'UID Name' %}">
+                            <small class="text-muted">{% trans "User ID" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "GID" %}</label>
+                        <div class="col-sm-10">
+                            <select name="gid" class="form-control"></select>
+                            <small class="text-muted">{% trans "Group ID" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Username" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="username" class="form-control" placeholder="{% trans 'Username' %}">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Password" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="password" class="form-control" placeholder="{% trans 'Password' %}">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary">{% trans "Add New User" %}</button>
+                </div>
+                <input type="hidden" name="s" value="add">
+            </form>
+            <form id="edit_modal_form" style="display:none" action="{% url 'web:users_view_manage' %}" method="post">{% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="collection_modalLabel">{% trans "Edit User" %}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "UID" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="uid" class="form-control" placeholder="{% trans 'UID Name' %}">
+                            <small class="text-muted">{% trans "User ID" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "GID" %}</label>
+                        <div class="col-sm-10">
+                            <select name="gid" class="form-control"></select>
+                            <small class="text-muted">{% trans "Group ID" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Username" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="username" class="form-control" placeholder="{% trans 'Username' %}">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Password" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="password" class="form-control" placeholder="{% trans 'Password' %}">
+                        </div>
+                    </div>
+                    <h3>{% trans "Quota" %}</h3>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Balance" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="balance" class="form-control" placeholder="{% trans 'Balance' %}">
+                            <small class="text-muted"><a href="http://docs.jasminsms.com/en/latest/billing/index.html#billing-type-1" target="_blank">{% trans "1. Balance quota" %}</a></small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "SMS Count" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="sms_count" class="form-control" placeholder="{% trans 'SMS Count' %}">
+                            <small class="text-muted"><a href="http://docs.jasminsms.com/en/latest/billing/index.html#billing-type-2" target="_blank">{% trans "2. SMS Count quota" %}</a></small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Early Percent" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="early_percent" class="form-control" placeholder="{% trans 'Early Percent' %}">
+                            <small class="text-muted"><a href="http://docs.jasminsms.com/en/latest/billing/index.html#billing-async" target="_blank">{% trans "Asynchronous billing" %}</a></small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "HTTP Throughput" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="http_throughput" class="form-control">
+                            <small class="text-muted">{% trans "Max. number of messages per second to accept through HTTP API" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "SMPP Throughput" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="smpps_throughput" class="form-control">
+                            <small class="text-muted">{% trans "Max. number of messages per second to accept through SMPP Server" %}</small>
+                        </div>
+                    </div>
+                    <h3>{% trans "Authorization" %}</h3>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" name="http_send"> {% trans "HTTP Send" %}
+                                </label>
+                                <small class="text-muted">
+                                    {% trans "Privilege to send SMS through Sending SMS-MT" %} - 
+                                    <a href="http://docs.jasminsms.com/en/latest/apis/ja-http/index.html#sending-sms-mt" target="_blank">{% trans "How?" %}</a>
+                                </small>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" name="http_balance"> {% trans "HTTP Balance" %}
+                                </label>
+                                <small class="text-muted">
+                                    {% trans "Privilege to check balance through Checking account balance" %} - 
+                                    <a href="http://docs.jasminsms.com/en/latest/apis/ja-http/index.html#check-balance" target="_blank">{% trans "How?" %}</a>
+                                </small>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" name="http_rate"> {% trans "HTTP Rate" %}
+                                </label>
+                                <small class="text-muted">
+                                    {% trans "Privilege to check a message rate through Checking rate price" %} - 
+                                    <a href="http://docs.jasminsms.com/en/latest/apis/ja-http/index.html#check-rate" target="_blank">{% trans "How?" %}</a>
+                                </small>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" name="http_bulk"> {% trans "HTTP Bulk" %}
+                                </label>
+                                <small class="text-muted">
+                                    {% trans "Privilege to send bulks through HTTP API" %}
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" name="smpps_send"> {% trans "SMPP Send" %}
+                                </label>
+                                <small class="text-muted">
+                                    {% trans "Privilege to send SMS through SMPP Server API" %} - 
+                                    <a href="http://docs.jasminsms.com/en/latest/apis/smpp-server/index.html" target="_blank">{% trans "How?" %}</a>
+                                </small>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" name="http_long_content"> {% trans "HTTP Long Content" %}
+                                </label>
+                                <small class="text-muted">
+                                    {% trans "Privilege to send long content SMS through Sending SMS-MT" %} - 
+                                    <a href="http://docs.jasminsms.com/en/latest/apis/ja-http/index.html#sending-sms-mt" target="_blank">{% trans "How?" %}</a>
+                                </small>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" name="dlr_level"> {% trans "Deliver Level" %}
+                                </label>
+                                <small class="text-muted">
+                                    {% trans "Privilege to set dlr-level parameter (default is 1)" %}
+                                </small>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" name="http_dlr_method"> {% trans "HTTP Deliver Method" %}
+                                </label>
+                                <small class="text-muted">
+                                    {% trans "Privilege to set dlr-method HTTP parameter (default is GET)" %}
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" name="src_addr"> {% trans "Source Address" %}
+                                </label>
+                                <small class="text-muted">
+                                    {% trans "Privilege to defined source address of SMS-MT" %}
+                                </small>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" name="priority"> {% trans "Priority" %}
+                                </label>
+                                <small class="text-muted">
+                                    {% trans "Privilege to defined priority of SMS-MT (default is 0)" %}
+                                </small>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" name="validity_period"> {% trans "Validity Period" %}
+                                </label>
+                                <small class="text-muted">
+                                    {% trans "Privilege to defined validity_period of SMS-MT (default is NOT SET)" %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <h3>{% trans "Value Filter" %}</h3>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Source Address Filter" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="src_addr_f" class="form-control">
+                            <small class="text-muted">{% trans "Regex pattern to validate source address of SMS-MT" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Destination Address Filter" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="dst_addr_f" class="form-control">
+                            <small class="text-muted">{% trans "Regex pattern to validate destination address of SMS-MT" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Content Filter" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="content_f" class="form-control">
+                            <small class="text-muted">{% trans "Regex pattern to validate content of SMS-MT" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Priority Filter" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="priority_f" class="form-control">
+                            <small class="text-muted">{% trans "Regex pattern to validate priority of SMS-MT" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Validity Period Filter" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="validity_period_f" class="form-control">
+                            <small class="text-muted">{% trans "Regex pattern to validate validity_period of SMS-MT" %}</small>
+                        </div>
+                    </div>
+                    <h3>{% trans "Default Value" %}</h3>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Default Source Address" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="src_addr_d" class="form-control">
+                            <small class="text-muted">{% trans "Default source address of SMS-MT" %}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary">{% trans "Save User" %}</button>
+                </div>
+                <input type="hidden" name="s" value="edit">
+            </form>
+            <form id="service_modal_form" style="display:none" action="{% url 'web:users_view_manage' %}" method="post">{% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="collection_modalLabel">{% trans "User Service" %}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "UID" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="uid" class="form-control" placeholder="{% trans 'UID Name' %}" readonly>
+                            <small class="text-muted">{% trans "User ID" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "Status" %}</label>
+                        <div class="col-sm-10">
+                            <select name="s" class="form-control" required="required">
+                                <option value="enable">{% trans "Enable" %}</option><option value="disable">{% trans "Disable" %}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary">{% trans "Submit" %}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+{% block extrajs %}
+<script>
+var main_trans = {
+    url2groups: "{% url 'web:groups_view_manage' %}",
+};
+</script>
+<script src="{% static 'web/content/users.js' %}"></script>
+{% endblock extrajs %}

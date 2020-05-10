@@ -1,0 +1,21 @@
+[Unit]
+Description=Django-AIO Celery Beat
+Requires=postgresql.service
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+SyslogIdentifier=djangoaiocelerybeat
+PermissionsStartOnly=true
+User=username
+Group=username
+Environment="DJANGO_SETTINGS_MODULE=config.settings.pro"
+WorkingDirectory=/home/username/projects/django-aio
+ExecStart=/home/username/projects/django-aio/env/bin/celery beat -A main.taskapp -l info
+StandardOutput=file:/home/username/projects/django-aio/logs/beat.log
+StandardError=file:/home/username/projects/django-aio/logs/beat.log
+StandardOutput=journal+console
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

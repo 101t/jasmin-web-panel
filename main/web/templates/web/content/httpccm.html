@@ -1,0 +1,83 @@
+{% extends "web/base.html" %}
+{% load static i18n %}
+{% block title %}{% trans "HTTP Client Connector Manager" %}{% endblock title %}
+{% block extracss %}{% endblock extracss %}
+{% block content %}
+<h1 class="h3 mb-2 text-gray-800">{% trans "HTTP Client Connector Manager" %}</h1>
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h4>
+            <button class="btn btn-success btn-sm float-right" id="add_new_obj"><i class="fas fa-plus"></i> {% trans "Add New" %}</button>
+        </h4>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>{% trans "CID Name" %}</th>
+                        <th>{% trans "URL" %}</th>
+                        <th>{% trans "Method" %}</th>
+                        <th class="text-center">{% trans "Option" %}</th>
+                    </tr>
+                </thead>
+                <tbody id="collectionlist"></tbody>
+                <tbody class="isEmpty" style="display:none;">
+                    <tr>
+                        <td colspan="8" class="text-center"><i class="fas fa-atom text-metal" style="font-size:5rem;"></i><br>{% trans "No HTTPCCM" %}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="collection_modal" tabindex="-1" role="dialog" aria-labelledby="collection_modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <form id="add_modal_form" style="display:none" action="{% url 'web:httpccm_view_manage' %}" method="post">{% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="collection_modalLabel">{% trans "Add New HTTP Client Connector" %}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "CID" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="cid" class="form-control" placeholder="{% trans 'CID Name' %}">
+                            <small class="text-muted">{% trans "Connector ID" %}</small>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "URL" %}</label>
+                        <div class="col-sm-10">
+                            <input type="text" name="url" class="form-control" placeholder="{% trans 'URL' %}">
+                            <small class="text-muted">{% trans "URL to be called with message parameters" %}</small>
+                        </div>
+                    </div>
+                     <div class="form-group row">
+                        <label class="col-sm-2 col-form-label">{% trans "HTTP Method" %}</label>
+                        <div class="col-sm-10">
+                            <select name="method" class="form-control">
+                                <option>get</option><option>post</option>
+                            </select>
+                            <small class="text-muted">{% trans "Calling method (GET or POST)" %}</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Cancel" %}</button>
+                    <button type="submit" class="btn btn-primary">{% trans "Add New HTTPCCM" %}</button>
+                </div>
+                <input type="hidden" name="s" value="add">
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+{% block extrajs %}
+<script>
+var main_trans = {};
+</script>
+<script src="{% static 'web/content/httpccm.js' %}"></script>
+{% endblock extrajs %}

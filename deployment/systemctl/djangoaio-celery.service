@@ -1,0 +1,21 @@
+[Unit]
+Description=Django-AIO Celery Worker
+Requires=postgresql.service
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+SyslogIdentifier=djangoaiocelery
+PermissionsStartOnly=true
+User=username
+Group=username
+Environment="DJANGO_SETTINGS_MODULE=config.settings.pro"
+WorkingDirectory=/home/username/projects/django-aio
+ExecStart=/home/username/projects/django-aio/env/bin/celery worker -A main.taskapp -l info #--autoscale=10,3
+StandardOutput=file:/home/username/projects/django-aio/logs/worker.log
+StandardError=file:/home/username/projects/django-aio/logs/worker.log
+StandardOutput=journal+console
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
