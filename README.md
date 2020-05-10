@@ -156,7 +156,7 @@ What's new in version 2.0.0
 
 ## Usage
 
-This web app build is web interface to manage Jasmin SMS Gateway, this web app is an open source for free and commercial purpose.
+This application built as web interface to manage Jasmin SMS Gateway, it is an open source for free and commercial purpose.
 
 ## Support Developer
 
