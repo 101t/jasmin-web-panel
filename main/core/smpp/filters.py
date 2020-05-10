@@ -24,7 +24,7 @@ class Filters(object):
         "List Filters as python dict"
         self.telnet.sendline('filter -l')
         self.telnet.expect([r'(.+)\n' + STANDARD_PROMPT])
-        result = self.telnet.match.group(0).strip().replace("\r", '').split("\n")
+        result = str(self.telnet.match.group(0)).strip().replace("\\r", '').split("\\n")
         if len(result) < 3:
             return {'filters': []}
         results = [l.replace(', ', ',').replace('(!)', '')
@@ -112,9 +112,9 @@ class Filters(object):
                 ikeys['tag'] = parameter
             elif ftype == 'evalpyfilter':
                 ikeys['pyCode'] = parameter
-        print(ikeys)
+        #print(ikeys)
         set_ikeys(self.telnet, ikeys)
-        self.telnet.sendline('persist\n')
+        self.telnet.sendline('persist')
         self.telnet.expect(r'.*' + STANDARD_PROMPT)
         return {'filter': self.get_filter(fid)}
     def simple_filter_action(self, action, fid, return_filter=True):
@@ -125,7 +125,7 @@ class Filters(object):
             r'.+(.*)' + STANDARD_PROMPT,
         ])
         if matched_index == 0:
-            self.telnet.sendline('persist\n')
+            self.telnet.sendline('persist')
             if return_filter:
                 self.telnet.expect(r'.*' + STANDARD_PROMPT)
                 return {'filter': self.get_filter(fid)}

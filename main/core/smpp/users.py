@@ -20,7 +20,7 @@ class Users(object):
     def get_user(self, uid, silent=False):
         """Gets a single users data
         silent supresses Http404 exception if user not found"""
-        self.telnet.sendline('user -s ' + uid)
+        self.telnet.sendline('user -s %s' % uid)
         matched_index = self.telnet.expect([
                 r'.+Unknown User:.*' + STANDARD_PROMPT,
                 r'.+Usage: user.*' + STANDARD_PROMPT,
@@ -34,7 +34,7 @@ class Users(object):
         result = self.telnet.match.group(1)
         user = {}
         for line in [l for l in result.splitlines() if l][1:]:
-            d = [x for x in line.split() if x]
+            d = [str(x, 'utf-8') for x in line.split() if x]
             if len(d) == 2:
                 user[d[0]] = d[1]
             elif len(d) == 4:
@@ -62,7 +62,7 @@ class Users(object):
             return {'users': []}
 
         results = [l for l in result.splitlines() if l]
-        annotated_uids = [u.split(None, 1)[0][1:] for u in results[2:-2]]
+        annotated_uids = [str(u.split(None, 1)[0][1:], 'utf-8') for u in results[2:-2]]
         users = []
         for auid in annotated_uids:
             if auid[0] == '!':

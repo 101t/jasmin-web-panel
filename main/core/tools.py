@@ -10,7 +10,7 @@ INTERACTIVE_PROMPT = settings.INTERACTIVE_PROMPT
 def set_ikeys(telnet, keys2vals):
     "set multiple keys for interactive command"
     for key, val in keys2vals.items():
-        print(key, val)
+        #print(key, val)
         telnet.sendline("%s %s" % (key, val))
         matched_index = telnet.expect([
             r'.*(Unknown .*)' + INTERACTIVE_PROMPT,

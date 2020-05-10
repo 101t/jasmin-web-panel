@@ -2,7 +2,7 @@
     var localpath = window.location.pathname, csrfmiddlewaretoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
     var add_modal_form = "#add_modal_form", edit_modal_form = "#edit_modal_form", service_modal_form = "#service_modal_form";
     var variant_boxes = [add_modal_form, edit_modal_form, service_modal_form];
-    var HTTPCCM_DICT = {};
+    var MOROUTER_DICT = {}, SMPPCCM_DICT = {}, HTTPCCM_DICT = {}, FILTERS_DICT = {};
     var collectionlist_check = function(){
         $.ajax({
             url: localpath + 'manage/',
@@ -14,21 +14,22 @@
             },
             dataType: "json",
             success: function(data){
-                var datalist = data["connectors"];
+                var datalist = data["morouters"];
                 var output = $.map(datalist, function(val, i){
                     var html = "";
                     html += `<tr>
                         <td>${i+1}</td>
-                        <td>${val.cid}</td>
-                        <td>${val.url}</td>
-                        <td>${val.method}</td>
+                        <td>${val.type}</td>
+                        <td>${val.order}</td>
+                        <td>${JSON.stringify(val.connectors)}</td>
+                        <td>${htmlEscape(JSON.stringify(val.filters))}</td>
                         <td class="text-center" style="padding-top:4px;padding-bottom:4px;">
                             <div class="btn-group btn-group-sm">
                                 <a href="javascript:void(0)" class="btn btn-light" onclick="return collection_manage('delete', '${i+1}');"><i class="fas fa-trash"></i></a>
                             </div>
                         </td>
                     </tr>`;
-                    HTTPCCM_DICT[i+1] = val;
+                    MOROUTER_DICT[i+1] = val;
                     return html;
                 });
                 $("#collectionlist").html(datalist.length > 0 ? output : $(".isEmpty").html());
@@ -53,14 +54,14 @@
                 confirmButtonText: global_trans["yes"],
             }, function(isConfirm){
                 if (isConfirm) {
-                    var data = HTTPCCM_DICT[index];
+                    var data = MOROUTER_DICT[index];
                     $.ajax({
                     	type: "POST",
                     	url: localpath + 'manage/',
                     	data: {
                     		csrfmiddlewaretoken: csrfmiddlewaretoken,
                     		s: cmd,
-                    		cid: data.cid,
+                    		order: data.order,
                     	},
                     	beforeSend: function(){},
 						success: function(data){
@@ -73,8 +74,65 @@
                     })
                 }
             });
+        } else if (cmd == "smppccm") {
+            $.ajax({
+                url: main_trans.url2smppccm,
+                type: "POST",
+                data: {
+                    csrfmiddlewaretoken,
+                    s: "list",
+                },
+                dataType: "json",
+                success: function(data){
+                    var datalist = data["connectors"];
+                    var html = $.map(datalist, function(val, i){
+                        SMPPCCM_DICT[i+1] = val;
+                        return `<option>${val.cid}</option>`;
+                    });
+                    $(add_modal_form+" select[name=smppconnectors]").html(html);
+                }
+            })
+        } else if (cmd == "httpccm") {
+            $.ajax({
+                url: main_trans.url2httpccm,
+                type: "POST",
+                data: {
+                    csrfmiddlewaretoken,
+                    s: "list",
+                },
+                dataType: "json",
+                success: function(data){
+                    var datalist = data["connectors"];
+                    var html = $.map(datalist, function(val, i){
+                        HTTPCCM_DICT[i+1] = val;
+                        return `<option>${val.cid}</option>`;
+                    });
+                    $(add_modal_form+" select[name=httpconnectors]").html(html);
+                }
+            })
+        } else if (cmd == "filters") {
+            $.ajax({
+                url: main_trans.url2filters,
+                type: "POST",
+                data: {
+                    csrfmiddlewaretoken,
+                    s: "list",
+                },
+                dataType: "json",
+                success: function(data){
+                    var datalist = data["filters"];
+                    var html = $.map(datalist, function(val, i){
+                        FILTERS_DICT[i+1] = val;
+                        return `<option>${val.fid}</option>`;
+                    });
+                    $(add_modal_form+" select[name=filters]").html(html);
+                }
+            })
         }
     }
+    collection_manage("smppccm");
+    collection_manage("httpccm");
+    collection_manage("filters");
     $("#add_new_obj").on('click', function(e){collection_manage('add');});
     $(add_modal_form).on("submit", function(e){
         e.preventDefault();
@@ -98,5 +156,6 @@
 				inputs.prop("disabled", false);
 			}
 		});
-    })
+    });
+    $("li.nav-item.morouter-menu").addClass("active");
 })(jQuery);

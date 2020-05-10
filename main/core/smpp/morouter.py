@@ -3,12 +3,13 @@ from collections import OrderedDict
 from django.conf import settings
 from django.utils.datastructures import MultiValueDictKeyError
 
+from main.core.utils import is_int
 from main.core.tools import set_ikeys, split_cols
 from main.core.exceptions import (JasminSyntaxError, JasminError,
                         UnknownError, MissingKeyError,
                         MutipleValuesRequiredKeyError, ObjectNotFoundError)
 
-import logging
+import logging, random
 
 STANDARD_PROMPT = settings.STANDARD_PROMPT
 INTERACTIVE_PROMPT = settings.INTERACTIVE_PROMPT
@@ -24,13 +25,13 @@ class MORouter(object):
         "List MO router as python dict"
         self.telnet.sendline('morouter -l')
         self.telnet.expect([r'(.+)\n' + STANDARD_PROMPT])
-        result = self.telnet.match.group(0).strip().replace("\r", '').split("\n")
+        result = str(self.telnet.match.group(0)).strip().replace("\\r", '').split("\\n")
         if len(result) < 3:
             return {'morouters': []}
         results = [l.replace(', ', ',').replace('(!)', '')
             for l in result[2:-2] if l]
         routers = split_cols(results)
-        print(routers)
+        #print(routers)
         return {
             'morouters':
                 [
@@ -68,7 +69,7 @@ class MORouter(object):
         "Flush entire routing table"
         self.telnet.sendline('morouter -f')
         self.telnet.expect([r'(.+)\n' + STANDARD_PROMPT])
-        self.telnet.sendline('persist\n')
+        self.telnet.sendline('persist')
         self.telnet.expect(r'.*' + STANDARD_PROMPT)
         return {'morouters': []}
 
@@ -117,14 +118,14 @@ class MORouter(object):
         ikeys = OrderedDict({'type': rtype})
         if rtype != 'defaultroute':
             try:
-                filters = data['filters'].split(',')
+                filters = data['filters'] or ""
+                filters = filters.split(',')
             except MultiValueDictKeyError:
                 raise MissingKeyError('%s router requires filters' % rtype)
             ikeys['filters'] = ';'.join(filters)
-            ikeys['order'] = order
-            print(ikeys)
-        smppconnectors = data.get('smppconnectors', '')
-        httpconnectors = data.get('httpconnectors', '')
+        ikeys['order'] = order if is_int(order) else str(random.randrange(1, 99))
+        smppconnectors = data.get('smppconnectors') or ""
+        httpconnectors = data.get('httpconnectors') or ""
         connectors = ['smpps(%s)' % c.strip()
                 for c in smppconnectors.split(',') if c.strip()
             ] + ['http(%s)' % c for c in httpconnectors.split(',') if c.strip()]
@@ -135,10 +136,10 @@ class MORouter(object):
             ikeys['connectors'] = ';'.join(connectors)
         else:
             if len(connectors) != 1:
-                raise MissingKeyError('one and only one connector required')
+                raise MissingKeyError('One and only one connector required')
             ikeys['connector'] = connectors[0]
         set_ikeys(self.telnet, ikeys)
-        self.telnet.sendline('persist\n')
+        self.telnet.sendline('persist')
         self.telnet.expect(r'.*' + STANDARD_PROMPT)
         return {'morouter': self.get_router(order)}
 
@@ -150,7 +151,7 @@ class MORouter(object):
             r'.+(.*)' + STANDARD_PROMPT,
         ])
         if matched_index == 0:
-            self.telnet.sendline('persist\n')
+            self.telnet.sendline('persist')
             if return_moroute:
                 self.telnet.expect(r'.*' + STANDARD_PROMPT)
                 return {'morouter': self.get_router(fid)}

@@ -12,7 +12,7 @@
     </div>
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-hover table-striped table-sm">
+            <table class="table table-hover table-striped table-bordered table-sm">
                 <thead>
                     <tr>
                         <th rowspan="2">#</th>
@@ -31,7 +31,7 @@
                 <tbody id="collectionlist"></tbody>
                 <tbody class="isEmpty" style="display:none;">
                     <tr>
-                        <td colspan="8" class="text-center"><i class="fas fa-user text-metal" style="font-size:5rem;"></i><br>{% trans "No HTTPCCM" %}</td>
+                        <td colspan="8" class="text-center"><i class="fas fa-user text-metal" style="font-size:5rem;"></i><br>{% trans "No User" %}</td>
                     </tr>
                 </tbody>
             </table>
@@ -137,14 +137,14 @@
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "HTTP Throughput" %}</label>
                         <div class="col-sm-10">
-                            <select name="http_throughput" class="form-control"></select>
+                            <input type="text" name="http_throughput" class="form-control">
                             <small class="text-muted">{% trans "Max. number of messages per second to accept through HTTP API" %}</small>
                         </div>
                     </div>
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "SMPP Throughput" %}</label>
                         <div class="col-sm-10">
-                            <select name="smpps_throughput" class="form-control"></select>
+                            <input type="text" name="smpps_throughput" class="form-control">
                             <small class="text-muted">{% trans "Max. number of messages per second to accept through SMPP Server" %}</small>
                         </div>
                     </div>
@@ -254,35 +254,35 @@
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "Source Address Filter" %}</label>
                         <div class="col-sm-10">
-                            <select name="src_addr_f" class="form-control"></select>
+                            <input type="text" name="src_addr_f" class="form-control">
                             <small class="text-muted">{% trans "Regex pattern to validate source address of SMS-MT" %}</small>
                         </div>
                     </div>
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "Destination Address Filter" %}</label>
                         <div class="col-sm-10">
-                            <select name="dst_addr_f" class="form-control"></select>
+                            <input type="text" name="dst_addr_f" class="form-control">
                             <small class="text-muted">{% trans "Regex pattern to validate destination address of SMS-MT" %}</small>
                         </div>
                     </div>
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "Content Filter" %}</label>
                         <div class="col-sm-10">
-                            <select name="content_f" class="form-control"></select>
+                            <input type="text" name="content_f" class="form-control">
                             <small class="text-muted">{% trans "Regex pattern to validate content of SMS-MT" %}</small>
                         </div>
                     </div>
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "Priority Filter" %}</label>
                         <div class="col-sm-10">
-                            <select name="priority_f" class="form-control"></select>
+                            <input type="text" name="priority_f" class="form-control">
                             <small class="text-muted">{% trans "Regex pattern to validate priority of SMS-MT" %}</small>
                         </div>
                     </div>
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "Validity Period Filter" %}</label>
                         <div class="col-sm-10">
-                            <select name="validity_period_f" class="form-control"></select>
+                            <input type="text" name="validity_period_f" class="form-control">
                             <small class="text-muted">{% trans "Regex pattern to validate validity_period of SMS-MT" %}</small>
                         </div>
                     </div>
@@ -290,7 +290,7 @@
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "Default Source Address" %}</label>
                         <div class="col-sm-10">
-                            <select name="src_addr_d" class="form-control"></select>
+                            <input type="text" name="src_addr_d" class="form-control">
                             <small class="text-muted">{% trans "Default source address of SMS-MT" %}</small>
                         </div>
                     </div>
@@ -327,7 +327,6 @@
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Cancel" %}</button>
                     <button type="submit" class="btn btn-primary">{% trans "Submit" %}</button>
                 </div>
-                <input type="hidden" name="s" value="service">
             </form>
         </div>
     </div>

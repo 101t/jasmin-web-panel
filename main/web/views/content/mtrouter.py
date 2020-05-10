@@ -28,16 +28,23 @@ def mtrouter_view_manage(request):
         if tc and mtrouter:
             if s == "list":
                 args = mtrouter.list()
+                resstatus, resmessage = 200, _("OK")
             elif s == "add":
-                mtrouter.create(data=dict(
-                    type=request.POST.get("type"),
-                    order=request.POST.get("order"),
-                    rate=request.POST.get("rate"),
-                    smppconnectors=request.POST.get("smppconnectors"),
-                    filters=request.POST.get("filters"),
-                ))
+                try:
+                    mtrouter.create(data=dict(
+                        type=request.POST.get("type"),
+                        order=request.POST.get("order"),
+                        rate=request.POST.get("rate"),
+                        smppconnectors=request.POST.get("smppconnectors"),
+                        #httpconnectors=request.POST.get("httpconnectors"),
+                        filters=request.POST.get("filters"),
+                    ))
+                    resstatus, resmessage = 200, _("MT Router added successfully!")
+                except Exception as e:
+                    resmessage = e
             elif s == "delete":
                 args = mtrouter.destroy(order=request.POST.get("order"))
+                resstatus, resmessage = 200, _("MT Router deleted successfully!")
     if isinstance(args, dict):
         args["status"] = resstatus
         args["message"] = str(resmessage)

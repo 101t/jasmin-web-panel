@@ -27,17 +27,17 @@ def httpccm_view_manage(request):
         if httpccm:
             if s == "list":
                 args = httpccm.list()
-                resstatus, resmessage = 200, str(_("OK"))
+                resstatus, resmessage = 200, _("OK")
             elif s == "add":
                 httpccm.create(data=dict(
                     cid=request.POST.get("cid"),
                     url=request.POST.get("url"),
                     method=request.POST.get("method"),
                 ))
-                resstatus, resmessage = 200, str(_("SMPPCCM added successfully!"))
+                resstatus, resmessage = 200, _("HTTPCCM added successfully!")
             elif s == "delete":
                 args = httpccm.destroy(cid=request.POST.get("cid"))
-                resstatus, resmessage = 200, str(_("SMPPCCM deleted successfully!"))
+                resstatus, resmessage = 200, _("HTTPCCM deleted successfully!")
     if isinstance(args, dict):
         args["status"] = resstatus
         args["message"] = str(resmessage)

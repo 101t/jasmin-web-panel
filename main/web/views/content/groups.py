@@ -27,21 +27,21 @@ def groups_view_manage(request):
         if groups:
             if s == "list":
                 args = groups.list()
-                resstatus, resmessage = 200, str(_("OK"))
+                resstatus, resmessage = 200, _("OK")
             elif s == "add":
                 groups.create(data=dict(
                     gid=request.POST.get("gid"),
                 ))
-                resstatus, resmessage = 200, str(_("Group added successfully!"))
+                resstatus, resmessage = 200, _("Group added successfully!")
             elif s == "delete":
                 args = groups.destroy(gid=request.POST.get("gid"))
-                resstatus, resmessage = 200, str(_("Group deleted successfully!"))
+                resstatus, resmessage = 200, _("Group deleted successfully!")
             elif s == "enable":
                 args = groups.enable(gid=request.POST.get("gid"))
-                resstatus, resmessage = 200, str(_("Group enabled successfully!"))
+                resstatus, resmessage = 200, _("Group enabled successfully!")
             elif s == "disable":
                 args = groups.disable(gid=request.POST.get("gid"))
-                resstatus, resmessage = 200, str(_("Group disabled successfully!"))
+                resstatus, resmessage = 200, _("Group disabled successfully!")
     if isinstance(args, dict):
         args["status"] = resstatus
         args["message"] = str(resmessage)

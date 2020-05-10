@@ -98,5 +98,6 @@
 				inputs.prop("disabled", false);
 			}
 		});
-    })
+    });
+    $("li.nav-item.httpccm-menu").addClass("active");
 })(jQuery);

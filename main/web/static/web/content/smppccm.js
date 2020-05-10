@@ -150,5 +150,6 @@
 				inputs.prop("disabled", false);
 			}
 		});
-    })
+    });
+    $("li.nav-item.smppccm-menu").addClass("active");
 })(jQuery);

@@ -109,5 +109,6 @@
 				inputs.prop("disabled", false);
 			}
 		});
-    })
+    });
+    $("li.nav-item.groups-menu").addClass("active");
 })(jQuery);

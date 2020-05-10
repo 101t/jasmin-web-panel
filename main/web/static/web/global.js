@@ -27,6 +27,14 @@
     		}, ms || 0);
         };
     }
+    window.htmlEscape = function(str){
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
     window.showThisBox = function(variant_boxes, box){
         variant_boxes = variant_boxes || [];
         var restOfBoxes = variant_boxes.filter(function(item, index, arr){return item !== box});
@@ -142,7 +150,7 @@
             },
             gid: {
                 required: true,
-                rangelength: [2, 40],
+                maxlength: 40,
             },
             fid: {
                 required: true,
@@ -161,6 +169,11 @@
                 required: true,
                 digits: true,
                 rangelength: [1, 5],
+            },
+            rate: {
+                required: true,
+                number: true,
+                maxlength: 10,
             },
             email: {
                 required: true,

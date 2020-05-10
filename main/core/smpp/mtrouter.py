@@ -3,12 +3,13 @@ from collections import OrderedDict
 from django.conf import settings
 from django.utils.datastructures import MultiValueDictKeyError
 
+from main.core.utils import is_float, is_int
 from main.core.tools import set_ikeys, split_cols
 from main.core.exceptions import (JasminSyntaxError, JasminError,
                         UnknownError, MissingKeyError,
                         MutipleValuesRequiredKeyError, ObjectNotFoundError)
 
-import logging
+import logging, random
 
 STANDARD_PROMPT = settings.STANDARD_PROMPT
 INTERACTIVE_PROMPT = settings.INTERACTIVE_PROMPT
@@ -25,7 +26,7 @@ class MTRouter(object):
         "List MT router as python dict"
         self.telnet.sendline('mtrouter -l')
         self.telnet.expect([r'(.+)\n' + STANDARD_PROMPT])
-        result = self.telnet.match.group(0).strip().replace("\r", '').split("\n")
+        result = str(self.telnet.match.group(0)).strip().replace("\\r", '').split("\\n")
         if len(result) < 3:
             return {'mtrouters': []}
         results = [l.replace(', ', ',').replace('(!)', '')
@@ -69,7 +70,7 @@ class MTRouter(object):
         "Flush entire routing table"
         self.telnet.sendline('mtrouter -f')
         self.telnet.expect([r'(.+)\n' + STANDARD_PROMPT])
-        self.telnet.sendline('persist\n')
+        self.telnet.sendline('persist')
         self.telnet.expect(r'.*' + STANDARD_PROMPT)
         return {'mtrouters': []}
 
@@ -123,16 +124,18 @@ class MTRouter(object):
         ikeys = OrderedDict({'type': rtype})
         if rtype != 'defaultroute':
             try:
-                filters = data['filters'].split(',')
+                filters = data['filters'] or ""
+                filters = filters.split(',')
             except MultiValueDictKeyError:
                 raise MissingKeyError('%s router requires filters' % rtype)
             ikeys['filters'] = ';'.join(filters)
-            ikeys['order'] = order
-        smppconnectors = data.get('smppconnectors', '')
-        httpconnectors = data.get('httpconnectors', '')
+        ikeys['order'] = order if is_int(order) else str(random.randrange(1, 99))
+        smppconnectors = data.get('smppconnectors') or ""
+        """ MT Router only support SMPP connectors, HTTP not allowed """
+        #httpconnectors = data.get('httpconnectors') or ""
         connectors = ['smppc(%s)' % c.strip()
                 for c in smppconnectors.split(',') if c.strip()
-            ] + ['http(%s)' % c for c in httpconnectors.split(',') if c.strip()]
+            ] # + ['http(%s)' % c for c in httpconnectors.split(',') if c.strip()]
         if rtype == 'randomroundrobinmtroute':
             if len(connectors) < 2:
                 raise MutipleValuesRequiredKeyError(
@@ -140,12 +143,11 @@ class MTRouter(object):
             ikeys['connectors'] = ';'.join(connectors)
         else:
             if len(connectors) != 1:
-                raise MissingKeyError('one and only one connector required')
+                raise MissingKeyError('One and only one connector required')
             ikeys['connector'] = connectors[0]
-        ikeys['rate'] = rate
-        print(ikeys)
+        ikeys['rate'] = str(float(rate)) if is_float(rate) else "0.0"
         set_ikeys(self.telnet, ikeys)
-        self.telnet.sendline('persist\n')
+        self.telnet.sendline('persist')
         self.telnet.expect(r'.*' + STANDARD_PROMPT)
         return {'mtrouter': self.get_router(order)}
 
@@ -157,7 +159,7 @@ class MTRouter(object):
             r'.+(.*)' + STANDARD_PROMPT,
         ])
         if matched_index == 0:
-            self.telnet.sendline('persist\n')
+            self.telnet.sendline('persist')
             if return_mtroute:
                 self.telnet.expect(r'.*' + STANDARD_PROMPT)
                 return {'mtrouter': self.get_router(fid)}

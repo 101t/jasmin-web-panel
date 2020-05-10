@@ -27,7 +27,7 @@ def smppccm_view_manage(request):
         if smppccm:
             if s == "list":
                 args = smppccm.list()
-                resstatus, resmessage = 200, str(_("OK"))
+                resstatus, resmessage = 200, _("OK")
             elif s == "add":
                 smppccm.create(data=dict(
                     cid=request.POST.get("cid"),
@@ -36,7 +36,7 @@ def smppccm_view_manage(request):
                     username=request.POST.get("username"),
                     password=request.POST.get("password"),
                 ))
-                resstatus, resmessage = 200, str(_("SMPPCCM added successfully!"))
+                resstatus, resmessage = 200, _("SMPPCCM added successfully!")
             elif s == "edit":
                 smppccm.partial_update(data=dict(
                     cid=request.POST.get("cid"),
@@ -78,20 +78,20 @@ def smppccm_view_manage(request):
                     ripf=request.POST.get("ripf"),
                     dlr_msgid=request.POST.get("dlr_msgid"),
                 ), cid=request.POST.get("cid"))
-                resstatus, resmessage = 200, str(_("SMPPCCM updated successfully!"))
+                resstatus, resmessage = 200, _("SMPPCCM updated successfully!")
             elif s == "delete":
                 args = smppccm.destroy(cid=request.POST.get("cid"))
-                resstatus, resmessage = 200, str(_("SMPPCCM deleted successfully!"))
+                resstatus, resmessage = 200, _("SMPPCCM deleted successfully!")
             elif s == "start":
                 args = smppccm.start(cid=request.POST.get("cid"))
-                resstatus, resmessage = 200, str(_("SMPPCCM started successfully!"))
+                resstatus, resmessage = 200, _("SMPPCCM started successfully!")
             elif s == "stop":
                 args = smppccm.stop(cid=request.POST.get("cid"))
-                resstatus, resmessage = 200, str(_("SMPPCCM stoped successfully!"))
+                resstatus, resmessage = 200, _("SMPPCCM stoped successfully!")
             elif s == "restart":
                 args = smppccm.stop(cid=request.POST.get("cid"))
                 args = smppccm.start(cid=request.POST.get("cid"))
-                resstatus, resmessage = 200, str(_("SMPPCCM restarted successfully!"))
+                resstatus, resmessage = 200, _("SMPPCCM restarted successfully!")
     if isinstance(args, dict):
         args["status"] = resstatus
         args["message"] = str(resmessage)

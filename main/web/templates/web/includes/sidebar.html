@@ -11,34 +11,34 @@
 
     <!-- Divider -->
     <hr class="sidebar-divider my-0">
-    <li class="nav-item">
+    <li class="nav-item smppccm-menu">
         <a class="nav-link" href="{% url 'web:smppccm_view' %}"><i class="fas fa-fw fa-atom"></i><span>{% trans 'SMPPCCM' %}</span></a>
     </li>
-    <li class="nav-item">
+    <li class="nav-item httpccm-menu">
         <a class="nav-link" href="{% url 'web:httpccm_view' %}"><i class="fas fa-fw fa-atom"></i><span>{% trans 'HTTPCCM' %}</span></a>
     </li>
 
     <hr class="sidebar-divider">
 
-    <li class="nav-item">
+    <li class="nav-item users-menu">
         <a class="nav-link" href="{% url 'web:users_view' %}"><i class="fas fa-fw fa-user"></i><span>{% trans 'Users' %}</span></a>
     </li>
 
-    <li class="nav-item">
+    <li class="nav-item groups-menu">
         <a class="nav-link" href="{% url 'web:groups_view' %}"><i class="fas fa-fw fa-users"></i><span>{% trans 'Groups' %}</span></a>
     </li>
 
     <hr class="sidebar-divider d-none d-md-block">
 
-    <li class="nav-item">
+    <li class="nav-item filters-menu">
         <a class="nav-link" href="{% url 'web:filters_view' %}"><i class="fas fa-fw fa-filter"></i><span>{% trans 'Filters' %}</span></a>
     </li>
 
-    <li class="nav-item">
+    <li class="nav-item mtrouter-menu">
         <a class="nav-link" href="{% url 'web:mtrouter_view' %}"><i class="fas fa-fw fa-cloud-download-alt"></i><span>{% trans 'MT Router' %}</span></a>
     </li>
     
-    <li class="nav-item">
+    <li class="nav-item morouter-menu">
         <a class="nav-link" href="{% url 'web:morouter_view' %}"><i class="fas fa-fw fa-cloud-upload-alt"></i><span>{% trans 'MO Router' %}</span></a>
     </li>
 </ul>
