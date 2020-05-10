@@ -5,7 +5,6 @@ from main.core.exceptions import (
     JasminSyntaxError, JasminError, ActionFailed,
     ObjectNotFoundError, UnknownError, 
 )
-from .conn import TelnetConnection
 
 import logging
 

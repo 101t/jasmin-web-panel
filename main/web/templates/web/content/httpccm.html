@@ -77,12 +77,7 @@
 {% endblock content %}
 {% block extrajs %}
 <script>
-var main_trans = {
-    areyousuretodelete: "{% trans 'Are you sure to delete?' %}",
-	no: "{% trans 'No' %}",
-	yes: "{% trans 'Yes' %}",
-	youwontabletorevertthis: "{% trans 'You wont be able to revert this!' %}",
-};
+var main_trans = {};
 </script>
 <script src="{% static 'web/content/httpccm.js' %}"></script>
 {% endblock extrajs %}

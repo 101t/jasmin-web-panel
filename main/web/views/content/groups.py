@@ -10,7 +10,7 @@ from django.conf import settings
 
 import json
 
-from main.core.smpp import TelnetConnection, Groups
+from main.core.smpp import Groups
 
 @login_required
 def groups_view(request):
@@ -19,25 +19,29 @@ def groups_view(request):
 @login_required
 def groups_view_manage(request):
     args, resstatus, resmessage = {}, 400, _("Sorry, Command does not matched.")
-    tc, groups = None, None
+    groups = None
     if request.POST and request.is_ajax():
         s = request.POST.get("s")
         if s in ['list', 'add', 'delete', 'enable', 'disable']:
-            tc = TelnetConnection()
-            groups = Groups(telnet=tc.telnet)
-        if tc and groups:
+            groups = Groups(telnet=request.telnet)
+        if groups:
             if s == "list":
                 args = groups.list()
+                resstatus, resmessage = 200, str(_("OK"))
             elif s == "add":
                 groups.create(data=dict(
                     gid=request.POST.get("gid"),
                 ))
+                resstatus, resmessage = 200, str(_("Group added successfully!"))
             elif s == "delete":
                 args = groups.destroy(gid=request.POST.get("gid"))
+                resstatus, resmessage = 200, str(_("Group deleted successfully!"))
             elif s == "enable":
                 args = groups.enable(gid=request.POST.get("gid"))
+                resstatus, resmessage = 200, str(_("Group enabled successfully!"))
             elif s == "disable":
                 args = groups.disable(gid=request.POST.get("gid"))
+                resstatus, resmessage = 200, str(_("Group disabled successfully!"))
     if isinstance(args, dict):
         args["status"] = resstatus
         args["message"] = str(resmessage)

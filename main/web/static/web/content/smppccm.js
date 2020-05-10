@@ -95,14 +95,14 @@
             $("#collection_modal").modal("show");
         } else if (cmd == "delete") {
             sweetAlert({
-                title: main_trans["areyousuretodelete"],
-                text: main_trans["youwontabletorevertthis"],
+                title: global_trans["areyousuretodelete"],
+                text: global_trans["youwontabletorevertthis"],
                 type: 'warning',
                 showCancelButton: true,
                 cancelButtonClass: "btn btn-secondary m-btn m-btn--pill m-btn--icon",
-                cancelButtonText: main_trans["no"],
+                cancelButtonText: global_trans["no"],
                 confirmButtonClass: "btn btn-danger m-btn m-btn--pill m-btn--air m-btn--icon",
-                confirmButtonText: main_trans["yes"],
+                confirmButtonText: global_trans["yes"],
             }, function(isConfirm){
                 if (isConfirm) {
                     var data = SMPPCCM_DICT[index];

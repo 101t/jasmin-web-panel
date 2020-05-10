@@ -7,10 +7,13 @@ from ..tools import set_ikeys, split_cols
 from ..exceptions import (JasminSyntaxError, JasminError,
 						UnknownError, MissingKeyError,
 						MutipleValuesRequiredKeyError, ObjectNotFoundError)
-from .conn import TelnetConnection
+
+import logging
 
 STANDARD_PROMPT = settings.STANDARD_PROMPT
 INTERACTIVE_PROMPT = settings.INTERACTIVE_PROMPT
+
+logger = logging.getLogger(__name__)
 
 class Filters(object):
     "Filters Class"

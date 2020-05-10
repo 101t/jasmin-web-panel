@@ -6,9 +6,12 @@ from main.core.exceptions import (
     ObjectNotFoundError, UnknownError, 
 )
 
+import logging
+
 STANDARD_PROMPT = settings.STANDARD_PROMPT
 INTERACTIVE_PROMPT = settings.INTERACTIVE_PROMPT
 
+logger = logging.getLogger(__name__)
 
 class HTTPCCM(object):
     "HTTPCCM for managing HTTP Client Connectors"

@@ -4,10 +4,13 @@ from main.core.tools import set_ikeys
 from main.core.exceptions import (JasminSyntaxError, JasminError,
                         UnknownError, MissingKeyError,
                         ObjectNotFoundError)
-from .conn import TelnetConnection
+
+import logging
 
 STANDARD_PROMPT = settings.STANDARD_PROMPT
 INTERACTIVE_PROMPT = settings.INTERACTIVE_PROMPT
+
+logger = logging.getLogger(__name__)
 
 class Users(object):
     "Users for managing *Jasmin* users (*not* Django auth users)"

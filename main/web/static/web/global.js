@@ -144,6 +144,10 @@
                 required: true,
                 rangelength: [2, 40],
             },
+            fid: {
+                required: true,
+                rangelength: [2, 40],
+            },
             host: {
                 required: true,
                 rangelength: [7, 50],
@@ -152,6 +156,11 @@
                 required: true,
                 digits: true,
                 rangelength: [2, 5],
+            },
+            order: {
+                required: true,
+                digits: true,
+                rangelength: [1, 5],
             },
             email: {
                 required: true,

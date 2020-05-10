@@ -33,6 +33,14 @@
 <script src="{% static 'assets/vendor/sweetalert/sweetalert.min.js' %}"></script>
 <script src="{% static 'assets/js/sb-admin-2.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'web/global.js' %}"></script>
+<script>
+var global_trans = {
+    areyousuretodelete: "{% trans 'Are you sure to delete?' %}",
+	no: "{% trans 'No' %}",
+	yes: "{% trans 'Yes' %}",
+	youwontabletorevertthis: "{% trans 'You wont be able to revert this!' %}",
+};
+</script>
 {% block extrajs %}{% endblock extrajs %}
 </body>
 </html>
