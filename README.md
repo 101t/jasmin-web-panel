@@ -3,17 +3,19 @@
 	<a href="https://travis-ci.org/101t/jasmin-web-panel"><img src="https://travis-ci.org/101t/jasmin-web-panel.svg?branch=master" alt="travis-ci"></a>
 </p>
 
-Jasmin SMS Web Interface for Jasmin SMS Gateway
+Jasmin SMS Web Interface for [Jasmin SMS Gateway](https://github.com/jookies/jasmin)
 
 ## Installing and Deployment
 
+Before starting please make sure you have installed and running [Jasmin SMS Gateway](http://docs.jasminsms.com/en/latest/installation/index.html) on your server.
+
 ### Installation
 
-Download and Extract folder We recommend installing in a `virtualenv`
+Download and Extract folder We recommended installing python dependencies in `virtualenv`
 
 Install dependencies:
 
-> This version using `python >= 3.5` make sure you have installed
+> This version using `python >= 3.5` make sure you have installed on your system.
 
 go to `jasmin-web-panel/` and run
 
@@ -28,12 +30,13 @@ python deploy.py migrate
 python deploy.py load_new # to load new user
 python deploy.py collectstatic
 ```
-These commands used in production server, also you may edit **jasmin SMS gateway** credential connection
+These commands used in production server, also you may edit **Jasmin SMS Gateway** credential connection
 ```sh
 TELNET_HOST = 127.0.0.1
 TELNET_PORT = 8990
 TELNET_USERNAME = jcliadmin
 TELNET_PW = jclipwd
+TELNET_TIMEOUT = 10
 ```
 for production make sure `DEBUG=False` in `.env` file to ensure security.
 You may run project manually
@@ -43,7 +46,7 @@ python deploy.py runserver
 
 ### Deployment with `NGiNX & Systemd`
 
-> Make sure you have installed `gunicorn` in using `pip`.
+> Make sure you have installed `gunicorn` using `pip`.
 
 Navigate to `/etc/systemd/system` and create new service called `jasmin-web.service`
 
@@ -153,7 +156,7 @@ What's new in version 2.0.0
 
 ## Usage
 
-This web app build is web interface to manage Jasmin SMS Gateway, this web app is an open source for any free usage.
+This web app build is web interface to manage Jasmin SMS Gateway, this web app is an open source for free and commercial purpose.
 
 ## Support Developer
 
