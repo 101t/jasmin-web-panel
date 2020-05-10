@@ -1,139 +1,164 @@
-<h1 align="center">Django AIO</h1>
-<p align="center">
-	<img src="https://github.com/101t/django-aio/blob/master/main/static/assets/img/django-aio.png" alt="Django AIO">
-</p>
+# Jasmin Web Panel
 <p>
-	<a href="https://travis-ci.org/101t/django-aio"><img src="https://travis-ci.org/101t/django-aio.svg?branch=master" alt="travis-ci"></a>
-	<a href='https://coveralls.io/github/101t/django-aio'><img src='https://coveralls.io/repos/github/101t/django-aio/badge.svg' alt='Coverage Status' /></a>
+	<a href="https://travis-ci.org/101t/jasmin-web-panel"><img src="https://travis-ci.org/101t/jasmin-web-panel.svg?branch=master" alt="travis-ci"></a>
 </p>
 
-## Features I thought About
+Jasmin SMS Web Interface for Jasmin SMS Gateway
 
-Django AIO (All-In-One) to get project ready to develop with my flavor configurations.
+## Installing and Deployment
 
-All in one pre-configured and prepared as django project, your project will be ready to use:
+### Installation
 
-1. Django
-2. Celery
-3. Channels
-4. Postgres
-5. Redis
-6. DRF (Django REST Framework)
+Download and Extract folder We recommend installing in a `virtualenv`
 
-Also has some features customization:
+Install dependencies:
 
-1. Custom User
-2. Custom sending Mail
-3. Sending Notification via channels
-4. loggin everything in the system
-5. custom sample data loader `python manage.py load_new` and migrations reseter `python manage.py reseter`
-6. custom utils functions
-7. easy to deployments
-8. easy to translate
-9. seperating `config/` for configurations and `main/` for all `apps`, `static`, `templates`
+> This version using `python >= 3.5` make sure you have installed
 
-
-## Getting Started
-
-In your terminal for **Unix** (Linux/Mac)
+go to `jasmin-web-panel/` and run
 
 ```sh
-pip install virtualenv
-
-git clone https://github.com/101t/django-aio --depth 1
-
-cd django-aio/
-
-virtualenv -p python3 env
-
-source env/bin/activate
-
+cd jasmin-web-panel/
 pip install -r requirements.txt
-
-cp -rf Sample.env .env
-
-./load_data.sh --init
+cp Sample.env .env
+```
+Preparing your `database` by running migrate commads:
+```sh
+python deploy.py migrate
+python deploy.py load_new # to load new user
+python deploy.py collectstatic
+```
+These commands used in production server, also you may edit **jasmin SMS gateway** credential connection
+```sh
+TELNET_HOST = 127.0.0.1
+TELNET_PORT = 8990
+TELNET_USERNAME = jcliadmin
+TELNET_PW = jclipwd
+```
+for production make sure `DEBUG=False` in `.env` file to ensure security.
+You may run project manually
+```sh
+python deploy.py runserver
 ```
 
-In Command Prompt for **Windows**
+### Deployment with `NGiNX & Systemd`
+
+> Make sure you have installed `gunicorn` in using `pip`.
+
+Navigate to `/etc/systemd/system` and create new service called `jasmin-web.service`
 
 ```sh
-python -m pip install virtualenv
+[Unit]
+Description=Jasmin Web Panel
+Requires=postgresql.service
+After=network.target postgresql.service
 
-git clone https://github.com/101t/django-aio --depth 1
+[Service]
+Type=simple
+SyslogIdentifier=jasminwebpanel
+PermissionsStartOnly=true
+User=username
+Group=username
+Environment="DJANGO_SETTINGS_MODULE=config.settings.pro"
+WorkingDirectory=/opt/jasmin-web-panel
+ExecStart=/opt/jasmin-web-panel/env/bin/gunicorn --bind 0.0.0.0:8000 config.wsgi -w 3 --timeout=120 --log-level=error
+StandardOutput=file:/opt/jasmin-web-panel/logs/gunicorn.log
+StandardError=file:/opt/jasmin-web-panel/logs/gunicorn.log
+StandardOutput=journal+console
+Restart=on-failure
 
-cd django-aio/
-
-virtualenv env
-
-env/Scripts/activate
-
-pip install -r requirements.txt
-
-copy Sample.env .env
-
-load_data_win.bat --init
+[Install]
+WantedBy=multi-user.target
 ```
-
-Or using as new project templates
+Reload systemctl
 
 ```sh
-django-admin.py startproject --template=https://github.com/101t/django-aio/archive/latest.zip --extension=py,gitignore PROJECT_NAME
+sudo systemctl daemon-reload
 ```
-
-> Note: the `admin` user automatically added to project as default administrator user, the credentials authentication is **Username: `admin`, Password: `secret`**.
-
-## Development
-
-### Prepare Translations
-
-Adding translation made easy by this commands
-
+Now, you can do:
 ```sh
-cd django-aio/main/
-
-django-admin makemessages -l en
-
-django-admin compilemessages
+sudo systemctl enable jasmin-web.service
+sudo systemctl start jasmin-web.service
 ```
-> Note: make sure you have `gettext` installed in your `Unix` Environment
-
+To ensure web app running without issue:
 ```sh
-# using gettext in ubuntu or macOS
-msgunfmt [django.mo] > [django.po]
+sudo systemctl status jasmin-web.service
 ```
+For NGiNX go to `/etc/nginx/sites-availiable` and create new file `jasmin-web`
 
-### Run Celery
+```nginx
+upstream jasmin_web{
+    server 0.0.0.0:8000;
+}
+server {
+    listen 80;
+    charset utf-8;
+    server_name example.com www.example.com;
+    client_body_timeout 500;
+    client_header_timeout 500;
+    keepalive_timeout 500 500;
+    send_timeout 30;
+    access_log /var/log/nginx/django_aio_access.log combined;
+    error_log /var/log/nginx/django_aio_error.log;
 
-To run your celery in development
+    location / {
+        proxy_pass http://jasmin_web;
+        proxy_http_version 1.1;
+        proxy_read_timeout 86400;
+        proxy_redirect     off;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $server_name;
+        proxy_max_temp_file_size 1600m;
+        proxy_buffering off;
+        proxy_request_buffering on;
+        client_max_body_size 20M;
+        client_body_buffer_size  256K;
+    }
+
+    location ^~ /media/ {
+        root /opt/jasmin-web-panel/public/;
+        add_header Accept-Ranges bytes;
+    }
+    location ^~ /static/ {
+        root /opt/jasmin-web-panel/public/;
+        add_header Pragma public;
+        add_header Cache-Control "public";
+        expires 30d;
+    }
+}
+```
+> Note: Don't forget to replace example.com with your real domain
+
+Once you are done, test and restart the Nginx Service with:
 ```sh
-celery worker -A main.taskapp -l debug
+sudo nginx -t
+sudo nginx -s reload 
+# sudo serivce nginx restart 
+# or sudo systemctl restart nginx
 ```
 
-### Run Channels
-To run channels in development as `ASGI` using `daphne`
-```sh
-daphne config.asgi:application -b 0.0.0.0 -p 9000
-```
+## Release Notes
 
-### Run Django
-To run django in development as `HTTP` 
-```sh
-python manage.py runserver 0.0.0.0:8000
-```
+What's new in version 2.0.0
+1. UI Improved, jQuery Fixed, jQuery Validation added.
+2. Backend fixing, upgrade to python3 and new Django version.
+3. Telnet connector fixing.
+4. Deployment made easier
+5. Fixing common connection issues.
 
-### Upgrading Packages
+## Usage
 
-Here the following examples how to upgrade some packages
+This web app build is web interface to manage Jasmin SMS Gateway, this web app is an open source for any free usage.
 
-```sh
-pip install -U django
-pip install -U channels
-pip install -U celery
-pip install -U djangorestframework markdown django-filter
-```
-> Note: be careful about sub-packages compatibility and dependencies conflict while **upgrading**
+## Support Developer
 
-## Conclusion
+We accept paid support for installation and customization, if you want to help us improve it further, you may support us with a tip, we appreciate all contributions!
 
-The `django-aio` [Django All-in-One] repository is the result of team collaboration with developing a big web application. It's designed to make quick-starting for the pre-defined installed packages with all nice features to make sure the implementation initialized, these efforts represent predefined goals and base templates for django frameworks and its beautiful 3rd-party packages.
+## Contact Us
+
+For business inquiries: tarek.it.eng@gmail.com

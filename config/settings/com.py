@@ -181,11 +181,11 @@ SWAGGER_SETTINGS = {
 
 # Jasmin Settings
 """Jasmin telnet defaults"""
-TELNET_HOST = '127.0.0.1'
-TELNET_PORT = 8990
-TELNET_USERNAME = 'jcliadmin'
-TELNET_PW = 'jclipwd'  # no alternative storing as plain text
-TELNET_TIMEOUT = 10  # reasonable value for intranet.
+TELNET_HOST = env('TELNET_HOST', default='127.0.0.1')
+TELNET_PORT = env.int('TELNET_PORT', default=8990)
+TELNET_USERNAME = env('TELNET_USERNAME', default='jcliadmin')
+TELNET_PW = env('TELNET_PW', default='jclipwd')  # no alternative storing as plain text
+TELNET_TIMEOUT = env.int('TELNET_TIMEOUT', default=10)  # reasonable value for intranet.
 
 STANDARD_PROMPT = 'jcli : '  # There should be no need to change this
 INTERACTIVE_PROMPT ='> '  # Prompt for interactive commands
