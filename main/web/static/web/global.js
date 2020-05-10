@@ -165,6 +165,10 @@
             password: {
                 required: true,
                 rangelength: [2, 50],
+            },
+            url: {
+                required: true,
+                rangelength: [7, 250],
             }
         }
     });

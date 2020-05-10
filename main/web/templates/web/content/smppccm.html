@@ -396,7 +396,6 @@
         </div>
     </div>
 </div>
-<input type="hidden" name="url2manage" value="{% url 'web:smppccm_view_manage' %}">
 {% endblock content %}
 {% block extrajs %}
 <script>
@@ -406,7 +405,6 @@ var main_trans = {
 	yes: "{% trans 'Yes' %}",
 	youwontabletorevertthis: "{% trans 'You wont be able to revert this!' %}",
 };
-//$("#collection_modal").modal("show");
 </script>
 <script src="{% static 'web/content/smppccm.js' %}"></script>
 {% endblock extrajs %}

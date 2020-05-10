@@ -5,7 +5,6 @@ from main.core.exceptions import (
     JasminSyntaxError, JasminError, ActionFailed,
     ObjectNotFoundError, UnknownError, 
 )
-from .conn import TelnetConnection
 
 STANDARD_PROMPT = settings.STANDARD_PROMPT
 INTERACTIVE_PROMPT = settings.INTERACTIVE_PROMPT
@@ -41,7 +40,7 @@ class HTTPCCM(object):
     def get_connector_list(self):
         self.telnet.sendline('httpccm -l')
         self.telnet.expect([r'(.+)\n' + STANDARD_PROMPT])
-        result = self.telnet.match.group(0).strip().replace("\r", '').split("\n")
+        result = str(self.telnet.match.group(0)).strip().replace("\\r", '').split("\\n")
         if len(result) < 3:
             return []
         return split_cols(result[2:-2])
@@ -54,7 +53,7 @@ class HTTPCCM(object):
             r'(.*)' + STANDARD_PROMPT,
         ])
         if matched_index == 0:
-            self.telnet.sendline('persist\n')
+            self.telnet.sendline('persist')
             return {'name': cid}
         elif matched_index == 1:
             raise ObjectNotFoundError('Unknown HTTP Connector: %s' % cid)
