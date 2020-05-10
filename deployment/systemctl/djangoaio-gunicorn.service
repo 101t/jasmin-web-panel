@@ -1,0 +1,21 @@
+[Unit]
+Description=Django-AIO Gunicorn
+Requires=postgresql.service
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+SyslogIdentifier=djangoaiogunicorn
+PermissionsStartOnly=true
+User=username
+Group=username
+Environment="DJANGO_SETTINGS_MODULE=config.settings.pro"
+WorkingDirectory=/home/username/projects/django-aio
+ExecStart=/home/username/projects/django-aio/env/bin/gunicorn --bind 0.0.0.0:8000 config.wsgi -w 3 --timeout=120 --log-level=error
+StandardOutput=file:/home/username/projects/django-aio/logs/gunicorn.log
+StandardError=file:/home/username/projects/django-aio/logs/gunicorn.log
+StandardOutput=journal+console
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
