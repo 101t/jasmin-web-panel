@@ -1,4 +1,4 @@
-sudo: false
+sudo: no
 language: python
 python:
   - '3.7'
@@ -11,6 +11,7 @@ before_script:
   - pip install -r requirements.txt
 services:
   - redis-server
+addons:
   apt:
     packages:
       - python-setuptools
