@@ -1,4 +1,4 @@
-"""Django 2.2.2"""
+"""Django 3.0.5"""
 from __future__ import absolute_import, unicode_literals
 from django.utils.translation import ugettext_lazy as _
 import os, environ
@@ -27,12 +27,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # 'channels',
     'crequest',
-    #'channels',
     'rest_framework',
 
     'main.core',
-    'main.notify',
     'main.taskapp',
     'main.users',
     'main.web',
@@ -102,7 +101,7 @@ LANGUAGES = (
     ('tr', _('Türkçe')),
 )
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = env('TIME_ZONE', default='UTC')
 
 USE_I18N = True
 
@@ -110,8 +109,8 @@ USE_L10N = True
 
 USE_TZ = True
 
-SITE_TITLE  = "DjangoAIO site admin"
-SITE_HEADER = "DjangoAIO administration"
+SITE_TITLE  = "Jasmin Web site admin"
+SITE_HEADER = "Jasmin Web administration"
 INDEX_TITLE = "Dashboard administration"
 
 from django.contrib.messages import constants as message_constants
@@ -139,15 +138,18 @@ MEDIA_ROOT = str(ROOT_DIR('public/media'))
 MEDIA_URL = '/media/'
 
 REDIS_URL = ('localhost', 6379) #env.str('REDIS_URL', default=('localhost', 6379))
-ASGI_APPLICATION = "config.routing.application"
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [REDIS_URL,],
-        },
-    },
-}
+
+# ASGI Settings
+
+# ASGI_APPLICATION = "config.routing.application"
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels_redis.core.RedisChannelLayer",
+#         "CONFIG": {
+#             "hosts": [REDIS_URL,],
+#         },
+#     },
+# }
 
 DEFAULT_USER_AVATAR = STATIC_URL + "assets/img/user.png"
 DEFAULT_USER_FOLDER = "users"

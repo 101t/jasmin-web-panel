@@ -2,7 +2,7 @@
 from .com import *  # noqa
 
 DATABASES = {
-    'default': env.db('PRODB_URL', default='postgres://postgres:123456@127.0.0.1:5432/django_aiodb')
+    'default': env.db('PRODB_URL', default='postgres://postgres:123456@127.0.0.1:5432/jasmin_webdb')
 }
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])

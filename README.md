@@ -31,7 +31,7 @@ python deploy.py load_new # to load new user
 python deploy.py collectstatic
 ```
 These commands used in production server, also you may edit **Jasmin SMS Gateway** credential connection
-```sh
+```conf
 TELNET_HOST = 127.0.0.1
 TELNET_PORT = 8990
 TELNET_USERNAME = jcliadmin
@@ -50,7 +50,7 @@ python deploy.py runserver
 
 Navigate to `/etc/systemd/system` and create new service called `jasmin-web.service`
 
-```sh
+```conf
 [Unit]
 Description=Jasmin Web Panel
 Requires=postgresql.service
@@ -101,8 +101,8 @@ server {
     client_header_timeout 500;
     keepalive_timeout 500 500;
     send_timeout 30;
-    access_log /var/log/nginx/django_aio_access.log combined;
-    error_log /var/log/nginx/django_aio_error.log;
+    access_log /var/log/nginx/jasmin_web_access.log combined;
+    error_log /var/log/nginx/jasmin_web_error.log;
 
     location / {
         proxy_pass http://jasmin_web;
@@ -149,7 +149,7 @@ sudo nginx -s reload
 
 What's new in version 2.0.0
 1. UI Improved, jQuery Fixed, jQuery Validation added.
-2. Backend fixing, upgrade to python3 and new Django version.
+2. Backend fixing, upgrade to python3 and fresh Django version.
 3. Telnet connector fixing.
 4. Deployment made easier
 5. Fixing common connection issues.
