@@ -5,6 +5,10 @@ python:
 before_script:
   # install requirements:
   - pip install -r requirements.txt
+  - psql -U postgres -c 'create database jasmin_web_db;'
+test:
+  adapter: postgresql
+  database: jasmin_web_db
 before_install:
   - virtualenv -p python3 env
   - source env/bin/activate
@@ -13,6 +17,7 @@ services:
   - postgresql
   - redis-server
 addons:
+  postgresql: "12"
   apt:
     packages:
       - python-setuptools
