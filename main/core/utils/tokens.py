@@ -8,7 +8,7 @@ class EmailActiveTokenGenerator(PasswordResetTokenGenerator):
     def _make_hash_value(self, user, timestamp):
         return (
             str(user.pk) + str(timestamp) +
-            str(user.email) + str(user.role) + 
+            str(user.email) + str(user.pin) + 
             str(user.last_name) + str(user.first_name)
         )
 
@@ -19,7 +19,7 @@ class RestPassswordTokenGenertorclass(PasswordResetTokenGenerator):
     def _make_hash_value(self, user, timestamp):
         return (
             str(user.pk) + str(timestamp) +
-            str(user.email) + str(user.role) + 
+            str(user.email) + str(user.pin) + 
             str(user.last_name) + str(settings.SECRET_KEY) + str(timestamp)
         )
 
