@@ -5,14 +5,21 @@ python:
 before_script:
   # install requirements:
   - pip install -r requirements.txt
+  - psql -c 'create database jasmin_web_db;' -U postgres
+  - psql -c 'create role travis superuser login createdb;' -U postgres
 test:
   adapter: postgresql
   database: jasmin_web_db
+  encoding: unicode
+  pool: 5
+  username: postgres
+  password:
+  min_messages: warning
 before_install:
+  - sudo apt-get install -y libpq-dev postgresql-client postgresql-client-common python3-psycopg2 postgresql postgresql-contrib
   - virtualenv -p python3 env
   - source env/bin/activate
   - cp -rf Sample.env .env
-  - sudo -u postgres psql -c 'create database jasmin_web_db;'
 services:
   - postgresql
   - redis-server
@@ -23,7 +30,6 @@ addons:
       - python-setuptools
       - python3-dev
       - python3-pip
-      - libpq-dev postgresql-client postgresql-client-common python3-psycopg2 postgresql postgresql-contrib
       - git
       - virtualenv
 env:
