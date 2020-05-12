@@ -43,7 +43,6 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
 	tel 		= models.CharField(verbose_name=_("Telephone"), max_length=15, blank=True, validators=[_PHONE_REGEX])
 	fax 		= models.CharField(verbose_name=_("Fax"), max_length=15, blank=True, validators=[_PHONE_REGEX])
 
-	last_login  = models.DateTimeField(verbose_name=_("Last Login"), null=True)
 	login_count = models.PositiveIntegerField(verbose_name=_("Login Count"), default=0)
 
 	username_validator = ASCIIUsernameValidator()

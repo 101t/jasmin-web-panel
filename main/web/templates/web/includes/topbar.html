@@ -17,11 +17,11 @@
             </a>
             <!-- Dropdown - User Information -->
             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
-                <a class="dropdown-item" href="#">
+                <a class="dropdown-item" href="{% url 'users:settings_view' %}">
                     <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
                     {% trans "Settings" %}
                 </a>
-                <a class="dropdown-item" href="#">
+                <a class="dropdown-item" href="{% url 'users:activity_log_view' %}">
                     <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
                     {% trans "Activity Log" %}
                 </a>

@@ -18,4 +18,4 @@ def settings_view(request):
 
 @login_required
 def activity_log_view(request):
-    return render(request, "auth/settings.html")
+    return render(request, "auth/activity_log.html")
