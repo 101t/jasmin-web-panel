@@ -9,6 +9,9 @@ before_install:
   - virtualenv -p python3 env
   - source env/bin/activate
   - cp -rf Sample.env .env
+services:
+  - postgresql
+  - redis-server
 addons:
   apt:
     packages:
@@ -18,7 +21,6 @@ addons:
       - libpq-dev postgresql-client postgresql-client-common python3-psycopg2
       - git
       - virtualenv
-      - redis-server
 env:
   - DJANGO_SETTINGS_MODULE=config.settings.pro
 script:  
