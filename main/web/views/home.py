@@ -8,9 +8,12 @@ from django.contrib import messages
 from django.utils import timezone as djtz
 from django.conf import settings
 
+from main.core.utils import get_client_ip
+
 @login_required
 def dashboard_view(request):
-    return render(request, "web/dashboard.html")
+    ip_address = get_client_ip(request)
+    return render(request, "web/dashboard.html", dict(ip_address=ip_address))
 
 def welcome_view(request):
     import django, sys
