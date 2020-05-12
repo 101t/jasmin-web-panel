@@ -3,18 +3,13 @@ language: python
 python:
   - '3.7'
 before_script:
+  - psql -c 'create database jasmin_webdb;' -U postgres
   # install requirements:
   - pip install -r requirements.txt
-  - psql -c 'create database jasmin_web_db;' -U postgres
-  - psql -c 'create role travis superuser login createdb;' -U postgres
+  
 test:
   adapter: postgresql
-  database: jasmin_web_db
-  encoding: unicode
-  pool: 5
-  username: postgres
-  password:
-  min_messages: warning
+  database: jasmin_webdb
 before_install:
   - sudo apt-get install -y libpq-dev postgresql-client postgresql-client-common python3-psycopg2 postgresql postgresql-contrib
   - virtualenv -p python3 env
