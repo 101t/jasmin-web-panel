@@ -2,26 +2,15 @@ sudo: no
 language: python
 python:
   - '3.7'
-test:
-  adapter: postgresql
-  database: jasmin_webdb
-  username: postgres
-  password:
 before_install:
-  - sudo apt-get install -y libpq-dev postgresql-client postgresql-client-common python3-psycopg2 postgresql postgresql-contrib
-  - sudo /etc/init.d/postgres restart
   - virtualenv -p python3 env
   - source env/bin/activate
   - cp -rf Sample.env .env
 before_script:
-  - psql -c 'create database jasmin_webdb;' -U postgres
   # install requirements:
   - pip install -r requirements.txt
 services:
-  - postgresql
   - redis-server
-addons:
-  postgresql: "10"
   apt:
     packages:
       - python-setuptools
@@ -30,6 +19,6 @@ addons:
       - git
       - virtualenv
 env:
-  - DJANGO_SETTINGS_MODULE=config.settings.pro
+  - DJANGO_SETTINGS_MODULE=config.settings.dev
 script:  
   - ./load_data.sh --init
