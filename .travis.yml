@@ -2,22 +2,23 @@ sudo: no
 language: python
 python:
   - '3.7'
+before_install:
+  - virtualenv -p python3 env
+  - source env/bin/activate
+  - cp -rf Sample.env .env
 before_script:
   # install requirements:
   - pip install -r requirements.txt
-before_install:
-  - virtualenv env
-  - source env/bin/activate
-addons:
+services:
+  - redis-server
   apt:
     packages:
-      - python-dev
       - python-setuptools
-      - python-pip
+      - python3-dev
+      - python3-pip
       - git
       - virtualenv
-      - redis-server
 env:
-  - DJANGO_SETTINGS_MODULE=config.settings.pro
-script:
-  - ./load_data.sh
+  - DJANGO_SETTINGS_MODULE=config.settings.dev
+script:  
+  - ./load_data.sh --init
