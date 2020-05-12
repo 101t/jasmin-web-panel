@@ -6,18 +6,20 @@ before_script:
   # install requirements:
   - pip install -r requirements.txt
 before_install:
-  - virtualenv env
+  - virtualenv -p python3 env
   - source env/bin/activate
+  - cp -rf Sample.env .env
 addons:
   apt:
     packages:
-      - python-dev
       - python-setuptools
-      - python-pip
+      - python3-dev
+      - python3-pip
+      - libpq-dev postgresql-client postgresql-client-common python3-psycopg2
       - git
       - virtualenv
       - redis-server
 env:
   - DJANGO_SETTINGS_MODULE=config.settings.pro
-script:
-  - ./load_data.sh
+script:  
+  - ./load_data.sh --init
