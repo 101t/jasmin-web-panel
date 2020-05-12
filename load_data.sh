@@ -14,6 +14,8 @@ if [ "$1" == "--init" ] || [ "$1" == "-i" ]; then
 	$ENVIROO $MANAGER load_new
 fi
 
-RUN_PROJECT="$ENVIROO $MANAGER runserver 0.0.0.0:8000"
-echo $RUN_PROJECT
-$RUN_PROJECT
+if [ "$2" == "--start" ] || [ "$2" == "-s" ]; then
+	RUN_PROJECT="$ENVIROO $MANAGER runserver 0.0.0.0:8000"
+	echo $RUN_PROJECT
+	$RUN_PROJECT
+fi
