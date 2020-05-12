@@ -12,7 +12,7 @@ before_install:
   - virtualenv -p python3 env
   - source env/bin/activate
   - cp -rf Sample.env .env
-  - psql -U postgres -c 'create database jasmin_web_db;'
+  - sudo -u postgres psql -c 'create database jasmin_web_db;'
 services:
   - postgresql
   - redis-server
@@ -23,7 +23,7 @@ addons:
       - python-setuptools
       - python3-dev
       - python3-pip
-      - libpq-dev postgresql-client postgresql-client-common python3-psycopg2
+      - libpq-dev postgresql-client postgresql-client-common python3-psycopg2 postgresql postgresql-contrib
       - git
       - virtualenv
 env:
