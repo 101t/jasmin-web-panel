@@ -1,31 +1,34 @@
 # -*- encoding: utf-8 -*-
-from __future__ import unicode_literals, absolute_import
 from django.utils.translation import ugettext_lazy as _
-
+from django.core.validators import MaxLengthValidator, MinLengthValidator, EmailValidator
 from django import forms
-from ..models import User
 
-class PasswordResetRequestForm(forms.Form):
-	email_or_username = forms.CharField(label=_("Email or Username"), widget=forms.TextInput(attrs={'placeholder': _('Email or Username')}), max_length=254,)
+class ResetPasswordForm(forms.Form):
+    default_attrs = {'class': 'form-control'}
+    username_validators = [
+        MaxLengthValidator(limit_value=255, message=_("Maximum length allowed is %(max_length)s") % dict(max_length=255)), 
+        MinLengthValidator(limit_value=2, message=_("Minimum length allowed is %(min_length)s") % dict(min_length=2)),
+    ]
+    username = forms.CharField(widget=forms.TextInput(
+        attrs=default_attrs.update(dict(placeholder=_("Email or Username")))
+    ), validators=username_validators, required=True, label=_("Email or Username"))
 
-class SetPasswordForm(forms.Form):
-	"""
-	A form that lets a user change set their password without entering the old
-	password
-	"""
-	error_messages = {
-		'password_mismatch': ("The two password fields didn't match."),
-	}
-	new_password1 = forms.CharField(label=_("New password"), widget=forms.PasswordInput(attrs={'placeholder': 'New password'}))
-	new_password2 = forms.CharField(label=_("New password confirmation"), widget=forms.PasswordInput(attrs={'placeholder': 'New password confirmation'}))
-
-	def clean_new_password2(self):
-		password1 = self.cleaned_data.get('new_password1')
-		password2 = self.cleaned_data.get('new_password2')
-		if password1 and password2:
-			if password1 != password2:
-				raise forms.ValidationError(
-					self.error_messages['password_mismatch'],
-					code='password_mismatch',
-					)
-		return password2
+class ResetPasswordConfirmForm(forms.Form):
+    default_attrs = {'class': 'form-control'}
+    password_validators = [
+        MaxLengthValidator(limit_value=255, message=_("Maximum length allowed is %(max_length)s") % dict(max_length=255)), 
+        MinLengthValidator(limit_value=5, message=_("Minimum length allowed is %(min_length)s") % dict(min_length=5)),
+    ]
+    password  = forms.CharField(widget=forms.PasswordInput(
+        attrs=default_attrs.update(dict(placeholder=_("New Password")))
+    ), validators=password_validators, required=True, label=_("Password"))
+    password2 = forms.CharField(widget=forms.PasswordInput(
+        attrs=default_attrs.update(dict(placeholder=_("New Password Confirmation")))
+    ), validators=password_validators, required=True, label=_("Password Confirmation"))
+    def clean(self):
+        cleaned_data = super(ResetPasswordConfirmForm, self).clean()
+        password = cleaned_data.get("password")
+        password2 = cleaned_data.get("password2")
+        if not password or not password2 or not password == password2:
+            self.add_error(field="password2", error=_("The two password fields did not matched."))
+        return password

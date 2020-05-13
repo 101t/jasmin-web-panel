@@ -24,6 +24,11 @@ if "%init_result%"=="T" (
     %ENVIROO% %MANAGER% load_new
 )
 
-set RUN_PROJECT=%ENVIROO% %MANAGER% runserver 0.0.0.0:8000
-echo %RUN_PROJECT%
-CALL %RUN_PROJECT%
+set start_result=F
+if "%~2"=="--start" set start_result=T
+if "%~2"=="-s" set start_result=T
+if "%start_result%"=="T" (
+    set RUN_PROJECT=%ENVIROO% %MANAGER% runserver 0.0.0.0:8000
+    echo %RUN_PROJECT%
+    CALL %RUN_PROJECT%
+)

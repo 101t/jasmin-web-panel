@@ -188,6 +188,15 @@
                 required: true,
                 rangelength: [2, 50],
             },
+            password1: {
+                required: true,
+                rangelength: [2, 50],
+            },
+            password2: {
+                required: true,
+                rangelength: [2, 50],
+                equalTo: "input[name=password1]",
+            },
             url: {
                 required: true,
                 rangelength: [7, 250],
