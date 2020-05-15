@@ -49,6 +49,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'crequest.middleware.CrequestMiddleware',
     'main.core.middleware.TelnetConnectionMiddleware',
+    'main.core.middleware.UserAgentMiddleware',
     'main.users.middleware.LastUserActivityMiddleware',
 ]
 

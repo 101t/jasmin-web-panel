@@ -1,23 +1,23 @@
 (function($){
     $(document).on("input", ".float-input", function(){this.value = this.value.replace(/[^0-9.]/g, ''); this.value = this.value.replace(/(\..*)\./g, '$1');});
     $(document).on("input", ".integer-input", function(){$(this).val($(this).val().replace(/[^0-9]/g, ''));});
-    function toTitleCase(str){
+    window.toTitleCase = function(str){
         return str.replace(/\w\S*/g, function(txt) {
 			return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
 		});
     }
-    function compare(a, b){
+    window.compare = function(a, b){
         if (a.order < b.order) {return -1;}
         if (a.order > b.order) {return 1;}
         return 0;
     }
-    function extend(obj, src){
+    window.extend = function(obj, src){
         for(var key in src){
             if (src.hasOwnProperty(key)) obj[key] = src[key];
         }
         return obj;
     }
-    function delay(callback, ms){
+    window.delay = function(callback, ms){
         var timer = 0;
         return function() {
             var context = this, args = arguments;
@@ -41,7 +41,9 @@
         $.each(restOfBoxes, function(k, v){$(v).hide()});
         $(box).show();
     }
-    var localpath = window.location.pathname, csrfmiddlewaretoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+    try {
+        var localpath = window.location.pathname, csrfmiddlewaretoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+    } catch {}
     window.collection_check = function(tbody_html, page_no, destroy_paginate){
         tbody_html = tbody_html || function(val, i){return `<td>${val}</td>`;};
         page_no = page_no || 1;

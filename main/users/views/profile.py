@@ -13,7 +13,8 @@ from django.conf import settings
 
 from ..models import User
 from ..forms import ChangePhotoForm, ChangePasswordForm, ProfileForm
-from main.core.utils import display_form_validations, is_json
+from main.core.utils import display_form_validations, is_json, get_query, paginate
+from main.core.models import ActivityLog
 
 from PIL import Image
 import json, os
@@ -116,4 +117,10 @@ def settings_view(request):
 
 @login_required
 def activity_log_view(request):
-    return render(request, "auth/activity_log.html")
+    activitylogs = ActivityLog.objects.filter(user=request.user)
+    search = request.GET.get("search")
+    if search:
+        entry_query = get_query(search, ("ip", "path",))
+        activitylogs = activitylogs.filter(entry_query)
+    activitylogs = paginate(objects=activitylogs, per_page=24, page=request.GET.get("page"))
+    return render(request, "auth/activity_log.html", dict(activitylogs=activitylogs))
