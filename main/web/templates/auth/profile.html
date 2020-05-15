@@ -1,8 +1,106 @@
 {% extends "web/base.html" %}
 {% load static i18n %}
 {% block title %}{% trans "Profile" %}{% endblock title %}
-{% block extracss %}{% endblock extracss %}
+{% block extracss %}
+<link rel="stylesheet" href="{% static 'assets/vendor/cropper/jasny-bootstrap.min.css' %}">
+<link rel="stylesheet" href="{% static 'assets/vendor/cropper/cropper.min.css' %}">
+<link rel="stylesheet" href="{% static 'assets/vendor/cropper/cropper_main.css' %}">
+{% endblock extracss %}
 {% block content %}
 <h1 class="h3 mb-2 text-gray-800">{% trans "Profile" %}</h1>
+{% include "web/includes/message.html" %}
+<div class="container">
+    <div class="card shadow mb-4 px-0">
+        <div class="card-header py-3">
+            <h4 class="mb-0">{% trans "Avatar" %}</h4>
+        </div>
+        <div class="card-body">
+            <div class="form-group row">
+                <div class="col-sm-2">
+                    <label class="col-form-label">{% trans "Public Avatar" %}</label><br>
+                    <small class="text-muted">{% trans "You can change your avatar here or remove the current avatar to revert to default" %}</small>
+                </div>
+                <div class="col-sm-6">
+                    <form action="" method="post">{% csrf_token %}
+                        <div id="crop-avatar">
+                            <div class="margin-right-20 avatar-view">
+                                <img src="{{ request.user.img }}" alt="{{ request.user.get_full_name }}" id="myavatar" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; object-position: center;" />
+                                <div class="loading" aria-label="Loading" role="img" tabindex="-1"></div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="s" value="avatar">
+                    </form>
+                    <small class="text-muted">{% trans "Click on Image to change your profile picture" %}</small>
+                </div>
+                <div class="col-sm-4">
+                    <form action="" method="post">{% csrf_token %}
+                        <button class="btn btn-outline-danger">{% trans "Remove avatar" %}</button>
+                        <input type="hidden" name="s" value="avatar_reset">
+                    </form>
+                </div>
+            </div>
+        </div>
+        <form action="" method="post">{% csrf_token %}
+            <div class="card-header py-3">
+                <h4 class="mb-0">{% trans "Personal Information" %}</h4>
+            </div>
+            <div class="card-body">
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label">{% trans "First Name" %}</label>
+                    <div class="col-sm-6">
+                        <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}" placeholder="{% trans 'First Name' %}">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label">{% trans "Last Name" %}</label>
+                    <div class="col-sm-6">
+                        <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" placeholder="{% trans 'Last Name' %}">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label">{% trans "Email Address" %}</label>
+                    <div class="col-sm-6">
+                        <input type="email" name="email" class="form-control" value="{{ user.email }}" placeholder="{% trans 'Email Address' %}">
+                        <small class="text-muted">{% trans "You need to activate your email address when changed" %}</small>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success"><i class="fas fa-lock"></i> {% trans "Update Profile" %}</button>
+            </div>
+            <input type="hidden" name="s" value="profile">
+        </form>
+        <form action="" method="post" autocomplete="off">{% csrf_token %}
+            <div class="card-header py-3">
+                <h4 class="mb-0">{% trans "Change Password" %}</h4>
+            </div>
+            <div class="card-body">
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label">{% trans "Old Password" %}</label>
+                    <div class="col-sm-6">
+                        <input type="password" name="password" class="form-control" placeholder="{% trans 'Old Password' %}">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label">{% trans "New Password" %}</label>
+                    <div class="col-sm-6">
+                        <input type="password" name="password1" class="form-control" placeholder="{% trans 'New Password' %}">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label">{% trans "Password Confirm" %}</label>
+                    <div class="col-sm-6">
+                        <input type="password" name="password2" class="form-control" placeholder="{% trans 'Re-type New Password' %}">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-danger"><i class="fas fa-key"></i> {% trans "Change Password" %}</button>
+            </div>
+            <input type="hidden" name="s" value="password">
+        </form>
+    </div>
+</div>
+{% include "web/includes/avatar_modal.html" %}
 {% endblock content %}
-{% block extrajs %}{% endblock extrajs %}
+{% block extrajs %}
+<script type="text/javascript" src="{% static 'assets/vendor/cropper/jasny-bootstrap.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'assets/vendor/cropper/cropper.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'assets/vendor/cropper/cropper_main.js' %}"></script>
+{% endblock extrajs %}

@@ -1,8 +1,98 @@
 {% extends "web/base.html" %}
-{% load static i18n %}
+{% load static i18n humanize %}
 {% block title %}{% trans "Activity Log" %}{% endblock title %}
 {% block extracss %}{% endblock extracss %}
 {% block content %}
 <h1 class="h3 mb-2 text-gray-800">{% trans "Activity Log" %}</h1>
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <form action="" method="get">
+            <div class="form-group row">
+                <label class="col-sm-1 col-form-label">{% trans "Search" %}</label>
+                <div class="col-sm-3">
+                    <input type="text" name="search" class="form-control" value="{{ request.GET.search }}" placeholder="{% trans 'Search' %}">
+                </div>
+            </div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-hover table-striped1 table-bordered1 table-sm">
+                <thead>
+                    <tr>
+                        <th>{% trans "Service" %}</th>
+                        <th>{% trans "Method" %}</th>
+                        <th>{% trans "Path" %}</th>
+                        <th>{% trans "IP Address" %}</th>
+                        <th>{% trans "Created At" %}</th>
+                        <th class="text-center">{% trans "Option" %}</th>
+                    </tr>
+                </thead>
+                <tbody id="collectionlist">
+                    {% for activitylog in activitylogs %}
+                    <tr>
+                        <td>{{ activitylog.service|title }}</td>
+                        <td>{{ activitylog.method }}</td>
+                        <td>{{ activitylog.path }}</td>
+                        <td>{{ activitylog.ip }}</td>
+                        <td title="{{ activitylog.created }}">{{ activitylog.created|naturaltime }}</td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm">
+                                <a href="javascript:void(0)" class="btn btn-light" onclick="return collection_manage('view', this);"><i class="fas fa-search"></i></a>
+                                <input type="hidden" name="data" value="{{ activitylog.get_json }}">
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center"><i class="fas fa-list text-metal" style="font-size:5rem;"></i><br>{% trans "No Activity Log" %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% include "web/includes/paginate.html" with page_obj=activitylogs %}
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="collection_modal" tabindex="-1" role="dialog" aria-labelledby="collection_modalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div id="view_modal_form">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="collection_modalLabel">{% trans "Log Details" %}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <h5>{% trans "General Details" %}</h5>
+                    <table class="table table-bordered table-sm">
+                        <tbody></tbody>
+                    </table>
+                    <br>
+                    <h5>{% trans "Request Body" %}</h5>
+                    <table class="table table-bordered table-sm">
+                        <tbody></tbody>
+                    </table>
+                    <br>
+                    <h5>{% trans "User Agent" %}</h5>
+                    <table class="table table-bordered table-sm">
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Cancel" %}</button>
+                </div>
+                <input type="hidden" name="s" value="add">
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock content %}
-{% block extrajs %}{% endblock extrajs %}
+{% block extrajs %}
+<script>
+var main_trans = {
+    ipaddress: "{% trans 'IP Address' %}",
+    method: "{% trans 'Method' %}",
+    service: "{% trans 'Service' %}",
+    path: "{% trans 'Path' %}",
+}
+</script>
+<script src="{% static 'auth/activity_log.js' %}"></script>
+{% endblock extrajs %}
