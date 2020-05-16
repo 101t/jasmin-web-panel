@@ -31,7 +31,7 @@ python deploy.py load_new # to load new user
 python deploy.py collectstatic
 ```
 These commands used in production server, also you may edit **Jasmin SMS Gateway** credential connection
-```conf
+```ini
 TELNET_HOST = 127.0.0.1
 TELNET_PORT = 8990
 TELNET_USERNAME = jcliadmin
@@ -50,7 +50,7 @@ python deploy.py runserver
 
 Navigate to `/etc/systemd/system` and create new service called `jasmin-web.service`
 
-```conf
+```ini
 [Unit]
 Description=Jasmin Web Panel
 Requires=postgresql.service
@@ -164,4 +164,4 @@ We accept paid support for installation and customization, if you want to help u
 
 ## Contact Us
 
-For business inquiries: tarek.it.eng@gmail.com
+For business inquiries: tarek.it.eng@gmail.com, Join Telegram Channel: [https://t.me/jasminwebpanel](https://t.me/jasminwebpanel)

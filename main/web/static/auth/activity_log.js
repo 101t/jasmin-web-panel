@@ -35,7 +35,7 @@
             })
             var table2 = $.map(data.user_agent, function(val, i){
                 var tds = "";
-                if (i in ["os", "ua_string"]) {
+                if (["os", "ua_string"].indexOf(i) > -1) {
                     if (i === "os") {
                         tds = `
                             <th>OS</th>
