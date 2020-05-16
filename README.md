@@ -7,13 +7,13 @@ Jasmin SMS Web Interface for [Jasmin SMS Gateway](https://github.com/jookies/jas
 
 ### Table Of Contents:
 
-* [Installing and Deployment](https://github.com/101t/jasmin-web-panel#installing-and-deployment)
-    1. [Installation](https://github.com/101t/jasmin-web-panel#installation)
-    2. [Deployment with NGiNX and Systemd](https://github.com/101t/jasmin-web-panel#deployment-with-nginx-and-systemd)
-* [Release Notes](https://github.com/101t/jasmin-web-panel#release-notes)
-* [Usage](https://github.com/101t/jasmin-web-panel#usage)
-* [Support Developer](https://github.com/101t/jasmin-web-panel#support-developer)
-* [Contact Us](chttps://github.com/101t/jasmin-web-panel#contact-us)
+1. [Installing and Deployment](https://github.com/101t/jasmin-web-panel#installing-and-deployment)
+    * [Installation](https://github.com/101t/jasmin-web-panel#installation)
+    * [Deployment with NGiNX and Systemd](https://github.com/101t/jasmin-web-panel#deployment-with-nginx-and-systemd)
+2. [Release Notes](https://github.com/101t/jasmin-web-panel#release-notes)
+3. [Usage](https://github.com/101t/jasmin-web-panel#usage)
+4. [Support Developer](https://github.com/101t/jasmin-web-panel#support-developer)
+5. [Contact Us](https://github.com/101t/jasmin-web-panel#contact-us)
 
 ## Installing and Deployment
 
