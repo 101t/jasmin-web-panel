@@ -5,6 +5,16 @@
 
 Jasmin SMS Web Interface for [Jasmin SMS Gateway](https://github.com/jookies/jasmin)
 
+### Table Of Contents:
+
+* [Installing and Deployment](https://github.com/101t/jasmin-web-panel#installing-and-deployment)
+    1. [Installation](https://github.com/101t/jasmin-web-panel#installation)
+    2. [Deployment with NGiNX and Systemd](https://github.com/101t/jasmin-web-panel#deployment-with-nginx-and-systemd)
+* [Release Notes](https://github.com/101t/jasmin-web-panel#release-notes)
+* [Usage](https://github.com/101t/jasmin-web-panel#usage)
+* [Support Developer](https://github.com/101t/jasmin-web-panel#support-developer)
+* [Contact Us](chttps://github.com/101t/jasmin-web-panel#contact-us)
+
 ## Installing and Deployment
 
 Before starting please make sure you have installed and running [Jasmin SMS Gateway](http://docs.jasminsms.com/en/latest/installation/index.html) on your server.
@@ -44,7 +54,7 @@ You may run project manually
 python deploy.py runserver
 ```
 
-### Deployment with `NGiNX & Systemd`
+### Deployment with `NGiNX and Systemd`
 
 > Make sure you have installed `gunicorn` using `pip`.
 
@@ -73,7 +83,7 @@ Restart=on-failure
 [Install]
 WantedBy=multi-user.target
 ```
-Reload systemctl
+Reload systemd
 
 ```sh
 sudo systemctl daemon-reload
@@ -87,7 +97,7 @@ To ensure web app running without issue:
 ```sh
 sudo systemctl status jasmin-web.service
 ```
-For NGiNX go to `/etc/nginx/sites-availiable` and create new file `jasmin-web`
+For NGiNX go to `/etc/nginx/sites-availiable` and create new file `jasmin_web`
 
 ```nginx
 upstream jasmin_web{
@@ -139,6 +149,7 @@ server {
 
 Once you are done, test and restart the Nginx Service with:
 ```sh
+ln -s /etc/nginx/sites-availiable/jasmin_web /etc/nginx/site-enabled/jasmin_web
 sudo nginx -t
 sudo nginx -s reload 
 # sudo serivce nginx restart 
@@ -151,8 +162,11 @@ What's new in version 2.0.0
 1. UI Improved, jQuery Fixed, jQuery Validation added.
 2. Backend fixing, upgrade to python3 and fresh Django version.
 3. Telnet connector fixing.
-4. Deployment made easier
+4. Deployment made easier.
 5. Fixing common connection issues.
+6. Simple dashboard initialized.
+7. User Profile, Change Password, Add Avatar.
+8. Activity Log, to log your usage.
 
 ## Usage
 
