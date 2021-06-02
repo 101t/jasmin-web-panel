@@ -39,7 +39,7 @@ sqlparse==0.3.1
 tablib==1.1.0
 ua-parser==0.10.0
 uritemplate==3.0.1
-urllib3==1.25.9
+urllib3==1.26.5
 user-agents==2.1
 vine==1.3.0
 xlrd==1.2.0
