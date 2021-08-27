@@ -74,7 +74,7 @@ User=username
 Group=username
 Environment="DJANGO_SETTINGS_MODULE=config.settings.pro"
 WorkingDirectory=/opt/jasmin-web-panel
-ExecStart=/opt/jasmin-web-panel/env/bin/gunicorn --bind 0.0.0.0:8000 config.wsgi -w 3 --timeout=120 --log-level=error
+ExecStart=/opt/jasmin-web-panel/env/bin/gunicorn --bind 127.0.0.1:8000 config.wsgi -w 3 --timeout=120 --log-level=error
 StandardOutput=file:/opt/jasmin-web-panel/logs/gunicorn.log
 StandardError=file:/opt/jasmin-web-panel/logs/gunicorn.log
 StandardOutput=journal+console
@@ -101,7 +101,7 @@ For NGiNX go to `/etc/nginx/sites-availiable` and create new file `jasmin_web`
 
 ```nginx
 upstream jasmin_web{
-    server 0.0.0.0:8000;
+    server 127.0.0.1:8000;
 }
 server {
     listen 80;
@@ -145,16 +145,23 @@ server {
     }
 }
 ```
-> Note: Don't forget to replace example.com with your real domain
+> Note: Don't forget to replace `example.com` with your real domain
 
 Once you are done, test and restart the Nginx Service with:
 ```sh
 ln -s /etc/nginx/sites-availiable/jasmin_web /etc/nginx/site-enabled/jasmin_web
 sudo nginx -t
 sudo nginx -s reload 
-# sudo serivce nginx restart 
+# or sudo service nginx restart 
 # or sudo systemctl restart nginx
 ```
+
+### Login information:
+```shell
+Username: admin
+Password: secret
+```
+> Note: Please change password to avoid security issue
 
 ## Release Notes
 
@@ -168,6 +175,11 @@ What's new in version 2.0.0
 7. User Profile, Change Password, Add Avatar.
 8. Activity Log, to log your usage.
 
+What's new in version 2.0.1
+1. Adding **Submit Log** report (DLR report)
+ 
+**TODO:** bug fixes, adding new feature 
+
 ## Usage
 
 This application built as web interface to manage Jasmin SMS Gateway, it is an open source for free and commercial purpose.
@@ -178,4 +190,4 @@ We accept paid support for installation and customization, if you want to help u
 
 ## Contact Us
 
-For business inquiries: tarek.it.eng@gmail.com, Join Telegram Channel: [https://t.me/jasminwebpanel](https://t.me/jasminwebpanel)
+For business inquiries: [tarek.it.eng@gmail.com](mailto:tarek.it.eng@gmail.com), Join Telegram Channel: [https://t.me/jasminwebpanel](https://t.me/jasminwebpanel), all suggestion and questions are welcomed.
