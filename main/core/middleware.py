@@ -11,6 +11,7 @@ import pexpect, sys, time, json
 
 logger = logging.getLogger(__name__)
 
+
 class TelnetConnectionMiddleware(MiddlewareMixin):
     def process_request(self, request):
         """Add a telnet connection to all request paths that start with /api/
@@ -28,28 +29,34 @@ class TelnetConnectionMiddleware(MiddlewareMixin):
             #     (settings.TELNET_HOST, settings.TELNET_PORT),
             #     timeout=settings.TELNET_TIMEOUT,
             # )
-            telnet = pexpect.spawn('telnet', [settings.TELNET_HOST, str(settings.TELNET_PORT)], timeout=settings.TELNET_TIMEOUT)
-            #telnet.logfile_read = sys.stdout
+            telnet = pexpect.spawn('telnet', [settings.TELNET_HOST, str(settings.TELNET_PORT)],
+                                   timeout=settings.TELNET_TIMEOUT)
+            # telnet.logfile_read = sys.stdout
             telnet.expect(':')
             telnet.sendline(settings.TELNET_USERNAME)
             telnet.expect(':')
             telnet.sendline(settings.TELNET_PW)
-            #telnet.send("\r\n")
+            # telnet.send("\r\n")
         except pexpect.EOF:
             logger.error("TelnetUnexpectedResponse")
-            #raise TelnetUnexpectedResponse
+            # raise TelnetUnexpectedResponse
         except pexpect.TIMEOUT:
             logger.error("TelnetConnectionTimeout")
-            #raise TelnetConnectionTimeout
+            # raise TelnetConnectionTimeout
+        except AttributeError as e:
+            logger.error(f"The Jasmin SMS Gateway not configured properly, the error: \n {e}")
 
         try:
             telnet.expect_exact(settings.STANDARD_PROMPT)
         except pexpect.EOF:
             logger.error("TelnetLoginFailed")
-            #raise TelnetLoginFailed
+            # raise TelnetLoginFailed
+        except UnboundLocalError as e:
+            logger.error(f"Cannot connect through Telnet, the error: \n {e}")
         else:
             request.telnet = telnet
             return None
+
     def process_response(self, request, response):
         "Make sure telnet connection is closed when unleashing response back to client"
         if hasattr(request, 'telnet'):
@@ -58,6 +65,7 @@ class TelnetConnectionMiddleware(MiddlewareMixin):
             except pexpect.ExceptionPexpect:
                 request.telnet.kill(9)
         return response
+
 
 class UserAgentMiddleware(object):
 
@@ -79,13 +87,14 @@ class UserAgentMiddleware(object):
                 if "s" in params:
                     params.pop("s", None)
                 return params
+
             if request.POST.get("s") != "list":
                 ActivityLog.objects.create(
                     user=request.user,
                     service=request.POST.get("s", "unknown"),
                     method=request.method,
                     params=json.dumps(clean_params(request.POST or request.GET or {}), cls=LazyEncoder),
-                    path= request.path,
+                    path=request.path,
                     ip=get_client_ip(request),
                     user_agent=json.dumps(user_agent.__dict__ or {}, cls=LazyEncoder),
                 )

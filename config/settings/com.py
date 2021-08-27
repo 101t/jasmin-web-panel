@@ -195,3 +195,4 @@ TELNET_TIMEOUT = env.int('TELNET_TIMEOUT', default=10)  # reasonable value for i
 
 STANDARD_PROMPT = 'jcli : '  # There should be no need to change this
 INTERACTIVE_PROMPT ='> '  # Prompt for interactive commands
+SUBMIT_LOG = env.bool('SUBMIT_LOG', False)  # This is used for DLR Report

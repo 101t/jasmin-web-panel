@@ -12,13 +12,15 @@ import json
 
 from main.core.smpp import HTTPCCM
 
+
 @login_required
 def httpccm_view(request):
     return render(request, "web/content/httpccm.html")
 
+
 @login_required
 def httpccm_view_manage(request):
-    args, resstatus, resmessage = {}, 400, _("Sorry, Command does not matched.")
+    args, res_status, res_message = {}, 400, _("Sorry, Command does not matched.")
     httpccm = None
     if request.POST and request.is_ajax():
         s = request.POST.get("s")
@@ -27,20 +29,20 @@ def httpccm_view_manage(request):
         if httpccm:
             if s == "list":
                 args = httpccm.list()
-                resstatus, resmessage = 200, _("OK")
+                res_status, res_message = 200, _("OK")
             elif s == "add":
                 httpccm.create(data=dict(
                     cid=request.POST.get("cid"),
                     url=request.POST.get("url"),
                     method=request.POST.get("method"),
                 ))
-                resstatus, resmessage = 200, _("HTTPCCM added successfully!")
+                res_status, res_message = 200, _("HTTPCCM added successfully!")
             elif s == "delete":
                 args = httpccm.destroy(cid=request.POST.get("cid"))
-                resstatus, resmessage = 200, _("HTTPCCM deleted successfully!")
+                res_status, res_message = 200, _("HTTPCCM deleted successfully!")
     if isinstance(args, dict):
-        args["status"] = resstatus
-        args["message"] = str(resmessage)
+        args["status"] = res_status
+        args["message"] = str(res_message)
     else:
-        resstatus = 200
-    return HttpResponse(json.dumps(args), status=resstatus, content_type="application/json")
+        res_status = 200
+    return HttpResponse(json.dumps(args), status=res_status, content_type="application/json")

@@ -12,13 +12,15 @@ import json
 
 from main.core.smpp import TelnetConnection, MORouter
 
+
 @login_required
 def morouter_view(request):
     return render(request, "web/content/morouter.html")
 
+
 @login_required
 def morouter_view_manage(request):
-    args, resstatus, resmessage = {}, 400, _("Sorry, Command does not matched.")
+    args, res_status, res_message = {}, 400, _("Sorry, Command does not matched.")
     tc, morouter = None, None
     if request.POST and request.is_ajax():
         s = request.POST.get("s")
@@ -28,7 +30,7 @@ def morouter_view_manage(request):
         if tc and morouter:
             if s == "list":
                 args = morouter.list()
-                resstatus, resmessage = 200, _("OK")
+                res_status, res_message = 200, _("OK")
             elif s == "add":
                 try:
                     morouter.create(data=dict(
@@ -38,15 +40,15 @@ def morouter_view_manage(request):
                         httpconnectors=request.POST.get("httpconnectors"),
                         filters=request.POST.get("filters"),
                     ))
-                    resstatus, resmessage = 200, _("MO Router added successfully!")
+                    res_status, res_message = 200, _("MO Router added successfully!")
                 except Exception as e:
-                    resmessage = e
+                    res_message = e
             elif s == "delete":
                 args = morouter.destroy(order=request.POST.get("order"))
-                resstatus, resmessage = 200, _("MO Router deleted successfully!")
+                res_status, res_message = 200, _("MO Router deleted successfully!")
     if isinstance(args, dict):
-        args["status"] = resstatus
-        args["message"] = str(resmessage)
+        args["status"] = res_status
+        args["message"] = str(res_message)
     else:
-        resstatus = 200
-    return HttpResponse(json.dumps(args), status=resstatus, content_type="application/json")
+        res_status = 200
+    return HttpResponse(json.dumps(args), status=res_status, content_type="application/json")
