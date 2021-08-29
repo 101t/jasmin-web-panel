@@ -83,6 +83,10 @@ WantedBy=multi-user.target
 ```
 ### b. Create `jasmin-celery.service` Service
 
+```shell
+sudo nano /etc/systemd/system/jasmin-celery.service
+```
+
 ```editorconfig
 [Unit]
 Description=Jasmin Celery server
@@ -102,6 +106,11 @@ WantedBy=multi-user.target
 ```
 
 ### c. Create `jasmin-dlrd` Service
+
+```shell
+sudo nano /etc/systemd/system/jasmin-dlrd.service
+```
+
 ```editorconfig
 [Unit]
 Description=Jasmin SMS Gateway DLR throwing standalone daemon
@@ -121,6 +130,10 @@ WantedBy=multi-user.target
 
 ### d. Create `jasmin-dlrlookupd.service` Service
 
+```shell
+sudo nano /etc/systemd/system/jasmin-dlrlookupd.service
+```
+
 ```editorconfig
 [Unit]
 Description=Jasmin SMS Gateway DLR lookup standalone daemon
@@ -139,6 +152,10 @@ WantedBy=multi-user.target
 ```
 
 ### e. Create `jasmin-interceptord.service` Service
+
+```shell
+sudo nano /etc/systemd/system/jasmin-interceptord.service
+```
 
 ```editorconfig
 [Unit]
@@ -162,7 +179,11 @@ WantedBy=multi-user.target
 
 Create symlink for twisted main file.
 ```shell
-su - jasmin ln -s /jasmin/jasmin/bin/twistd /jasmin/jasmin/twistd3
+sudo -u jasmin ln -s /jasmin/jasmin/bin/twistd /jasmin/jasmin/twistd3
+```
+
+```shell
+sudo nano /etc/systemd/system/jasmin-restapi.service
 ```
 
 ```editorconfig
@@ -180,4 +201,33 @@ ExecStart=/bin/sh -c "/jasmin/jasmin/twistd3 -n --pidfile=/tmp/twistd-web-restap
 
 [Install]
 WantedBy=multi-user.target
+```
+
+
+Reload systemd
+
+```shell
+sudo systemctl daemon-reload
+```
+
+Now, you can enable Jasmin services:
+
+```shell
+systemctl enable jasmin-{celery,dlrd,dlrlookupd,interceptord,restapi}.service jasmind.service
+```
+
+You could start all Jasmin services
+```shell
+systemctl start jasmin-{celery,dlrd,dlrlookupd,interceptord,restapi}.service jasmind.service
+```
+
+To ensure web app running without issue:
+
+```shell
+systemctl list-unit-files | grep jasmin
+```
+
+To check the running and failed daemons:
+```shell
+systemctl list-units | grep jasmin
 ```
