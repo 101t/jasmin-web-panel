@@ -64,7 +64,7 @@ Open your text editor and paste the following configuration:
 ```shell
 sudo nano /etc/systemd/system/jasmind.service
 ```
-In directory: /etc/systemd/system/jasmind.service
+In directory: /etc/systemd/system
 ```editorconfig
 [Unit]
 Description=Jasmin SMS Gateway
@@ -86,7 +86,7 @@ WantedBy=multi-user.target
 ```shell
 sudo nano /etc/systemd/system/jasmin-celery.service
 ```
-
+In directory: /etc/systemd/system
 ```editorconfig
 [Unit]
 Description=Jasmin Celery server
@@ -110,7 +110,7 @@ WantedBy=multi-user.target
 ```shell
 sudo nano /etc/systemd/system/jasmin-dlrd.service
 ```
-
+In directory: /etc/systemd/system
 ```editorconfig
 [Unit]
 Description=Jasmin SMS Gateway DLR throwing standalone daemon
@@ -133,7 +133,7 @@ WantedBy=multi-user.target
 ```shell
 sudo nano /etc/systemd/system/jasmin-dlrlookupd.service
 ```
-
+In directory: /etc/systemd/system
 ```editorconfig
 [Unit]
 Description=Jasmin SMS Gateway DLR lookup standalone daemon
@@ -156,7 +156,7 @@ WantedBy=multi-user.target
 ```shell
 sudo nano /etc/systemd/system/jasmin-interceptord.service
 ```
-
+In directory: /etc/systemd/system
 ```editorconfig
 [Unit]
 Description=Jasmin SMS Gateway interceptor
@@ -181,7 +181,7 @@ Create symlink for twisted main file.
 ```shell
 sudo -u jasmin ln -s /jasmin/jasmin/bin/twistd /jasmin/jasmin/twistd3
 ```
-
+In directory: /etc/systemd/system
 ```shell
 sudo nano /etc/systemd/system/jasmin-restapi.service
 ```
@@ -203,8 +203,7 @@ ExecStart=/bin/sh -c "/jasmin/jasmin/twistd3 -n --pidfile=/tmp/twistd-web-restap
 WantedBy=multi-user.target
 ```
 
-
-Reload systemd
+Reload systemctl
 
 ```shell
 sudo systemctl daemon-reload
