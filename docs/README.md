@@ -203,6 +203,12 @@ ExecStart=/bin/sh -c "/jasmin/jasmin/twistd3 -n --pidfile=/tmp/twistd-web-restap
 WantedBy=multi-user.target
 ```
 
+Make directory for logs:
+
+```shell
+mkdir /var/log/jasmin && chown -R jasmin:jasmin /var/log/jasmin
+```
+
 Reload systemctl
 
 ```shell
@@ -215,7 +221,8 @@ Now, you can enable Jasmin services:
 systemctl enable jasmin-{celery,dlrd,dlrlookupd,interceptord,restapi}.service jasmind.service
 ```
 
-You could start all Jasmin services
+You could start all Jasmin services:
+
 ```shell
 systemctl start jasmin-{celery,dlrd,dlrlookupd,interceptord,restapi}.service jasmind.service
 ```
@@ -227,6 +234,7 @@ systemctl list-unit-files | grep jasmin
 ```
 
 To check the running and failed daemons:
+
 ```shell
 systemctl list-units | grep jasmin
 ```
