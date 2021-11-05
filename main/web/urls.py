@@ -1,8 +1,5 @@
 # -*- encoding: utf-8 -*-
-from __future__ import unicode_literals
-from django.utils.translation import ugettext_lazy as _
-from django.conf.urls import url
-from django.urls import path, re_path
+from django.urls import path
 
 from .views import *
 
@@ -21,9 +18,11 @@ urlpatterns = [
 	path('mtrouter/', mtrouter_view, name='mtrouter_view'),
 	path('smppccm/manage/', smppccm_view_manage, name='smppccm_view_manage'),
 	path('smppccm/', smppccm_view, name='smppccm_view'),
+	path('submit_logs/manage/', submit_logs_view_manage, name='submit_logs_view_manage'),
+	path('submit_logs/', submit_logs_view, name='submit_logs_view'),
 	path('users/manage/', users_view_manage, name='users_view_manage'),
 	path('users/', users_view, name='users_view'),
 	path('manage/', global_manage, name='global_manage'),
 	path('', dashboard_view, name='dashboard_view'),
-	#path('', welcome_view, name='welcome_view'),
+	# path('', welcome_view, name='welcome_view'),
 ]

@@ -12,13 +12,15 @@ import json
 
 from main.core.smpp import TelnetConnection, Filters
 
+
 @login_required
 def filters_view(request):
     return render(request, "web/content/filters.html")
 
+
 @login_required
 def filters_view_manage(request):
-    args, resstatus, resmessage = {}, 400, _("Sorry, Command does not matched.")
+    args, res_status, res_message = {}, 400, _("Sorry, Command does not matched.")
     filters = None
     if request.POST and request.is_ajax():
         s = request.POST.get("s")
@@ -27,7 +29,7 @@ def filters_view_manage(request):
         if filters:
             if s == "list":
                 args = filters.list()
-                resstatus, resmessage = 200, _("OK")
+                res_status, res_message = 200, _("OK")
             elif s == "add":
                 try:
                     filters.create(data=dict(
@@ -35,15 +37,15 @@ def filters_view_manage(request):
                         type=request.POST.get("type"),
                         parameter=request.POST.get("parameter"),
                     ))
-                    resstatus, resmessage = 200, _("Filter added successfully!")
+                    res_status, res_message = 200, _("Filter added successfully!")
                 except Exception as e:
-                    resmessage = str(e)
+                    res_message = str(e)
             elif s == "delete":
                 args = filters.destroy(fid=request.POST.get("fid"))
-                resstatus, resmessage = 200, _("Filter deleted successfully!")
+                res_status, res_message = 200, _("Filter deleted successfully!")
     if isinstance(args, dict):
-        args["status"] = resstatus
-        args["message"] = str(resmessage)
+        args["status"] = res_status
+        args["message"] = str(res_message)
     else:
-        resstatus = 200
-    return HttpResponse(json.dumps(args), status=resstatus, content_type="application/json")
+        res_status = 200
+    return HttpResponse(json.dumps(args), status=res_status, content_type="application/json")

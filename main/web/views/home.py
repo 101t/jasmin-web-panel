@@ -25,12 +25,12 @@ def welcome_view(request):
         ))
 
 def global_manage(request):
-    args, resstatus, resmessage = {}, 400, _("Sorry, Command does not matched.")
+    args, res_status, res_message = {}, 400, _("Sorry, Command does not matched.")
     if request.GET and request.is_ajax():
         s = request.GET.get("s")
     if isinstance(args, dict):
-        args["status"] = resstatus
-        args["message"] = str(resmessage)
+        args["status"] = res_status
+        args["message"] = str(res_message)
     else:
-        resstatus = 200
-    return HttpResponse(json.dumps(args), status=resstatus, content_type="application/json")
+        res_status = 200
+    return HttpResponse(json.dumps(args), status=res_status, content_type="application/json")

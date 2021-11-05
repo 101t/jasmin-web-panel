@@ -12,13 +12,15 @@ import json
 
 from main.core.smpp import Groups
 
+
 @login_required
 def groups_view(request):
     return render(request, "web/content/groups.html")
 
+
 @login_required
 def groups_view_manage(request):
-    args, resstatus, resmessage = {}, 400, _("Sorry, Command does not matched.")
+    args, res_status, res_message = {}, 400, _("Sorry, Command does not matched.")
     groups = None
     if request.POST and request.is_ajax():
         s = request.POST.get("s")
@@ -27,24 +29,24 @@ def groups_view_manage(request):
         if groups:
             if s == "list":
                 args = groups.list()
-                resstatus, resmessage = 200, _("OK")
+                res_status, res_message = 200, _("OK")
             elif s == "add":
                 groups.create(data=dict(
                     gid=request.POST.get("gid"),
                 ))
-                resstatus, resmessage = 200, _("Group added successfully!")
+                res_status, res_message = 200, _("Group added successfully!")
             elif s == "delete":
                 args = groups.destroy(gid=request.POST.get("gid"))
-                resstatus, resmessage = 200, _("Group deleted successfully!")
+                res_status, res_message = 200, _("Group deleted successfully!")
             elif s == "enable":
                 args = groups.enable(gid=request.POST.get("gid"))
-                resstatus, resmessage = 200, _("Group enabled successfully!")
+                res_status, res_message = 200, _("Group enabled successfully!")
             elif s == "disable":
                 args = groups.disable(gid=request.POST.get("gid"))
-                resstatus, resmessage = 200, _("Group disabled successfully!")
+                res_status, res_message = 200, _("Group disabled successfully!")
     if isinstance(args, dict):
-        args["status"] = resstatus
-        args["message"] = str(resmessage)
+        args["status"] = res_status
+        args["message"] = str(res_message)
     else:
-        resstatus = 200
-    return HttpResponse(json.dumps(args), status=resstatus, content_type="application/json")
+        res_status = 200
+    return HttpResponse(json.dumps(args), status=res_status, content_type="application/json")

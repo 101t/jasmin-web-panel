@@ -1,7 +1,7 @@
 from django.conf import settings
 
 from .exceptions import (CanNotModifyError, JasminSyntaxError,
-                        JasminError, UnknownError)
+                         JasminError, UnknownError)
 
 STANDARD_PROMPT = settings.STANDARD_PROMPT
 INTERACTIVE_PROMPT = settings.INTERACTIVE_PROMPT
@@ -10,7 +10,7 @@ INTERACTIVE_PROMPT = settings.INTERACTIVE_PROMPT
 def set_ikeys(telnet, keys2vals):
     "set multiple keys for interactive command"
     for key, val in keys2vals.items():
-        #print(key, val)
+        # print(key, val)
         telnet.sendline("%s %s" % (key, val))
         matched_index = telnet.expect([
             r'.*(Unknown .*)' + INTERACTIVE_PROMPT,
@@ -28,7 +28,7 @@ def set_ikeys(telnet, keys2vals):
         r'.*' + STANDARD_PROMPT,
     ])
     if ok_index == 0:
-        #remove whitespace and return error
+        # remove whitespace and return error
         raise JasminSyntaxError(" ".join(telnet.match.group(1).split()))
     return
 
