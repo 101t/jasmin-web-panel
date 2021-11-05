@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.utils import translation
 from django.template.loader import render_to_string
 from django.conf import settings

@@ -2,7 +2,7 @@
 from __future__ import unicode_literals, absolute_import
 from django.template.loader import render_to_string
 from django.conf import settings as django_settings
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from main.core.models import EmailServer
 

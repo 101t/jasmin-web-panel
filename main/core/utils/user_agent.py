@@ -36,7 +36,7 @@ def get_user_agent(request):
     if not hasattr(request, 'META'):
         return ''
 
-    ua_string = request.META.get('HTTP_USER_AGENT', '')
+    ua_string = request.headers.get('User-Agent', '')
 
     if not isinstance(ua_string, str):
         ua_string = ua_string.decode('utf-8', 'ignore')
