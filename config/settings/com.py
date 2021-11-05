@@ -1,6 +1,6 @@
 """Django 3.0.5"""
 from __future__ import absolute_import, unicode_literals
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 import os, environ
 
 ROOT_DIR = environ.Path(__file__) - 3  # (/a/b/myfile.py - 3 = /)
@@ -196,3 +196,6 @@ TELNET_TIMEOUT = env.int('TELNET_TIMEOUT', default=10)  # reasonable value for i
 STANDARD_PROMPT = 'jcli : '  # There should be no need to change this
 INTERACTIVE_PROMPT ='> '  # Prompt for interactive commands
 SUBMIT_LOG = env.bool('SUBMIT_LOG', False)  # This is used for DLR Report
+
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'

@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 from __future__ import unicode_literals
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.db import models
 from django.conf import settings
 from main.users.models import User

@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.core.validators import MaxLengthValidator, MinLengthValidator, EmailValidator, RegexValidator
 from django import forms
 

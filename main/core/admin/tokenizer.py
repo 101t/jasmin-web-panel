@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-from django.utils.translation import ugettext_lazy as _ # noqa
+from django.utils.translation import gettext_lazy as _ # noqa
 from django.contrib import admin
 
 from ..models import Tokenizer

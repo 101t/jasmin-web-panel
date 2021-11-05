@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 from __future__ import unicode_literals
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.utils import timezone as djtz
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash

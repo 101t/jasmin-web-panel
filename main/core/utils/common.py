@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 from __future__ import unicode_literals
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 from django.contrib import messages
 from django.utils import timezone as djtz
@@ -19,7 +19,7 @@ def readabledateformat(datetime):
     return DateFormat(datetime).format("d F Y H:i")
 
 def get_client_ip(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    x_forwarded_for = request.headers.get('X-Forwarded-For')
     if x_forwarded_for:
         ip = x_forwarded_for.split(',')[0]
     else:
