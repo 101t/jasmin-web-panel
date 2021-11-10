@@ -178,7 +178,10 @@ What's new in version 2.0.0
 What's new in version 2.0.1
 1. Adding **Submit Log** report (DLR report)
  
-**TODO:** bug fixes, adding new feature 
+What's new in version 2.0.2
+1. Adding FailOverRouter supports to MT / MO Router
+
+**TODO:** bug fixes, adding new features
 
 ## Usage
 

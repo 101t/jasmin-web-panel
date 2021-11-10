@@ -4,6 +4,7 @@
 {% block extracss %}{% endblock extracss %}
 {% block content %}
 <h1 class="h3 mb-2 text-gray-800">{% trans "MT Router" %}</h1>
+<p><small class="muted-text">{% trans "MT is referred to Mobile Terminated, a SMS-MT is an SMS sent to mobile" %}</small></p>
 <div class="card shadow mb-4">
     <div class="card-header py-3">
         <h4>
@@ -43,13 +44,19 @@
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 </div>
                 <div class="modal-body">
+                    <div class="alert alert-info">
+<small>- <strong>DefaultRoute</strong> a route without a filter, this one can only set with the lowest order to be a default/fallback route</small><br>
+<small>- <strong>StaticMTRoute</strong> a basic route with Filters and one Connector</small><br>
+<small>- <strong>RandomRoundrobinMTRoute</strong> a route with Filters and many Connectors, will return a random Connector if its Filters are matching, can be used as a load balancer route</small><br>
+<small>- <strong>FailoverMTRoute</strong> a route with Filters and many Connectors, will return an available (connected) Connector if its Filters are matched</small>
+                    </div>
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "Type" %}</label>
                         <div class="col-sm-10">
                             <select name="type" class="form-control select">
-                                <option>DefaultRoute</option><option>StaticMTRoute</option><option>RandomRoundrobinMTRoute</option>
+                                <option>DefaultRoute</option><option>StaticMTRoute</option><option>RandomRoundrobinMTRoute</option><option>FailoverMTRoute</option>
                             </select>
-                            <small class="text-muted">{% trans "One of the supported MT Routes: DefaultRoute, StaticMTRoute, RandomRoundrobinMTRoute" %}</small>
+                            <small class="text-muted">{% trans "One of the supported MT Routes: DefaultRoute, StaticMTRoute, RandomRoundrobinMTRoute and FailoverMTRoute" %}</small>
                         </div>
                     </div>
                     <div class="form-group row">
