@@ -12,7 +12,7 @@ djangorestframework
 dnspython
 email-validator
 gunicorn
-importlib-metadata
+importlib-metadata==4.8.2
 itypes
 Markdown
 MarkupSafe
