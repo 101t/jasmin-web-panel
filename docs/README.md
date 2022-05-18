@@ -1,4 +1,4 @@
-# Installing Jasmin SMS Gateway on Ubuntu 20.04 TLS Server
+# Installing Jasmin SMS Gateway on Ubuntu 20.04 LTS Server
 
 - You need to install `python3.6` version to get Jasmin SMS Gateway works properly.
 
