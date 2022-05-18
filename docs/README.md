@@ -35,7 +35,7 @@ sudo useradd -m -d /jasmin -U -r -s /bin/bash jasmin
 Before starting with the installation process, change to user "jasmin":
 ```shell
 sudo su - jasmin
-su ~
+cd ~
 ```
 Create jasmin virtualenv
 ```shell
