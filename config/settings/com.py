@@ -140,19 +140,10 @@ MEDIA_ROOT = str(ROOT_DIR('public/media'))
 
 MEDIA_URL = '/media/'
 
-REDIS_URL = ('localhost', 6379) #env.str('REDIS_URL', default=('localhost', 6379))
-
-# ASGI Settings
-
-# ASGI_APPLICATION = "config.routing.application"
-# CHANNEL_LAYERS = {
-#     "default": {
-#         "BACKEND": "channels_redis.core.RedisChannelLayer",
-#         "CONFIG": {
-#             "hosts": [REDIS_URL,],
-#         },
-#     },
-# }
+REDIS_HOST = env("REDIS_HOST", default="jasmin_redis")
+REDIS_PORT = env.int("REDIS_PORT", default=6379)
+REDIS_DB = env.int("REDIS_DB", default=0)
+REDIS_URL = (REDIS_HOST, REDIS_PORT)
 
 DEFAULT_USER_AVATAR = STATIC_URL + "assets/img/user.png"
 DEFAULT_USER_FOLDER = "users"
@@ -194,7 +185,7 @@ TELNET_PW = env('TELNET_PW', default='jclipwd')  # no alternative storing as pla
 TELNET_TIMEOUT = env.int('TELNET_TIMEOUT', default=10)  # reasonable value for intranet.
 
 STANDARD_PROMPT = 'jcli : '  # There should be no need to change this
-INTERACTIVE_PROMPT ='> '  # Prompt for interactive commands
+INTERACTIVE_PROMPT = '> '  # Prompt for interactive commands
 SUBMIT_LOG = env.bool('SUBMIT_LOG', False)  # This is used for DLR Report
 
 
