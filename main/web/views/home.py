@@ -10,10 +10,12 @@ from django.conf import settings
 
 from main.core.utils import get_client_ip
 
+
 @login_required
 def dashboard_view(request):
     ip_address = get_client_ip(request)
     return render(request, "web/dashboard.html", dict(ip_address=ip_address))
+
 
 def welcome_view(request):
     import django, sys
@@ -22,7 +24,8 @@ def welcome_view(request):
         django_version=django.get_version(),
         python_version=python_version,
         platform=sys.platform,
-        ))
+    ))
+
 
 def global_manage(request):
     args, res_status, res_message = {}, 400, _("Sorry, Command does not matched.")

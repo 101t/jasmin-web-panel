@@ -17,7 +17,7 @@ class Command(BaseCommand):
 				username="info@example.com",
 				password="123456",
 				ssl=False,
-				active=True,
+				active=False,
 			)
 			print("Default Email Server Added")
 			user1, created = User.objects.get_or_create(pk=1)

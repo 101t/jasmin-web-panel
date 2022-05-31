@@ -12,9 +12,9 @@ from django.urls import reverse
 from django.conf import settings
 
 from ..models import User
-from ..forms import ChangePhotoForm, ChangePasswordForm, ProfileForm
+from main.users.forms import ChangePhotoForm, ChangePasswordForm, ProfileForm
 from main.core.utils import display_form_validations, is_json, get_query, paginate
-from main.core.models import ActivityLog
+from main.core.models import ActivityLog, EmailServer
 
 from PIL import Image
 import json, os
@@ -34,8 +34,10 @@ def profile_view(request):
                     user.last_name  = request.POST.get("last_name")
                     if email and user.email != email:
                         user.email = email
-                        user.is_email = False
-                        messages.info(request, _("Please, check your email inbox to verify your email address"))
+                        if EmailServer.objects.filter(active=True).exists():
+                            user.is_email = False
+                            #TODO SEND EMAIL TO CLIENT
+                            messages.info(request, _("Please, check your email inbox to verify your email address"))
                     user.save()
                     messages.success(request, _("Congrats!, Your profile has been updated successfully"))
                 else:

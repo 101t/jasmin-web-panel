@@ -1,9 +1,10 @@
-asgiref
+# asgiref
 celery
 coreapi
 coreschema
 Django==3.2.*
-django-3-jet==1.0.8
+# django-3-jet==1.0.8
+django-jet-reboot
 django-autoslug
 django-crequest
 django-environ
@@ -26,10 +27,12 @@ pytz
 PyYAML
 redis
 requests
-tablib
+
 ua-parser
 uritemplate
 user-agents
+
+tablib
 xlrd
 xlwt
 zipp

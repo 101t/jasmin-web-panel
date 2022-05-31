@@ -7,6 +7,7 @@ from django import forms
 
 from main.users.models import User
 
+
 class ChangePhotoForm(forms.ModelForm):
     class Meta:
         model = User
@@ -38,6 +39,7 @@ class ChangePasswordForm(forms.Form):
         if not password1 or not password2 or not password1 == password2:
             self.add_error(field="password2", error=_("The two password fields did not matched."))
 
+
 class ProfileForm(forms.Form):
     first_name_validators = [
         MaxLengthValidator(limit_value=255, message=_("Maximum length allowed is %(max_length)s") % dict(max_length=255)), 
@@ -58,3 +60,4 @@ class ProfileForm(forms.Form):
     first_name = forms.CharField(widget=forms.TextInput(), validators=first_name_validators, required=True, label=_("First Name"))
     last_name  = forms.CharField(widget=forms.TextInput(), validators=last_name_validators, required=True, label=_("Last Name"))
     email      = forms.EmailField(widget=forms.EmailInput(), validators=email_validators, required=True, label=_("Email"))
+    
