@@ -1,2 +1,5 @@
 #!/bin/bash
-./env/bin/celery worker -A main.taskapp -l info --autoscale=10,3
+
+cd $JASMIN_HOME
+
+celery -A main.taskapp worker -l info --autoscale=10,3
