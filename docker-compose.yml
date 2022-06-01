@@ -1,0 +1,33 @@
+version: '3.7'
+
+services:
+  jasmin_web:
+    image: jasmin_web_panel:1.0
+    ports:
+      - 8000:8000
+    deploy:
+      replicas: 1
+    env_file:
+      - .env
+    environment:
+      JASMIN_PORT: 8000
+    healthcheck:
+      disable: true
+    volumes:
+      - ./public:/web/public
+  jasmin_celery:
+    image: jasmin_web_panel:1.0
+    deploy:
+      replicas: 1
+    env_file:
+      - .env
+    environment:
+      DEBUG: 0
+    healthcheck:
+      disable: true
+    depends_on:
+      - jasmin_redis
+    entrypoint: /web/celery_run.sh
+  jasmin_redis:
+    image: redis:alpine
+    tty: true
