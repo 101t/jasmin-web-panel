@@ -1,3 +1,9 @@
 .git/
 .gitignore
 .gitattributes
+
+.cache
+*.md
+!README*.md
+
+docker-compose.yml
