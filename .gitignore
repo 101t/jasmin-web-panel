@@ -61,14 +61,11 @@ staticfiles
 env/
 db.sqlite3
 
-# User-uploaded media
-lms/media/
-
 # Hitch directory
 tests/.hitch
 
 # Docker Compose
-/docker-compose.yml
+# /docker-compose.yml
 
 #sunucudaki static ve medya ve dosyalarının konumu
 /public/*
