@@ -1,14 +1,18 @@
 # -*- encoding: utf-8 -*-
-from __future__ import unicode_literals
+import json
+import traceback
+from subprocess import getoutput
+
 from django.utils.translation import gettext_lazy as _
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.utils import timezone as djtz
 from django.conf import settings
 
 from main.core.utils import get_client_ip
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -31,6 +35,18 @@ def global_manage(request):
     args, res_status, res_message = {}, 400, _("Sorry, Command does not matched.")
     if request.GET and request.is_ajax():
         s = request.GET.get("s")
+        if s == "systemctl_services_state" and settings.SYSCTL_HEALTH_CHECK:
+            service_states = dict()
+            for service in settings.SYSCTL_HEALTH_CHECK_SERVICES:
+                try:
+                    status = getoutput(f"systemctl show {service} -p SubState").split("=")[1].lower()
+                    if status != "running":
+                        # TODO send email or notification
+                        pass
+                    service_states[service] = status
+                except Exception as e:
+                    logger.info(f"Error occurred: {e}")
+            args["service_states"] = service_states
     if isinstance(args, dict):
         args["status"] = res_status
         args["message"] = str(res_message)

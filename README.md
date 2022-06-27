@@ -3,17 +3,18 @@
 	<a href="https://travis-ci.org/101t/jasmin-web-panel"><img src="https://travis-ci.org/101t/jasmin-web-panel.svg?branch=master" alt="travis-ci"></a>
 </p>
 
-Jasmin SMS Web Interface for [Jasmin SMS Gateway](https://github.com/jookies/jasmin)
+Jasmin Web Application to manage [Jasmin SMS Gateway](https://github.com/jookies/jasmin)
 
 ### Table Of Contents:
 
-1. [Installing and Deployment](https://github.com/101t/jasmin-web-panel#installing-and-deployment)
-    * [Installation](https://github.com/101t/jasmin-web-panel#installation)
-    * [Deployment with NGiNX and Systemd](https://github.com/101t/jasmin-web-panel#deployment-with-nginx-and-systemd)
-2. [Release Notes](https://github.com/101t/jasmin-web-panel#release-notes)
-3. [Usage](https://github.com/101t/jasmin-web-panel#usage)
-4. [Support Developer](https://github.com/101t/jasmin-web-panel#support-developer)
-5. [Contact Us](https://github.com/101t/jasmin-web-panel#contact-us)
+1. [Installing and Deployment](#installing-and-deployment)
+    * [Installation](#installation)
+    * [Deployment with NGiNX and Systemd](#deployment-with-nginx-and-systemd)
+    * [Deployment using Docker](#deployment-using-docker)
+    * [Submit Log](#submit-log)
+2. [Release Notes](#release-notes)
+3. [Tracking Issue](#tracking-issue)
+4. [Contact Us](#contacts)
 
 ## Installing and Deployment
 
@@ -163,6 +164,38 @@ Password: secret
 ```
 > Note: Please change password to avoid security issue
 
+## Deployment using Docker
+
+You could download the built image on [docker hub](https://hub.docker.com/u/tarekaec): 
+```shell
+docker pull tarekaec/jasmin_web_panel
+```
+also you could build it on you local machine by navigating to project directory
+```shell
+docker build -t jasmin_web_panel:1.0 .
+```
+You need to configure the environment variable in `.env` file
+```shell
+DJANGO_SETTINGS_MODULE=config.settings.pro
+PRODB_URL=postgres://username:strong_password@postgre_hostname:5432/jasmin_web_db
+SYSCTL_HEALTH_CHECK=False # this option is not useful on docker
+```
+to start docker container
+```shell
+docker stack deploy -c docker-entrypoint.yml jasmin1
+```
+you could check service on terminal
+```shell
+docker service ls | grep jasmin
+```
+
+## Submit Log
+
+To work with Submit Log you need to install and configure [Submit Log](https://github.com/101t/jasmin-submit-logs) service, make sure you have `SUBMIT_LOG` (default `False`) in environment variable:
+```shell
+SUBMIT_LOG=True
+```
+
 ## Release Notes
 
 What's new in version 2.0.0
@@ -176,21 +209,15 @@ What's new in version 2.0.0
 8. Activity Log, to log your usage.
 
 What's new in version 2.0.1
-1. Adding **Submit Log** report (DLR report)
+1. Adding **[Submit Log](https://github.com/101t/jasmin-submit-logs)** report (DLR report)
  
 What's new in version 2.0.2
 1. Adding FailOverRouter supports to MT / MO Router
 
-**TODO:** bug fixes, adding new features
+## Tracking Issue
 
-## Usage
+You may submit issue [here](https://github.com/101t/jasmin-web-panel/issues)
 
-This application built as web interface to manage Jasmin SMS Gateway, it is an open source for free and commercial purpose.
+## Contacts
 
-## Support Developer
-
-We accept paid support for installation and customization, if you want to help us improve it further, you may support us with a tip, we appreciate all contributions!
-
-## Contact Us
-
-For business inquiries: [tarek.it.eng@gmail.com](mailto:tarek.it.eng@gmail.com), Join Telegram Channel: [https://t.me/jasminwebpanel](https://t.me/jasminwebpanel), all suggestion and questions are welcomed.
+For question and suggestion: [tarek.it.eng@gmail.com](mailto:tarek.it.eng@gmail.com), Join Telegram Channel: [https://t.me/jasminwebpanel](https://t.me/jasminwebpanel), all suggestion and questions are welcomed.
