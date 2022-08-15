@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'crequest',
     'rest_framework',
 
+    'main.api',
     'main.core',
     'main.taskapp',
     'main.users',
@@ -162,8 +163,8 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.CoreJSONRenderer',
-        'rest_framework_swagger.renderers.SwaggerUIRenderer',
-        'rest_framework_swagger.renderers.OpenAPIRenderer',
+        # 'rest_framework_swagger.renderers.SwaggerUIRenderer',
+        # 'rest_framework_swagger.renderers.OpenAPIRenderer',
     ),
 }
 

@@ -182,7 +182,7 @@ SYSCTL_HEALTH_CHECK=False # this option is not useful on docker
 ```
 to start docker container
 ```shell
-docker stack deploy -c docker-entrypoint.yml jasmin1
+docker stack deploy -c docker-compose.yml jasmin1
 ```
 you could check service on terminal
 ```shell
