@@ -2,9 +2,10 @@ version: '3.7'
 
 services:
   jasmin_web:
-    image: jasmin_web_panel:1.0
+    # image: jasmin_web_panel:1.0
+    image: tarekaec/jasmin_web_panel:1.0-alpine
     ports:
-      - 8000:8000
+      - "8000:8000"
     deploy:
       replicas: 1
     env_file:
@@ -16,7 +17,8 @@ services:
     volumes:
       - ./public:/web/public
   jasmin_celery:
-    image: jasmin_web_panel:1.0
+    # image: jasmin_web_panel:1.0
+    image: tarekaec/jasmin_web_panel:1.0-alpine
     deploy:
       replicas: 1
     env_file:
@@ -27,7 +29,7 @@ services:
       disable: true
     depends_on:
       - jasmin_redis
-    entrypoint: /web/celery_run.sh
+    entrypoint: /jasmin/celery_run.sh
   jasmin_redis:
     image: redis:alpine
     tty: true

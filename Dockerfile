@@ -1,25 +1,42 @@
-FROM python:3.8
+FROM python:3.8-alpine
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
-ENV PATH="/web:${PATH}"
-ENV JASMIN_HOME=/web
+ENV PATH="/jasmin:${PATH}"
+ENV JASMIN_HOME=/jasmin
 
-RUN mkdir /web
+# RUN mkdir /jasmin
+
+RUN addgroup -S jasmin && adduser -S jasmin -G jasmin -h $JASMIN_HOME
+
+RUN apk update
+RUN apk add build-base git gcc cmake py3-setuptools
+RUN apk add --no-cache bash
 
 WORKDIR $JASMIN_HOME
 
 RUN mkdir -p $JASMIN_HOME/public/media
 RUN mkdir -p $JASMIN_HOME/public/static
 
+# RUN chown -R jasmin:jasmin $JASMIN_HOME/
+
 COPY ./requirements.txt $JASMIN_HOME/requirements.txt
 
+RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
+
+# RUN export PATH="/usr/local/bin:$HOME/.local/bin::$PATH"
 
 COPY . $JASMIN_HOME
 
-COPY ./docker-entrypoint.sh /docker-entrypoint.sh
+COPY ./docker-entrypoint.sh docker-entrypoint.sh
 
-RUN chmod +x /docker-entrypoint.sh
+#RUN chmod -R u+x ${JASMIN_HOME} && \
+#    chgrp -R 0 ${JASMIN_HOME} && \
+#    chmod -R g=u ${JASMIN_HOME}
+
+RUN chown -R jasmin:jasmin $JASMIN_HOME/
+
+USER jasmin
 
 ENTRYPOINT ["docker-entrypoint.sh"]

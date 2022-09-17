@@ -1,6 +1,11 @@
 .git/
 .gitignore
 .gitattributes
+.vscode/
+.github/
+.env
+.travis.yml
+Dockerfile
 
 .cache
 *.md
