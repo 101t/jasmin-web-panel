@@ -9,9 +9,13 @@ ENV JASMIN_HOME=/jasmin
 
 RUN addgroup -S jasmin && adduser -S jasmin -G jasmin -h $JASMIN_HOME
 
-RUN apk update
+#RUN apk del busybox-extras
+RUN apk update && apk add busybox-extras
 RUN apk add build-base git gcc cmake py3-setuptools
+RUN busybox-extras --list
 RUN apk add --no-cache bash
+
+
 
 WORKDIR $JASMIN_HOME
 

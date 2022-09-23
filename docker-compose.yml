@@ -2,8 +2,8 @@ version: '3.7'
 
 services:
   jasmin_web:
-    # image: jasmin_web_panel:1.0
-    image: tarekaec/jasmin_web_panel:1.0-alpine
+    image: tarekaec/jasmin_web_panel:1.0
+    # image: tarekaec/jasmin_web_panel:1.0-alpine
     ports:
       - "8000:8000"
     deploy:
@@ -16,9 +16,10 @@ services:
       disable: true
     volumes:
       - ./public:/web/public
+    entrypoint: /jasmin/docker-entrypoint.sh
   jasmin_celery:
-    # image: jasmin_web_panel:1.0
-    image: tarekaec/jasmin_web_panel:1.0-alpine
+    image: tarekaec/jasmin_web_panel:1.0
+    # image: tarekaec/jasmin_web_panel:1.0-alpine
     deploy:
       replicas: 1
     env_file:
