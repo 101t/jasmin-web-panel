@@ -3,7 +3,7 @@ celery
 coreapi
 coreschema
 
-Django==3.2.*
+Django==4.1.*
 # django-3-jet==1.0.8
 django-jet-reboot
 django-autoslug
@@ -23,7 +23,7 @@ pexpect
 Pillow
 psycopg2-binary
 ptyprocess
-pysha3
+#pysha3
 python-dateutil
 pytz
 PyYAML

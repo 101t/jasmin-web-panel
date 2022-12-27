@@ -1,46 +1,26 @@
-FROM python:3.8-alpine
+FROM python:3.11
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-ENV PATH="/jasmin:${PATH}"
+RUN apt-get update && apt-get install telnet
+
+RUN apt-get install -y libpq-dev postgresql-client python3-psycopg2
+
+RUN adduser --home /jasmin --system --group jasmin
+
 ENV JASMIN_HOME=/jasmin
-
-# RUN mkdir /jasmin
-
-RUN addgroup -S jasmin && adduser -S jasmin -G jasmin -h $JASMIN_HOME
-
-#RUN apk del busybox-extras
-RUN apk update && apk add busybox-extras
-RUN apk add build-base git gcc cmake py3-setuptools
-RUN busybox-extras --list
-RUN apk add --no-cache bash
-
-
+ENV JASMIN_PORT=8000
 
 WORKDIR $JASMIN_HOME
 
-RUN mkdir -p $JASMIN_HOME/public/media
-RUN mkdir -p $JASMIN_HOME/public/static
+# USER jasmin
 
-# RUN chown -R jasmin:jasmin $JASMIN_HOME/
+RUN mkdir -p $JASMIN_HOME/public/media && \
+    mkdir -p $JASMIN_HOME/public/static
 
-COPY ./requirements.txt $JASMIN_HOME/requirements.txt
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+COPY . .
 
-# RUN export PATH="/usr/local/bin:$HOME/.local/bin::$PATH"
+# ENTRYPOINT [ "./docker-entrypoint.sh" ]
 
-COPY . $JASMIN_HOME
-
-COPY ./docker-entrypoint.sh docker-entrypoint.sh
-
-#RUN chmod -R u+x ${JASMIN_HOME} && \
-#    chgrp -R 0 ${JASMIN_HOME} && \
-#    chmod -R g=u ${JASMIN_HOME}
-
-RUN chown -R jasmin:jasmin $JASMIN_HOME/
-
-USER jasmin
-
-ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["./docker-entrypoint.sh"]

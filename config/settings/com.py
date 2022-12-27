@@ -49,6 +49,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'crequest.middleware.CrequestMiddleware',
+    'main.core.middleware.AjaxMiddleware',
     'main.core.middleware.TelnetConnectionMiddleware',
     'main.core.middleware.UserAgentMiddleware',
     'main.users.middleware.LastUserActivityMiddleware',
@@ -109,7 +110,6 @@ TIME_ZONE = env('TIME_ZONE', default='UTC')
 
 USE_I18N = True
 
-USE_L10N = True
 
 USE_TZ = True
 

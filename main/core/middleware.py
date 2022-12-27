@@ -12,6 +12,19 @@ import pexpect, sys, time, json
 logger = logging.getLogger(__name__)
 
 
+class AjaxMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        def is_ajax(self):  # noqa
+            return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
+
+        request.is_ajax = is_ajax.__get__(request)
+        response = self.get_response(request)
+        return response
+
+
 class TelnetConnectionMiddleware(MiddlewareMixin):
     def process_request(self, request):
         """Add a telnet connection to all request paths that start with /api/
@@ -53,9 +66,9 @@ class TelnetConnectionMiddleware(MiddlewareMixin):
             # raise TelnetLoginFailed
         except UnboundLocalError as e:
             logger.error(f"Cannot connect through Telnet, the error: \n {e}")
-        else:
-            request.telnet = telnet
-            return None
+        # else:
+        request.telnet = telnet
+        return None
 
     def process_response(self, request, response):
         "Make sure telnet connection is closed when unleashing response back to client"

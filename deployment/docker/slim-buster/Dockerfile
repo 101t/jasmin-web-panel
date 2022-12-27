@@ -1,8 +1,8 @@
 FROM python:3.8-slim-buster
 
-RUN apt update && apt install telnet
+RUN apt-get update && apt-get install telnet
 
-RUN apt install -y git build-essential libpq-dev postgresql-client postgresql-client-common python3-psycopg2
+RUN apt-get install -y git build-essential libpq-dev postgresql-client postgresql-client-common python3-psycopg2
 
 RUN adduser --home /jasmin --system --group jasmin
 

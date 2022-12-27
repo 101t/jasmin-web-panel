@@ -2,7 +2,8 @@ version: '3.7'
 
 services:
   jasmin_web:
-    image: tarekaec/jasmin_web_panel:1.1
+    #image: tarekaec/jasmin_web_panel:1.0
+    image: tarekaec/jasmin_web_panel:1.0-alpine
     ports:
       - "8000:8000"
     deploy:
@@ -14,10 +15,11 @@ services:
     healthcheck:
       disable: true
     volumes:
-      - ./public:/jasmin/public
+      - ./public:/web/public
     entrypoint: /jasmin/docker-entrypoint.sh
   jasmin_celery:
-    image: tarekaec/jasmin_web_panel:1.1
+    # image: tarekaec/jasmin_web_panel:1.0
+    image: tarekaec/jasmin_web_panel:1.0-alpine
     deploy:
       replicas: 1
     env_file:
@@ -32,17 +34,3 @@ services:
   jasmin_redis:
     image: redis:alpine
     tty: true
-    volumes:
-      - redis_data:/data
-    command:
-      - 'redis-server'
-      - '--appendonly yes'
-      - '--save 60 1'
-    # restart: unless-stopped
-    environment:
-      REDIS_REPLICATION_MODE: master
-      ALLOW_EMPTY_PASSWORD: "yes"
-
-volumes:
-  redis_data:
-    driver: local
