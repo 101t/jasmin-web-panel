@@ -18,7 +18,7 @@ class AjaxMiddleware:
 
     def __call__(self, request):
         def is_ajax(self):  # noqa
-            return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
+            return request.headers.get('x-requested-with') == 'XMLHttpRequest'
 
         request.is_ajax = is_ajax.__get__(request)
         response = self.get_response(request)

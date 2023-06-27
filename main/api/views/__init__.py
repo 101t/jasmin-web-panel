@@ -4,3 +4,4 @@ from .groups import (
     groups_enable,
     groups_disable,
 )
+from .health_check import health_check

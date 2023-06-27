@@ -1,7 +1,8 @@
-"""Django 3.0.5"""
-from __future__ import absolute_import, unicode_literals
+"""Django 4.2"""
 from django.utils.translation import gettext_lazy as _
-import os, environ
+from django.contrib.messages import constants as message_constants
+import os
+import environ
 
 ROOT_DIR = environ.Path(__file__) - 3  # (/a/b/myfile.py - 3 = /)
 APPS_DIR = ROOT_DIR.path('main')
@@ -11,11 +12,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 env = environ.Env()
 env.read_env('.env')
 
-SECRET_KEY = env("SECRET_KEY", default='8na#(#x@0i*3ah%&$-q)b&wqu5ct_a3))d8-sqk-ux*5lol*wl')
+SECRET_KEY = os.environ.get("SECRET_KEY", default='8na#(#x@0i*3ah%&$-q)b&wqu5ct_a3))d8-sqk-ux*5lol*wl')
 
-DEBUG = env.bool("DEBUG", False)
+DEBUG = bool(os.environ.get("DEBUG", '0'))
 
-SITE_ID = int(env("SITE_ID", default='1'))
+SITE_ID = int(os.environ.get("SITE_ID", default='1'))
 
 INSTALLED_APPS = [
     'jet.dashboard',
@@ -29,7 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
 
     # 'channels',
-    'crequest',
+    'crequest',  # noqa
     'rest_framework',
 
     'main.api',
@@ -48,7 +49,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'crequest.middleware.CrequestMiddleware',
+    'crequest.middleware.CrequestMiddleware',  # noqa
     'main.core.middleware.AjaxMiddleware',
     'main.core.middleware.TelnetConnectionMiddleware',
     'main.core.middleware.UserAgentMiddleware',
@@ -58,7 +59,7 @@ MIDDLEWARE = [
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [str(APPS_DIR.path('templates')),],
+        'DIRS': [str(APPS_DIR.path('templates')), ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -77,11 +78,13 @@ TEMPLATES = [
 ]
 
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator', },
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', },
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator', },
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator', },
 ]
+
+ASGI_APPLICATION = 'config.asgi.application'
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
@@ -95,29 +98,27 @@ AUTHENTICATION_BACKENDS = (
 
 LOGIN_URL = "/account/login/"
 
-ADMIN_URL = env('ADMIN_URL', default="admin/")
+ADMIN_URL = os.environ.get('ADMIN_URL', default="admin/")
 
 LOCALE_PATHS = (str(APPS_DIR('locale')), str(CONF_DIR('locale')),)
 
-LANGUAGE_CODE = env('LANGUAGE_CODE', default="en")
+LANGUAGE_CODE = os.environ.get('LANGUAGE_CODE', default="en")
 
 LANGUAGES = (
     ('en', _('English')),
     ('tr', _('Türkçe')),
 )
 
-TIME_ZONE = env('TIME_ZONE', default='UTC')
+TIME_ZONE = os.environ.get('TIME_ZONE', default='UTC')
 
 USE_I18N = True
 
-
 USE_TZ = True
 
-SITE_TITLE  = "Jasmin Web site admin"
+SITE_TITLE = "Jasmin Web site admin"
 SITE_HEADER = "Jasmin Web administration"
 INDEX_TITLE = "Dashboard administration"
 
-from django.contrib.messages import constants as message_constants
 MESSAGE_TAGS = {
     message_constants.DEBUG: 'info',
     message_constants.INFO: 'info',
@@ -141,9 +142,9 @@ MEDIA_ROOT = str(ROOT_DIR('public/media'))
 
 MEDIA_URL = '/media/'
 
-REDIS_HOST = env("REDIS_HOST", default="jasmin_redis")
-REDIS_PORT = env.int("REDIS_PORT", default=6379)
-REDIS_DB = env.int("REDIS_DB", default=0)
+REDIS_HOST = os.environ.get("REDIS_HOST", default="jasmin_redis")
+REDIS_PORT = int(os.environ.get("REDIS_PORT", default=6379))
+REDIS_DB = int(os.environ.get("REDIS_DB", default=0))
 REDIS_URL = (REDIS_HOST, REDIS_PORT)
 
 DEFAULT_USER_AVATAR = STATIC_URL + "assets/img/user.png"
@@ -151,7 +152,6 @@ DEFAULT_USER_FOLDER = "users"
 LAST_ACTIVITY_INTERVAL_SECS = 3600
 
 # REST API Settings
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.BasicAuthentication',
@@ -177,17 +177,21 @@ SWAGGER_SETTINGS = {
     'SHOW_REQUEST_HEADERS': True,
 }
 
-# Jasmin Settings
-"""Jasmin telnet defaults"""
-TELNET_HOST = env('TELNET_HOST', default='127.0.0.1')
-TELNET_PORT = env.int('TELNET_PORT', default=8990)
-TELNET_USERNAME = env('TELNET_USERNAME', default='jcliadmin')
-TELNET_PW = env('TELNET_PW', default='jclipwd')  # no alternative storing as plain text
-TELNET_TIMEOUT = env.int('TELNET_TIMEOUT', default=10)  # reasonable value for intranet.
+# Jasmin SMS Gateway Settings - telnet configurations
+TELNET_HOST = os.environ.get('TELNET_HOST', default='127.0.0.1')
+TELNET_PORT = int(os.environ.get('TELNET_PORT', default=8990))
+TELNET_USERNAME = os.environ.get('TELNET_USERNAME', default='jcliadmin')  # noqa
+# no alternative storing as plain text
+TELNET_PW = os.environ.get('TELNET_PW', default='jclipwd')  # noqa
+# reasonable value for intranet.
+TELNET_TIMEOUT = int(os.environ.get('TELNET_TIMEOUT', default=10))
+# There should be no need to change this
+STANDARD_PROMPT = 'jcli : '
+# Prompt for interactive commands
+INTERACTIVE_PROMPT = '> '
+# This is used for DLR Report
+SUBMIT_LOG = bool(os.environ.get('SUBMIT_LOG', '0'))
 
-STANDARD_PROMPT = 'jcli : '  # There should be no need to change this
-INTERACTIVE_PROMPT = '> '  # Prompt for interactive commands
-SUBMIT_LOG = env.bool('SUBMIT_LOG', False)  # This is used for DLR Report
 """
 SYSCTL_HEALTH_CHECK boolean field to enable Jasmin Health Check UI Monitoring
 SYSCTL_HEALTH_CHECK_SERVICES list of available services:
@@ -203,8 +207,7 @@ Additional Services:
 - rabbitmq
 - postgresql
 """
-SYSCTL_HEALTH_CHECK = env.bool("SYSCTL_HEALTH_CHECK", default=False)
-SYSCTL_HEALTH_CHECK_SERVICES = env.list("SYSCTL_HEALTH_CHECK_SERVICES", default="jasmind")
-
+SYSCTL_HEALTH_CHECK = os.environ.get("SYSCTL_HEALTH_CHECK", default=False)
+SYSCTL_HEALTH_CHECK_SERVICES = os.environ.get("SYSCTL_HEALTH_CHECK_SERVICES", default="jasmind")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
