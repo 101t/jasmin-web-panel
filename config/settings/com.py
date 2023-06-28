@@ -210,3 +210,6 @@ SYSCTL_HEALTH_CHECK = os.environ.get("SYSCTL_HEALTH_CHECK", default=False)
 SYSCTL_HEALTH_CHECK_SERVICES = os.environ.get("SYSCTL_HEALTH_CHECK_SERVICES", default="jasmind")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", default="redis://localhost:6379/0")
+CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", default="redis://localhost:6379/0")
