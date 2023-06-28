@@ -35,7 +35,6 @@ INSTALLED_APPS = [
 
     'main.api',
     'main.core',
-    'main.taskapp',
     'main.users',
     'main.web',
 ]

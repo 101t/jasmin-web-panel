@@ -2,13 +2,14 @@ from .boolean import is_date, is_decimal, is_float, is_int, is_json
 from .common import (
 	get_query,
 	timestamp2datetime,
-	readabledateformat,
+	readable_date_format,
 	get_client_ip,
 	str2date,
 	display_form_validations,
-	shortenLargeNumber,
+	shorten_large_number,
 	password_generator,
 	paginate,
+	is_online,
 )
 from .cryptograph import *
 from .json_encoder import LazyEncoder

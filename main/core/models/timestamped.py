@@ -15,13 +15,13 @@ class TimeStampedModel(models.Model):
 	class Meta:
 		abstract = True
 	def get_dict(self):
-		from main.core.utils import readabledateformat
+		from main.core.utils import readable_date_format
 		return {
 			"created": timezone.localtime(self.created).isoformat() if self.created else None,
-			"createdf": readabledateformat(timezone.localtime(self.created)) if self.created else None,
+			"createdf": readable_date_format(timezone.localtime(self.created)) if self.created else None,
 			"createds": timesince(self.created) if self.created else None,
 			"modified": timezone.localtime( self.modified).isoformat() if self.modified else None,
-			"modifiedf": readabledateformat(timezone.localtime(self.modified)) if self.modified else None,
+			"modifiedf": readable_date_format(timezone.localtime(self.modified)) if self.modified else None,
 			"modifieds": timesince(self.modified) if self.modified else None,
 			"isedited": self.isedited,
 		}

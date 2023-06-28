@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 from __future__ import unicode_literals
 from django.utils.translation import gettext as _
-from django.utils import timezone as djtz
+from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
@@ -84,7 +84,7 @@ def profile_view(request):
                 return JsonResponse(dict(
                     message=str(_("Amazing!, Your profile picture has been updated successfully")),
                     state=200,
-                    result="%(filename)s?s=%(timenow)s" % dict(filename=filename, timenow=djtz.now())
+                    result="%(filename)s?s=%(timenow)s" % dict(filename=filename, timenow=timezone.now())
                 ))
         elif s == "avatar_reset":
             try:
