@@ -1,0 +1,66 @@
+{% extends "core/mail_base.html" %}
+{% load i18n %}
+{% block content1 %}
+<tr>
+	<td></td>
+	<td style="margin: 0px auto; display: block!important; max-width: 600px!important; clear: both!important;">
+		<div style="max-width: 600px; display: block; margin: 0px auto; padding: 20px;">
+			<table width="100%" cellpadding="0" cellspacing="0" style="border-radius: 3px; background-color: rgb(255,255,255); border: 1px solid rgb(233,233,233);">
+				<tbody>
+					<tr>
+						<td style="font-size: 16px; color: rgb(255,255,255); font-weight: 500; text-align: center; border-radius: 3px 3px 0px 0px; background-color: rgb(88,103,221); padding: 20px;">
+							<img src="LOGO GOES HERE" alt="LOGO GOES HERE" style="height: 100px;">
+						</td>
+					</tr>
+					<tr>
+						<td style="padding: 20px;">
+							<table width="100%" cellpadding="0" cellspacing="0">
+								<tbody>
+									<tr>
+										<td style="padding: 0px 0px 20px;text-align: center;">
+											<h3>{{ welcome_message }}</h3>
+										</td>
+									</tr>
+									<tr>
+										<td style="padding: 0px 0px 20px;">
+											{% trans "Please confirm your account by clicking the button below:" %}
+										</td>
+									</tr>
+									<tr>
+										<td style="padding: 0px 0px 20px; text-align: center;">
+											<a href="{{ reset_email_confirm }}" class="m-button" style="color:white;">{% trans "Confirm Your account" %}</a>
+										</td>
+									</tr>
+									<tr>
+										<td style="padding: 0px 0px 20px;">
+											<p>{% trans "Once confirmed, you can login to the website anytime " %}</p>
+											<br>
+										</td>
+									</tr>
+									<tr>
+										<td style="padding: 0px 0px 20px;">
+											{% trans "Best wishes," %}<br>{{ site_name }}
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<div style="clear: both; padding: 20px 0;">
+				<table width="100%">
+					<tbody>
+						<tr>
+							<td style="text-align: center;">
+								<a href="{{ current_site }}" style="font-size: 12px; color: rgb(153,153,153); text-decoration: underline;">{{ site_name }}</a>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</td>
+	<td></td>
+</tr>
+{% endblock content1 %}

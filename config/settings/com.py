@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    "django.contrib.sites",
 
     # 'channels',
     'crequest',  # noqa
@@ -48,6 +49,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.contrib.sites.middleware.CurrentSiteMiddleware",
     'crequest.middleware.CrequestMiddleware',  # noqa
     'main.core.middleware.AjaxMiddleware',
     'main.core.middleware.TelnetConnectionMiddleware',
@@ -114,9 +116,12 @@ USE_I18N = True
 
 USE_TZ = True
 
-SITE_TITLE = "Jasmin Web site admin"
-SITE_HEADER = "Jasmin Web administration"
+SITE_TITLE = "Jasmin site admin"
+SITE_HEADER = "Jasmin administration"
 INDEX_TITLE = "Dashboard administration"
+
+SITE_NAME = os.environ.get("SITE_NAME", default="Jasmin Panel")
+SITE_NAME_HTML = os.environ.get("SITE_NAME_HTML", default="<b>Jasmin</b> Panel")
 
 MESSAGE_TAGS = {
     message_constants.DEBUG: 'info',

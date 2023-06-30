@@ -2,7 +2,7 @@ import random
 import re
 import string
 import socket
-from typing import Tuple
+from typing import Tuple, Optional
 
 from dateutil.parser import parse
 from django.contrib import messages
@@ -10,6 +10,8 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.dateformat import DateFormat
+from django.core.exceptions import ImproperlyConfigured
+from django.contrib.sites.models import Site
 
 from .boolean import is_date
 
@@ -37,7 +39,8 @@ def str2date(date_string, lang="en"):
         "tr": True,
         "ar": False,
     }
-    return timezone.make_aware(parse(date_string, dayfirst=lang_day_first[lang])) if is_date(date_string) else timezone.now()
+    return timezone.make_aware(parse(date_string, dayfirst=lang_day_first[lang])) if is_date(
+        date_string) else timezone.now()
 
 
 def paginate(objects, per_page=24, page=1):
@@ -127,3 +130,12 @@ def is_online(host: str, port: int) -> Tuple[bool, str]:
     except Exception as e:
         msg = str(e)
     return False, msg
+
+
+def get_current_site(request=None) -> Optional[str]:
+    try:
+        current_site = Site.objects.get_current()
+        return current_site.domain.strip("/")
+    except (Site.DoestNotExist, ImproperlyConfigured,):
+        pass
+    return None
