@@ -1,16 +1,15 @@
 (function($){
-    var localpath = window.location.pathname, csrfmiddlewaretoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+    var local_path = window.location.pathname, csrfmiddlewaretoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
     var add_modal_form = "#add_modal_form", edit_modal_form = "#edit_modal_form", service_modal_form = "#service_modal_form";
     var variant_boxes = [add_modal_form, edit_modal_form, service_modal_form];
     var HTTPCCM_DICT = {};
     var collectionlist_check = function(){
         $.ajax({
-            url: localpath + 'manage/',
+            url: local_path + 'manage/',
             type: "POST",
             data: {
                 csrfmiddlewaretoken: csrfmiddlewaretoken,
                 s: "list",
-                //q: $("#search_filter").val(),
             },
             dataType: "json",
             success: function(data){
@@ -32,7 +31,7 @@
                     return html;
                 });
                 $("#collectionlist").html(datalist.length > 0 ? output : $(".isEmpty").html());
-            }
+            }, error: function(jqXHR, textStatus, errorThrown){quick_display_modal_error(jqXHR.responseText);}
         });
     }
     collectionlist_check();
@@ -56,7 +55,7 @@
                     var data = HTTPCCM_DICT[index];
                     $.ajax({
                     	type: "POST",
-                    	url: localpath + 'manage/',
+                    	url: local_path + 'manage/',
                     	data: {
                     		csrfmiddlewaretoken: csrfmiddlewaretoken,
                     		s: cmd,

@@ -1,5 +1,5 @@
 (function($){
-    var localpath = window.location.pathname, csrfmiddlewaretoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+    var local_path = window.location.pathname, csrfmiddlewaretoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
     var tbody_html = function(val, i){
         return `
             <td>${1}</td>
@@ -11,7 +11,7 @@
     $("[name*=q], #per_page").on("keyup paste change", function(){collection_check(tbody_html, 1, true);});
     var collection_manage = function(cmd, index){
         if (cmd == "edit") {
-            //window.location = localpath + index + '/edit/';
+            //window.location = local_path + index + '/edit/';
         } else if (cmd == "delete") {
             
         }
