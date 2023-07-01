@@ -71,10 +71,14 @@ class PyMailMultiPart(object):
             html_part = MIMEText(render_to_string(self.html_template, kwargs), 'html')
             msg.attach(html_part)
             if self.email_server.ssl:
-                mail_obj = smtplib.SMTP_SSL(self.email_server.server, self.email_server.port)
+                mail_obj = smtplib.SMTP_SSL(
+                    host=self.email_server.server, port=self.email_server.port, timeout=120.0,
+                )
                 mail_obj.ehlo()
             else:
-                mail_obj = smtplib.SMTP(self.email_server.server, self.email_server.port)
+                mail_obj = smtplib.SMTP(
+                    host=self.email_server.server, port=self.email_server.port, timeout=120.0,
+                )
                 mail_obj.starttls()
             mail_obj.login(self.email_server.username, self.email_server.password)
             for to_mail in mails:

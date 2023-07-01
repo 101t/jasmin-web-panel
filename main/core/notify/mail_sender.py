@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 def send_mail_reset_email(request) -> bool:
-    if request.is_authenticated:
-        uidb64 = urlsafe_base64_encode(force_bytes(request.user.pk)).decode()  # noqa
+    if request.user.is_authenticated:
+        uidb64 = urlsafe_base64_encode(force_bytes(request.user.pk))  # noqa
         token = email_active_token.make_token(request.user)
         subject = str(_("Verify your email address"))
         template_name = "core/mail_reset_email.html"
@@ -36,7 +36,7 @@ def send_mail_reset_email(request) -> bool:
 
 def send_mail_reset_password(request, user) -> bool:
     current_site = get_current_site(request=request)
-    uidb64 = urlsafe_base64_encode(force_bytes(user.pk)).decode()  # noqa
+    uidb64 = urlsafe_base64_encode(force_bytes(user.pk))  # noqa
     token = reset_password_token.make_token(user=user)
     reset_password_url = reverse("users:reset_password_view", kwargs={"uidb64": uidb64, "token": token})  # noqa
     reset_password_confirm = f"{current_site}{reset_password_url}"

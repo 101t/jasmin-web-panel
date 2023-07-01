@@ -15,19 +15,19 @@ from main.users.forms import ResetPasswordConfirmForm, ResetPasswordForm
 def reset_view(request):
     if request.POST:
         form = ResetPasswordForm(request.POST)
-        email = request.POST.get("email")
+        username = request.POST.get("username")
         if form.is_valid():
-            user = User.objects.get(Q(username=email) | Q(email=email))
-            if send_mail_reset_password(request=request, user=user):
+            user = User.objects.filter(Q(username=username) | Q(email=username)).first()
+            if user and send_mail_reset_password(request=request, user=user):
                 messages.success(
                     request,
                     _("Success, reset password email has been sent, please check your email inbox")
                 )
-                return redirect(reverse("users:login_view"))
+                return redirect(reverse("users:signin_view"))
+            else:
+                messages.warning(request, _("Warning, invalid username or email address"))
         else:
             display_form_validations(form=form, request=request)
-    else:
-        messages.error(request, _("Error, an error occurred while sending reset email"))
     return render(request, "auth/reset.html")
 
 
@@ -49,7 +49,7 @@ def reset_password_view(request, uidb64: str = None, token: str = None):  # noqa
                 user.set_password(str(password))
                 user.save()
                 messages.success(request, _("Success, Your password has been reset successfully"))
-                return redirect(reverse("users:login_view"))
+                return redirect(reverse("users:signin_view"))
             else:
                 display_form_validations(form=form, request=request)
         else:
@@ -70,11 +70,11 @@ def email_verification_view(request, uidb64: str = None, token: str = None):  # 
         if user.is_email:
             messages.warning(request, _("Warning, Your email address already verified"))
         elif email_active_token.check_token(user, token=token):
+            user.is_email = True
             user.is_verified = True
-            user.is_active = True
             user.save()
             messages.success(request, _("Your email hase been verified successfully"))
     else:
         messages.error(request, _("Unknown error occurred!"))
-    return redirect(reverse("users:login_view"))
+    return redirect(reverse("users:signin_view"))
 

@@ -61,7 +61,7 @@
                     <label class="col-sm-2 col-form-label">{% trans "Email Address" %}</label>
                     <div class="col-sm-6">
                         <input type="email" name="email" class="form-control" value="{{ user.email }}" placeholder="{% trans 'Email Address' %}">
-                        <small class="text-muted">{% trans "You need to activate your email address when changed" %}</small>
+                        <small class="text-muted">{% trans "You need to activate your email address when changed" %} <i class="fas fa-info-circle" title="{% trans 'Make sure you have configured the Mail Server' %}"></i></small>
                     </div>
                 </div>
                 <button type="submit" class="btn btn-success"><i class="fas fa-lock"></i> {% trans "Update Profile" %}</button>
