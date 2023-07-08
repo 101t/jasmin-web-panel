@@ -18,7 +18,7 @@ python manage.py migrate
 python manage.py load_new
 python manage.py collectstatic --noinput --clear --no-post-process
 
-"$APP_DIR"/gunicorn config."$APP_WSGI":application \
+"$APP_DIR"/env/bin/gunicorn config."$APP_WSGI":application \
   --workers "$APP_WORKERS" \
   --bing :"$APP_PORT" \
   --log-level "$APP_LOG_LEVEL" \
