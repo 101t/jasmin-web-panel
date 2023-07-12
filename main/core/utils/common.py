@@ -126,7 +126,7 @@ def is_online(host: str, port: int) -> Tuple[bool, str]:
     try:
         skt.settimeout(1.0)
         skt.connect((host, port))
-        return True, "OK"
+        return True, "OK, Jasmin Connected"
     except Exception as e:
         msg = str(e)
     return False, msg

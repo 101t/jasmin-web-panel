@@ -9,30 +9,32 @@ services:
       replicas: 1
       update_config:
         order: start-first
-    entrypoint: /app/config/docker/docker-entrypoint.sh
+    # entrypoint: bash ./docker-entrypoint.sh
     env_file:
       - .env
     environment:
-      DEBUG: 1
+      DEBUG: '1'
       DJANGO_SETTINGS_MODULE: config.settings.pro
-      ALLOWED_HOSTS: '*'
-      POSTGRE_URL: postgres://postgres:123@127.0.0.1:5432/jasmin_web_db
+      ALLOWED_HOSTS: '127.0.0.1,127.0.0.11'
+      PRODB_URL: postgres://jasmin:jasmin@172.17.0.1:5432/jasmin
       REDIS_URI: redis://jasmin_redis:6379/1
+      TELNET_HOST: jasmin
+      SUBMIT_LOG: 1
     volumes:
-      - ./public:/app/public
-      - ./logs:/app/logs
+      - web_public:/app/public
+      - web_logs:/app/logs
     depends_on:
       - jasmin_redis
   jasmin_celery:
     image: tarekaec/jasmin_web_panel:1.2
-    entrypoint: /app/config/docker/docker-entrypoint-celery.sh
+    entrypoint: bash ./docker-entrypoint-celery.sh
     deploy:
       replicas: 1
     env_file:
       - .env
     environment:
       DEBUG: 0
-      POSTGRE_URL: postgres://postgres:123@127.0.0.1:5432/jasmin_web_db
+      PRODB_URL: postgres://jasmin:jasmin@172.17.0.1:5432/jasmin
       DJANGO_SETTINGS_MODULE: config.settings.pro
       CELERY_BROKER_URL: redis://jasmin_redis:6379/0
       CELERY_RESULT_BACKEND: redis://jasmin_redis:6379/0
@@ -57,4 +59,8 @@ services:
 
 volumes:
   redis_data:
+    driver: local
+  web_public:
+    driver: local
+  web_logs:
     driver: local

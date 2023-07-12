@@ -1,6 +1,7 @@
 (function($){
     $(document).on("input", ".float-input", function(){this.value = this.value.replace(/[^0-9.]/g, ''); this.value = this.value.replace(/(\..*)\./g, '$1');});
     $(document).on("input", ".integer-input", function(){$(this).val($(this).val().replace(/[^0-9]/g, ''));});
+    toastr.options.positionClass = 'toast-bottom-right';
     window.toTitleCase = function(str){
         return str.replace(/\w\S*/g, function(txt) {
 			return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();

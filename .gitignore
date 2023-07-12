@@ -59,6 +59,7 @@ staticfiles
 # virtual environments
 .env
 env/
+venv/
 db.sqlite3
 
 # Hitch directory

@@ -14,7 +14,7 @@ env.read_env('.env')
 
 SECRET_KEY = os.environ.get("SECRET_KEY", default='8na#(#x@0i*3ah%&$-q)b&wqu5ct_a3))d8-sqk-ux*5lol*wl')
 
-DEBUG = bool(os.environ.get("DEBUG", '0'))
+DEBUG = bool(os.environ.get("DEBUG", ''))
 
 SITE_ID = int(os.environ.get("SITE_ID", default='1'))
 
