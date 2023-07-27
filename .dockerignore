@@ -10,5 +10,9 @@ Dockerfile
 .cache
 *.md
 !README*.md
+env/
+venv/
 
+logs/
+public/
 docker-compose.yml

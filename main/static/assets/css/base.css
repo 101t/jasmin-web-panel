@@ -4,3 +4,5 @@
 @import url("../vendor/fa5/css/all.min.css");
 @import url("../vendor/toastr/toastr.min.css");
 @import url("../vendor/sweetalert/sweetalert.css");
+
+.iframe_error {width:100%;height:100%;border: #efefef 1px solid;}

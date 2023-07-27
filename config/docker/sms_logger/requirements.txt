@@ -1,0 +1,9 @@
+Twisted~=22.1.0
+txAMQP3~=0.9.3
+smpp.pdu3~=0.6
+smpp.twisted3~=0.7
+service_identity~=18.1.0
+python-dotenv
+jasmin
+psycopg2
+mysql-connector-python

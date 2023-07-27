@@ -20,6 +20,18 @@
             </div>
         </div>
     </div>
+    <div class="col-lg-4 mb-4">
+        <div class="card bg-secondary text-white shadow" id="binding_status">
+            <div class="card-body">
+                {% trans "Jasmin SMS Gateway" %}
+                <div class="text-white-50 small">
+                    {{ SETTINGS.TELNET_HOST }} - {{ SETTINGS.TELNET_PORT }} - <span id="binding_status_text"></span>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock content %}
-{% block extrajs %}{% endblock extrajs %}
+{% block extrajs %}
+<script type="text/javascript" src="{% static 'web/dashboard.js' %}"></script>
+{% endblock extrajs %}

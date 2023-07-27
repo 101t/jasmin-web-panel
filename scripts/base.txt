@@ -1,0 +1,28 @@
+# Celery
+celery[redis]>=5.3,<5.4
+
+# Django Dependencies
+Django>=4.2,<4.3
+# django-3-jet==1.0.8
+django-jet-reboot
+django-autoslug
+django-crequest
+django-environ
+django-filter
+djangorestframework
+coreapi
+
+email-validator
+pexpect
+Pillow>=9.5,<9.6
+python-dateutil
+PyYAML
+requests
+
+ua-parser
+user-agents
+
+tablib
+xlrd
+xlwt
+zipp

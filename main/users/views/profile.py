@@ -1,23 +1,23 @@
-# -*- encoding: utf-8 -*-
-from __future__ import unicode_literals
-from django.utils.translation import gettext as _
-from django.utils import timezone as djtz
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import update_session_auth_hash
-from django.contrib import messages
-from django.http import JsonResponse
-from django.shortcuts import HttpResponseRedirect, render, redirect, HttpResponse
-from django.db.models import Q
-from django.urls import reverse
-from django.conf import settings
-
-from ..models import User
-from main.users.forms import ChangePhotoForm, ChangePasswordForm, ProfileForm
-from main.core.utils import display_form_validations, is_json, get_query, paginate
-from main.core.models import ActivityLog, EmailServer
+import json
+import os
 
 from PIL import Image
-import json, os
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.translation import gettext as _
+
+from main.core.models import ActivityLog, EmailServer
+from main.core.notify import send_mail_reset_email
+from main.core.utils import display_form_validations, is_json, get_query, paginate
+from main.users.forms import ChangePhotoForm, ChangePasswordForm, ProfileForm
+from main.users.models import User
+
 
 @login_required
 def profile_view(request):
@@ -31,13 +31,13 @@ def profile_view(request):
                     email = email.strip()
                     user = User.objects.get(pk=request.user.pk)
                     user.first_name = request.POST.get("first_name")
-                    user.last_name  = request.POST.get("last_name")
+                    user.last_name = request.POST.get("last_name")
                     if email and user.email != email:
                         user.email = email
                         if EmailServer.objects.filter(active=True).exists():
                             user.is_email = False
-                            #TODO SEND EMAIL TO CLIENT
-                            messages.info(request, _("Please, check your email inbox to verify your email address"))
+                            send_mail_reset_email(request=request)
+                            messages.info(request, _("Please check your email inbox to verify your email address"))
                     user.save()
                     messages.success(request, _("Congrats!, Your profile has been updated successfully"))
                 else:
@@ -84,7 +84,7 @@ def profile_view(request):
                 return JsonResponse(dict(
                     message=str(_("Amazing!, Your profile picture has been updated successfully")),
                     state=200,
-                    result="%(filename)s?s=%(timenow)s" % dict(filename=filename, timenow=djtz.now())
+                    result="%(filename)s?s=%(timenow)s" % dict(filename=filename, timenow=timezone.now())
                 ))
         elif s == "avatar_reset":
             try:
@@ -97,7 +97,7 @@ def profile_view(request):
         elif s == "password":
             password = request.POST.get("password")
             password1 = request.POST.get("password1")
-            password2 = request.POST.get("password2")
+            # password2 = request.POST.get("password2")
             form = ChangePasswordForm(request.POST)
             user = User.objects.get(pk=request.user.pk)
             if user.check_password(password):
@@ -113,9 +113,11 @@ def profile_view(request):
         return redirect(reverse("users:profile_view"))
     return render(request, "auth/profile.html")
 
+
 @login_required
 def settings_view(request):
     return render(request, "auth/settings.html")
+
 
 @login_required
 def activity_log_view(request):

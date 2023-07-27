@@ -1,0 +1,82 @@
+version: "3"
+
+services:
+  redis:
+    image: redis:alpine
+    restart: always
+    volumes:
+      - /data/jasmin/redis:/data
+    healthcheck:
+      test: redis-cli ping | grep PONG
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
+
+  rabbit-mq:
+    image: rabbitmq:3.10-management-alpine
+    restart: always
+    volumes:
+      - /data/jasmin/rabbitmq:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 525M
+
+  jasmin:
+    image: tarekaec/jasmin:0.10.13
+#    command: >
+#      bash -c "
+#        sed -i "s/.*publish_submit_sm_resp\s*=.*/publish_submit_sm_resp=True/g" /etc/jasmin/jasmin.cfg
+#        /docker-entrypoint.sh
+#      "
+    ports:
+      - '${FORWARD_JASMIN_SMPP_PORT:-2776}:2775'
+      - '${FORWARD_JASMIN_CLI_PORT:-8991}:8990'
+      - '${FORWARD_JASMIN_HTTP_PORT:-1402}:1401'
+    volumes:
+      # - /data/jasmin/jasmin:/usr/jasmin/jasmin
+      - /data/jasmin/jasmin_config:/etc/jasmin
+      - /data/jasmin/jasmin_logs:/var/log/jasmin
+      - /data/jasmin/jasmin_resource:/etc/jasmin/resource
+      - /data/jasmin/jasmin_store:/etc/jasmin/store
+    depends_on:
+      - redis
+      - rabbit-mq
+    environment:
+      REDIS_CLIENT_HOST: ${REDIS_CLIENT_HOST:-redis}
+      REDIS_CLIENT_PORT: ${REDIS_CLIENT_PORT:-6379}
+      AMQP_BROKER_HOST: ${AMQP_BROKER_HOST:-rabbit-mq}
+      AMQP_BROKER_PORT: ${AMQP_BROKER_PORT:-5672}
+      ENABLE_PUBLISH_SUBMIT_SM_RESP: ${ENABLE_PUBLISH_SUBMIT_SM_RESP:-1}
+      RESTAPI_MODE: ${RESTAPI_MODE:-0}
+    deploy:
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: '1'
+          memory: 256M
+  sms_logger:
+    image: tarekaec/jasmin_log:1.1
+    volumes:
+      - /data/jasmin/jasmin_resource:/app/resource
+    environment:
+      DB_TYPE_MYSQL: ${DB_TYPE_MYSQL:-0}
+      AMQP_BROKER_HOST: ${AMQP_BROKER_HOST:-rabbit-mq}
+      AMQP_BROKER_PORT: ${AMQP_BROKER_PORT:-5672}
+      AMQP_SPEC_FILE: '/app/resource/amqp0-9-1.xml'
+      DB_HOST: ${DB_HOST:-172.17.0.1}
+      DB_DATABASE: ${DB_DATABASE:-jasmin}
+      DB_TABLE: ${DB_TABLE:-submit_log}
+      DB_USER: ${DB_USER:-jasmin}
+      DB_PASS: ${DB_PASS:-jasmin}
+    depends_on:
+      - rabbit-mq
+    restart: on-failure
+    healthcheck:
+      disable: true

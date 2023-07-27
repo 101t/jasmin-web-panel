@@ -1,0 +1,34 @@
+version: '3.7'
+
+services:
+  jasmin_web:
+    image: tarekaec/jasmin_web_panel:1.0-alpine
+    ports:
+      - "8000:8000"
+    deploy:
+      replicas: 1
+    env_file:
+      - .env
+    environment:
+      JASMIN_PORT: 8000
+    healthcheck:
+      disable: true
+    volumes:
+      - ./public:/web/public
+    # entrypoint: /jasmin/docker-entrypoint.sh
+  jasmin_celery:
+    image: tarekaec/jasmin_web_panel:1.0-alpine
+    deploy:
+      replicas: 1
+    env_file:
+      - .env
+    environment:
+      DEBUG: 0
+    healthcheck:
+      disable: true
+    depends_on:
+      - jasmin_redis
+    entrypoint: /jasmin/celery_run.sh
+  jasmin_redis:
+    image: redis:alpine
+    tty: true

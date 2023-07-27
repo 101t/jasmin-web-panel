@@ -6,8 +6,11 @@ DATABASES = {
 }
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
 
-INSTALLED_APPS += ("gunicorn", )
+INSTALLED_APPS += ("gunicorn",)
+
+DJANGO_LOG_LEVEL = os.environ.get("DJANGO_LOG_LEVEL", default="WARNING")
 
 LOGGING = {
     'version': 1,
@@ -19,31 +22,31 @@ LOGGING = {
     },
     'handlers': {
         'default': {
-            'level':'DEBUG',
-            'class':'logging.handlers.RotatingFileHandler',
+            'level': DJANGO_LOG_LEVEL,
+            'class': 'logging.handlers.RotatingFileHandler',
             'filename': os.path.join(str(ROOT_DIR), 'logs/app.log'),
-            'maxBytes': 1024*1024*5, # 5 MB
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
             'backupCount': 5,
-            'formatter':'standard',
+            'formatter': 'standard',
         },
         'request_handler': {
-            'level':'DEBUG',
-            'class':'logging.handlers.RotatingFileHandler',
+            'level': DJANGO_LOG_LEVEL,
+            'class': 'logging.handlers.RotatingFileHandler',
             'filename': os.path.join(str(ROOT_DIR), 'logs/django.log'),
-            'maxBytes': 1024*1024*5, # 5 MB
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
             'backupCount': 5,
-            'formatter':'standard',
+            'formatter': 'standard',
         },
     },
     'loggers': {
         '': {
             'handlers': ['default'],
-            'level': 'DEBUG',
+            'level': DJANGO_LOG_LEVEL,
             'propagate': True
         },
         'django.request': {
             'handlers': ['request_handler'],
-            'level': 'DEBUG',
+            'level': DJANGO_LOG_LEVEL,
             'propagate': False
         },
     }

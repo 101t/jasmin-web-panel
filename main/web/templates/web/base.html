@@ -23,6 +23,21 @@
         {% include 'web/includes/footer.html' %}
     </div>
 </div>
+<div class="modal fade" id="quick_display_modal" role="dialog">
+    <div class="modal-dialog" style="max-width:80%;">
+        <div class="modal-content" style="height:90vh;">
+            <div class="modal-header">
+                <h4 class="modal-title">{% trans "Show Details" %}</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
 <script src="{% static 'assets/vendor/jquery/jquery.min.js' %}"></script>
 <script src="{% static 'assets/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>

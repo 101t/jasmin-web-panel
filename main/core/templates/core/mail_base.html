@@ -1,0 +1,45 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+	<head>
+		<meta charset="utf-8">
+		<title>Email</title>
+		<style media="screen">
+			body {
+			font-family: 'helvetica neue', helvetica, arial, sans-serif;
+			font-size: 14px;
+			-webkit-font-smoothing: antialiased;
+			text-size-adjust: none;
+			height: auto;
+			line-height: 1.6em;
+			background-color: rgb(246,246,246);
+			margin: 0px;
+			width: 100%!important;
+			}
+			table td {
+			vertical-align: top;
+			}
+			.m-button {
+			color: rgb(255,255,255);
+			text-decoration: none;
+			line-height: 2em;
+			font-weight: bold;
+			text-align: center;
+			cursor: pointer;
+			display: inline-block;
+			border-radius: 3px;
+			text-transform: capitalize;
+			padding: 5px 15px;
+			background-color: rgb(88,103,221);
+			border: 1px solid rgb(88,103,221);
+			}
+		</style>
+	</head>
+	<body>
+		<table style="width: 100%;">
+			<tbody>
+				{% block content1 %}{% endblock content1 %}
+			</tbody>
+		</table>
+	</body>
+</html>

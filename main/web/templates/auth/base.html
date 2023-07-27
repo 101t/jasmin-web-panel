@@ -1,6 +1,6 @@
 {% load static i18n %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 	<meta charset="utf-8" />
 	<title>{% block title %}{% trans "Sign In" %}{% endblock title %}</title>
@@ -8,6 +8,10 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<meta name="robots" content="all,follow">
 	<link rel="stylesheet" type="text/css" href="{% static 'assets/css/base.css' %}">
+	<style>
+	.auth-box {text-align: center;vertical-align:middle;}
+	.auth-child {padding-top:12%;padding-bottom:12%;}
+	</style>
 	{% block extracss %}{% endblock extracss %}
 </head>
 <body class="bg-gradient-primary">
@@ -16,7 +20,17 @@
 			<div class="col-xl-10 col-lg-12 col-md-9">
 				<div class="card o-hidden border-0 shadow-lg my-5">
 					<div class="card-body p-0">
-						{% block content %}{% endblock content %}
+						<div class="row">
+							<div class="col-lg-6 d-none d-lg-block auth-box">
+								<div class="auth-child">
+									<img src="/static/assets/img/jasmin.png" style="width:50%;" alt="Login">
+									<p class="text-muted">v{{ VERSION }}</p>
+								</div>
+							</div>
+							<div class="col-lg-6">
+								{% block content %}{% endblock content %}
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>

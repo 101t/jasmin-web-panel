@@ -172,7 +172,7 @@ docker pull tarekaec/jasmin_web_panel
 ```
 also you could build it on you local machine by navigating to project directory
 ```shell
-docker build -t jasmin_web_panel:1.0 .
+docker build -f config/docker/slim/Dockerfile -t jasmin_web_panel:1.0 .
 ```
 You need to configure the environment variable in `.env` file
 ```shell

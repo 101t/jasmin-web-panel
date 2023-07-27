@@ -1,7 +1,30 @@
 {% extends "auth/base.html" %}
 {% load static i18n %}
-{% block title %}{% trans "Reset Password" %}{% endblock title %}
-{% block extracss %}{% endblock extracss %}
+{% block title %}{% trans "Reset Password" %} - Jasmin Web Panel{% endblock title %}
 {% block content %}
+<div class="p-5">
+    <div class="text-center">
+        <h1 class="h4 text-gray-900 mb-4">{% trans 'Reset your password' %}</h1>
+    </div>
+    {% include "web/includes/message.html" %}
+    {% if show_confirm_form %}
+    <form class="user" action="{% url 'users:reset_password_view' request.resolver_match.kwargs.uidb64 request.resolver_match.kwargs.token %}" method="POST">{% csrf_token %}
+        <div class="form-group">
+            <input type="password" name="password" class="form-control form-control-lg" placeholder="{% trans 'New password' %}">
+        </div>
+        <div class="form-group">
+            <input type="password" name="password2" class="form-control form-control-lg" placeholder="{% trans 'New password confirm' %}">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">{% trans 'Send reset password' %}</button>
+    </form>
+    {% else %}
+    <form class="user" action="{% url 'users:reset_view' %}{% if next %}?next={{next}}{% endif %}" method="POST">{% csrf_token %}
+        <div class="form-group">
+            <input type="text" name="username" class="form-control form-control-lg" placeholder="{% trans 'Username' %}">
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">{% trans 'Reset password' %}</button>
+    </form>
+    {% endif %}
+    <hr>
+    <div class="text-center">{% trans "Have an account?" %} <a class="small" href="{% url 'users:signin_view' %}">{% trans 'Sign in' %}</a></div>
 {% endblock content %}
-{% block extrajs %}{% endblock extrajs %}

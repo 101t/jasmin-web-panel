@@ -2,35 +2,65 @@ version: '3.7'
 
 services:
   jasmin_web:
-    image: tarekaec/jasmin_web_panel:1.0
-    # image: tarekaec/jasmin_web_panel:1.0-alpine
+    image: tarekaec/jasmin_web_panel:1.2
     ports:
       - "8000:8000"
     deploy:
       replicas: 1
+      update_config:
+        order: start-first
+    # entrypoint: bash ./docker-entrypoint.sh
     env_file:
       - .env
     environment:
-      JASMIN_PORT: 8000
-    healthcheck:
-      disable: true
+      DEBUG: '1'
+      DJANGO_SETTINGS_MODULE: config.settings.pro
+      ALLOWED_HOSTS: '127.0.0.1,127.0.0.11'
+      PRODB_URL: postgres://jasmin:jasmin@172.17.0.1:5432/jasmin
+      REDIS_URI: redis://jasmin_redis:6379/1
+      TELNET_HOST: jasmin
+      SUBMIT_LOG: 1
     volumes:
-      - ./public:/web/public
-    entrypoint: /jasmin/docker-entrypoint.sh
+      - web_public:/app/public
+      - web_logs:/app/logs
+    depends_on:
+      - jasmin_redis
   jasmin_celery:
-    image: tarekaec/jasmin_web_panel:1.0
-    # image: tarekaec/jasmin_web_panel:1.0-alpine
+    image: tarekaec/jasmin_web_panel:1.2
+    entrypoint: bash ./docker-entrypoint-celery.sh
     deploy:
       replicas: 1
     env_file:
       - .env
     environment:
       DEBUG: 0
+      PRODB_URL: postgres://jasmin:jasmin@172.17.0.1:5432/jasmin
+      DJANGO_SETTINGS_MODULE: config.settings.pro
+      CELERY_BROKER_URL: redis://jasmin_redis:6379/0
+      CELERY_RESULT_BACKEND: redis://jasmin_redis:6379/0
+      CELERY_LOG_LEVEL: info
     healthcheck:
       disable: true
     depends_on:
       - jasmin_redis
-    entrypoint: /jasmin/celery_run.sh
   jasmin_redis:
     image: redis:alpine
     tty: true
+    volumes:
+      - redis_data:/data
+    command:
+      - 'redis-server'
+      - '--appendonly yes'
+      - '--save 60 1'
+    # restart: unless-stopped
+    environment:
+      REDIS_REPLICATION_MODE: master
+      ALLOW_EMPTY_PASSWORD: "yes"
+
+volumes:
+  redis_data:
+    driver: local
+  web_public:
+    driver: local
+  web_logs:
+    driver: local

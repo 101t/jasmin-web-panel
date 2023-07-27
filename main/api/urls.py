@@ -12,4 +12,5 @@ urlpatterns = format_suffix_patterns([
         path('<str:gid>/', view=views.groups_detail, name='groups_detail'),
         path('', view=views.groups_list, name='groups_list'),
     ])),
+    path('health_check', view=views.health_check, name="health_check")
 ])

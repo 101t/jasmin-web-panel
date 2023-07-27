@@ -1,8 +1,8 @@
 {% load i18n %}
 {% for message in messages %}
 <div class="messages">
-    <div class="alert alert-dismissable alert-{% if message.tags %}{{message.tags|lower}}{% endif %}">
-        <p class="mb-0">{{ message|safe }} <button type="button" class="close" data-dismiss="alert">×</button></p>
+    <div class="alert alert-dismissable alert-{% if message.tags %}{{message.tags|lower}}{% endif %} fade show" role="alert">
+        {{ message|safe }} <button type="button" class="close float-right" data-dismiss="alert">×</button>
     </div>
 </div>
 {% endfor %}

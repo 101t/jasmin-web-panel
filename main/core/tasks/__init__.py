@@ -1,1 +1,1 @@
-from .mail_html import mail_html_maillist, mail_html_envelopes
+from .mail_html import mail_html_mails, mail_html_envelopes

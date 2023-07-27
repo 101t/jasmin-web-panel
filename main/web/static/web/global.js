@@ -1,6 +1,7 @@
 (function($){
     $(document).on("input", ".float-input", function(){this.value = this.value.replace(/[^0-9.]/g, ''); this.value = this.value.replace(/(\..*)\./g, '$1');});
     $(document).on("input", ".integer-input", function(){$(this).val($(this).val().replace(/[^0-9]/g, ''));});
+    toastr.options.positionClass = 'toast-bottom-right';
     window.toTitleCase = function(str){
         return str.replace(/\w\S*/g, function(txt) {
 			return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
@@ -42,7 +43,7 @@
         $(box).show();
     }
     try {
-        var localpath = window.location.pathname, csrfmiddlewaretoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+        var local_path = window.location.pathname, csrfmiddlewaretoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
     } catch {}
     window.collection_check = function(tbody_html, page_no, destroy_paginate){
         tbody_html = tbody_html || function(val, i){return `<td>${val}</td>`;};
@@ -50,12 +51,12 @@
         destroy_paginate = destroy_paginate || false;
         var per_page = parseInt($("#per_page").val());
         $.ajax({
-            url: localpath + 'manage/',
+            url: local_path + 'manage/',
             type: "POST",
             data: {
                 csrfmiddlewaretoken: csrfmiddlewaretoken,
                 s: "list",
-                //q: $("#search_filter").val(),
+
                 page: page_no,
                 per_page: per_page,
             },
@@ -120,12 +121,12 @@
     window.collection_check_nopaginate = function(tbody_html) {
         tbody_html = tbody_html || function(val, i){return `<td>${val}</td>`;};
         $.ajax({
-            url: localpath + 'manage/',
+            url: local_path + 'manage/',
             type: "POST",
             data: {
                 csrfmiddlewaretoken: csrfmiddlewaretoken,
                 s: "list",
-                //q: $("#search_filter").val(),
+
                 page: page_no,
                 per_page: per_page,
             },
@@ -140,6 +141,20 @@
                 $("#collectionlist").html(datalist.length > 0 ? output : $(".isEmpty").html());
             }
         })
+    }
+    window.quick_display_modal_error = function(html_response) {
+        var html_message = `
+            <p> An error occurred,<br/>
+                <button type="button" class="btn btn-sm btn-danger float-right" class="show" data-toggle="modal"  data-target="#quick_display_modal" data-html="true">Show Error</button>
+            <p>
+        `;
+        toastr.error(html_message, {closeButton: true, progressBar: true, enableHtml: true,});
+        var html_source = html_response;
+        html_source = html_source.replace(/["]/g, '&quot;')
+        $("#quick_display_modal").closest('div').find('.modal-body').html('<iframe sandbox="allow-same-origin" srcdoc="'+html_source+'" class="iframe_error"></iframe>');
+        if($("#collectionlist").length){
+            $("#collectionlist").html($(".isEmpty").html());
+        }
     }
     $("form").validate({
         errorClass: "text-danger",

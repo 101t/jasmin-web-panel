@@ -1,22 +1,28 @@
-# -*- encoding: utf-8 -*-
-from __future__ import unicode_literals
-from django.utils.translation import gettext_lazy as _
-from django.conf import settings
-from django.contrib import messages
-from django.utils import timezone as djtz
-from django.utils.dateformat import DateFormat
-from django.db.models import Q
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+import random
+import re
+import string
+import socket
+from typing import Tuple, Optional
 
 from dateutil.parser import parse
+from django.contrib import messages
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.db.models import Q
+from django.utils import timezone
+from django.utils.dateformat import DateFormat
+from django.core.exceptions import ImproperlyConfigured
+from django.contrib.sites.models import Site
+
 from .boolean import is_date
-import re, string, random
+
 
 def timestamp2datetime(timestamp):
-    return djtz.datetime.fromtimestamp(float(timestamp)/1000.0)
+    return timezone.datetime.fromtimestamp(float(timestamp) / 1000.0)
 
-def readabledateformat(datetime):
+
+def readable_date_format(datetime):
     return DateFormat(datetime).format("d F Y H:i")
+
 
 def get_client_ip(request):
     x_forwarded_for = request.headers.get('X-Forwarded-For')
@@ -26,13 +32,16 @@ def get_client_ip(request):
         ip = request.META.get('REMOTE_ADDR')
     return ip
 
-def str2date(datestring, lang="en"):
-    langdayfirst = {
+
+def str2date(date_string, lang="en"):
+    lang_day_first = {
         "en": False,
         "tr": True,
         "ar": False,
     }
-    return djtz.make_aware(parse(datestring, dayfirst=langdayfirst[lang])) if is_date(datestring) else djtz.now()
+    return timezone.make_aware(parse(date_string, dayfirst=lang_day_first[lang])) if is_date(
+        date_string) else timezone.now()
+
 
 def paginate(objects, per_page=24, page=1):
     paginator = Paginator(objects, per_page)
@@ -44,25 +53,29 @@ def paginate(objects, per_page=24, page=1):
         paginated_objects = paginator.page(paginator.num_pages)
     return paginated_objects
 
-def normalize_query(query_string, findterms=re.compile(r'"([^"]+)"|(\S+)').findall, normspace=re.compile(r'\s{2,}').sub):
-    ''' Splits the query string in invidual keywords, getting rid of unecessary spaces
+
+def normalize_query(query_string, findterms=re.compile(r'"([^"]+)"|(\S+)').findall,
+                    normspace=re.compile(r'\s{2,}').sub):
+    """ Splits the query string in invidual keywords, getting rid of unecessary spaces
         and grouping quoted words together.
         Example:
-        
+
         >>> normalize_query('  some random  words "with   quotes  " and   spaces')
         ['some', 'random', 'words', 'with quotes', 'and', 'spaces']
-    
-    '''
+
+    """
     return [normspace(' ', (t[0] or t[1]).strip()) for t in findterms(query_string)]
+
+
 def get_query(query_string, search_fields):
-    ''' Returns a query, that is a combination of Q objects. That combination
+    """ Returns a query, that is a combination of Q objects. That combination
         aims to search keywords within a model by testing the given search fields.
-    
-    '''
-    query = None # Query to search for every search term        
+
+    """
+    query = None  # Query to search for every search term
     terms = normalize_query(query_string)
     for term in terms:
-        or_query = None # Query to search for a given term in each field
+        or_query = None  # Query to search for a given term in each field
         for field_name in search_fields:
             q = Q(**{"%s__icontains" % field_name: term})
             if or_query is None:
@@ -77,19 +90,22 @@ def get_query(query_string, search_fields):
         query = Q(**{"%s__icontains" % search_fields[0]: ""})
     return query
 
+
 def display_form_validations(form, request, message_type=messages.ERROR):
     for field_name, errors in form.errors.items():
         field = form.fields.get(field_name)
         field_name = field.label if field else field_name
         messages.add_message(request, message_type, "<b>{}</b>: {}".format(field_name, ", ".join(errors)))
 
-def shortenLargeNumber(num, digits=1):
+
+def shorten_large_number(num, digits=1):
     units = ['k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
     for i in range(len(units) - 1, -1, -1):
         decimal = 1000 ** (i + 1)
         if abs(num) >= decimal:
             return "{}{}".format(round(num / decimal, digits), units[i])
     return str(num)
+
 
 def password_generator(size=8, chars=string.ascii_letters + string.digits):
     """
@@ -103,3 +119,23 @@ def password_generator(size=8, chars=string.ascii_letters + string.digits):
     Source: http://stackoverflow.com/a/2257449
     """
     return ''.join(random.choice(chars) for i in range(size))
+
+
+def is_online(host: str, port: int) -> Tuple[bool, str]:
+    skt = socket.socket()
+    try:
+        skt.settimeout(1.0)
+        skt.connect((host, port))
+        return True, "OK, Jasmin Connected"
+    except Exception as e:
+        msg = str(e)
+    return False, msg
+
+
+def get_current_site(request=None) -> Optional[str]:
+    try:
+        current_site = Site.objects.get_current()
+        return current_site.domain.strip("/")
+    except (Site.DoestNotExist, ImproperlyConfigured,):
+        pass
+    return None
