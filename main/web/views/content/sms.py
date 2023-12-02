@@ -10,7 +10,7 @@ from main.core.smpp import HTTPCCM
 
 @login_required
 def send_sms_view(request):
-    return render(request, "send_sms.html")
+    return render(request, "web/content/send_sms.html")
 
 
 @login_required
