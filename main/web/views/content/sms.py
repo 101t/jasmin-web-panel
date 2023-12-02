@@ -35,10 +35,10 @@ def send_message(dest, string):
 
 
 def received_handler(pdu):
-    print '* delivered {}'.format(pdu.sequence)
+    print ('* delivered {}'.format(pdu.sequence))
 
 def sent_handler(pdu):
-    print '* sent seq={}   msgid={}'.format(pdu.sequence, pdu.message_id)
+    print ('* sent seq={}   msgid={}'.format(pdu.sequence, pdu.message_id))
     
 @login_required
 def send_sms_view(request):
