@@ -14,7 +14,7 @@ def send_sms_view(request):
 
 
 @login_required
-def send_sms_manage(request):
+def send_sms_view_manage(request):
     args, res_status, res_message = {}, 400, _("Sorry, Command does not matched.")
     httpccm = None
     if request.POST and request.is_ajax():
