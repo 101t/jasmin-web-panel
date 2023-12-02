@@ -22,5 +22,6 @@ urlpatterns = [
     path('users/manage/', users_view_manage, name='users_view_manage'),
     path('users/', users_view, name='users_view'),
     path('manage/', global_manage, name='global_manage'),
+    path('send_sms/', send_sms_view, name='send_sms_view'),
     path('', dashboard_view, name='dashboard_view'),
 ]

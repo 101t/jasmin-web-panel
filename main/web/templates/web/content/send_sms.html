@@ -1,0 +1,18 @@
+{% extends "web/base.html" %}
+{% load static i18n %}
+{% block title %}{% trans "Send SMS" %}{% endblock title %}
+{% block extracss %}{% endblock extracss %}
+{% block content %}
+<h1 class="h3 mb-2 text-gray-800">{% trans "Send SMS" %}</h1>
+<form action="/send_sms/" method="post">
+    <label for="sms">sms: </label>
+    <input id="sms" type="text" name="sms" value="{{ sms }}">
+    <input type="submit" value="OK">
+</form>
+{% endblock content %}
+{% block extrajs %}
+<script>
+var main_trans = {};
+</script>
+<script src="{% static 'web/content/httpccm.js' %}"></script>
+{% endblock extrajs %}
