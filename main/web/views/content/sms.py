@@ -16,7 +16,7 @@ def send_sms_view(request):
 @login_required
 def send_sms_view_manage(request):
     args, res_status, res_message = {}, 400, _("Sorry, Command does not matched.")
-    args['sms'] = request.POST.get("sms")
     args['msisdn'] = request.POST.get("msisdn")
+    args['sms'] = request.POST.get("sms")
     res_status = 200
     return HttpResponse(json.dumps(args), status=res_status, content_type="application/json")

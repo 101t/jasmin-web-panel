@@ -6,7 +6,7 @@
 <h1 class="h3 mb-2 text-gray-800">{% trans "Send SMS" %}</h1>
 <form action="{% url 'web:send_sms_view_manage' %}" method="post">
     {% csrf_token %}
-    <label for="msisdn">sms: </label>
+    <label for="msisdn">msisdn: </label>
     <input id="msisdn" type="text" name="msisdn" value="{{ msisdn }}">
     <label for="sms">sms: </label>
     <input id="sms" type="text" name="sms" value="{{ sms }}">
