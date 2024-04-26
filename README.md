@@ -111,7 +111,7 @@ To ensure web app running without issue:
 sudo systemctl status jasmin-web.service
 ```
 
-For NGiNX go to `/etc/nginx/sites-availiable` and create new file `jasmin_web`
+For NGiNX go to `/etc/nginx/sites-available` and create a new file `jasmin_web`
 
 ```nginx
 upstream jasmin_web{
@@ -165,7 +165,7 @@ server {
 Once you are done, test and restart the Nginx Service with:
 
 ```sh
-ln -s /etc/nginx/sites-availiable/jasmin_web /etc/nginx/site-enabled/jasmin_web
+ln -s /etc/nginx/sites-available/jasmin_web /etc/nginx/sites-enabled/jasmin_web
 sudo nginx -t
 sudo nginx -s reload
 # or sudo service nginx restart
@@ -179,7 +179,7 @@ Username: admin
 Password: secret
 ```
 
-> Note: Please change password to avoid security issue
+> Note: Please change the password to avoid the security issue
 
 ## Deployment using Docker
 
@@ -189,7 +189,7 @@ You could download the built image on [docker hub](https://hub.docker.com/u/tare
 docker pull tarekaec/jasmin_web_panel
 ```
 
-also you could build it on you local machine by navigating to project directory
+also, you could build it on your local machine by navigating to the project directory
 
 ```shell
 docker build -f config/docker/slim/Dockerfile -t jasmin_web_panel:1.0 .
