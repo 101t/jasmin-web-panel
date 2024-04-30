@@ -26,3 +26,4 @@ tablib
 xlrd
 xlwt
 zipp
+pytz
