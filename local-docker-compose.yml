@@ -1,0 +1,79 @@
+version: '3.7'
+
+services:
+  jasmin_web:
+    #image: tarekaec/jasmin_web_panel:1.0
+    build:
+      context: ./
+      dockerfile: ./config/docker/slim/Dockerfile
+    ports:
+      - "8000:8000"
+    deploy:
+      replicas: 1
+      update_config:
+        order: start-first
+    # entrypoint: bash ./docker-entrypoint.sh
+    env_file:
+      - ./.env_local
+    environment:
+      DEBUG: '1'
+      DJANGO_SETTINGS_MODULE: config.settings.pro
+      REDIS_URI: redis://jasmin_redis:6379/1
+      SUBMIT_LOG: 1
+    volumes:
+      - web_public:/app/public
+      - web_logs:/app/logs
+    depends_on:
+      - jasmin_redis
+  jasmin_celery:
+    build:
+      context: ./
+      dockerfile: ./config/docker/slim/Dockerfile
+    entrypoint: bash ./docker-entrypoint-celery.sh
+    deploy:
+      replicas: 1
+    environment:
+      DEBUG: 0
+      PRODB_URL: postgres://jasmin:jasmin@jasmin_postgres:5432/jasmin
+      DJANGO_SETTINGS_MODULE: config.settings.pro
+      CELERY_BROKER_URL: redis://jasmin_redis:6379/0
+      CELERY_RESULT_BACKEND: redis://jasmin_redis:6379/0
+      CELERY_LOG_LEVEL: info
+    healthcheck:
+      disable: true
+    depends_on:
+      - jasmin_redis
+  jasmin_redis:
+    image: redis:alpine
+    tty: true
+    volumes:
+      - redis_data:/data
+    command:
+      - 'redis-server'
+      - '--appendonly yes'
+      - '--appendonly yes'
+      - '--save 60 1'
+    environment:
+      REDIS_REPLICATION_MODE: master
+      ALLOW_EMPTY_PASSWORD: "yes"
+
+  ################################# POSTGRESQL ##################
+  jasmin_postgres:
+    image: postgres:13.0-alpine
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env_local
+    expose:
+      - 5432
+
+volumes:
+  redis_data:
+    driver: local
+  web_public:
+    driver: local
+  web_logs:
+    driver: local
+  postgres_data:
+
