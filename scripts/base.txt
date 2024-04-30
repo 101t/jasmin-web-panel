@@ -26,9 +26,6 @@ tablib
 xlrd
 xlwt
 zipp
-<<<<<<< Updated upstream
-pytz
-=======
 
 smpplib
->>>>>>> Stashed changes
+
