@@ -41,6 +41,10 @@
     <li class="nav-item morouter-menu">
         <a class="nav-link" href="{% url 'web:morouter_view' %}"><i class="fas fa-fw fa-cloud-upload-alt"></i><span>{% trans 'MO Router' %}</span></a>
     </li>
+
+    <li class="nav-item send-sms-menu">
+        <a class="nav-link" href="{% url 'web:send_message_view' %}"><i class="fas fa-fw fa-envelope"></i><span>{% trans 'Send SMS' %}</span></a>
+    </li>
     {% if SETTINGS.SUBMIT_LOG %}
     <hr class="sidebar-divider d-none d-md-block">
 
