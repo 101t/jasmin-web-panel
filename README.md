@@ -218,6 +218,7 @@ docker service ls | grep jasmin
 ## Deployment using Docker Compose (Works with AArch64 or ARM64)
 
 You need to configure the environment variable in `.env_local` file
+You also need to comment line 38 of "config/docker/slim/Dockerfile" (ENV LD_PRELOAD /usr/lib/x86_64-linux-gnu/libjemalloc.so.2) 
 Then start docker container in detach mode. You can remove "-d" if you want to see logs
 ```
 docker compose up -d
