@@ -215,6 +215,19 @@ you could check service on terminal
 docker service ls | grep jasmin
 ```
 
+## Deployment using Docker Compose (Works with AArch64 or ARM64)
+
+You need to configure the environment variable in `.env_local` file
+Then start docker container in detach mode. You can remove "-d" if you want to see logs
+```
+docker compose up -d
+```
+
+Then check docker containers
+```
+docker ps
+```
+
 ## Submit Log
 
 To work with Submit Log you need to install and configure [Submit Log](https://github.com/101t/jasmin-submit-logs) service, make sure you have `SUBMIT_LOG` (default `False`) in environment variable:
