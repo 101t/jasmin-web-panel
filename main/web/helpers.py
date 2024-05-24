@@ -50,6 +50,7 @@ def send_smpp(
         res_status, res_message = 400, f"{e}"
     finally:
         client.unbind()
+        client.disconnect()
     return res_status, res_message
 
 

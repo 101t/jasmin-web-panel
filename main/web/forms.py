@@ -6,8 +6,8 @@ class SendMessageForm(forms.Form):
         label='Send Type', choices=(('smpp', 'SMPP'), ('http', 'HTTP')), initial='smpp',
         help_text='Choose the way to send SMS via gateway, smpp or http'
     )
-    username = forms.HiddenInput()
-    password = forms.HiddenInput()
+    # username = forms.HiddenInput()
+    # password = forms.HiddenInput()
     src_addr = forms.CharField(
         label='Header', max_length=20, initial="JasminSMS",
         help_text="Header (from) field, it's represent the source address")

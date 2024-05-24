@@ -6,10 +6,12 @@ from django.urls import reverse
 
 from main.web.forms import SendMessageForm
 from main.web.helpers import send_smpp, send_http
+from main.core.utils import display_form_validations
 
 
 @login_required
 def send_message_view(request):
+    form = SendMessageForm()
     if request.method == 'POST':
         send_type = request.POST.get('send_type')
         src_addr = request.POST.get('src_addr')
@@ -28,12 +30,9 @@ def send_message_view(request):
                 messages.success(request, 'Message sent successfully')
             else:
                 messages.error(request, f'Message sending failed: {res_message}')
+            return redirect(reverse('web:send_message_view'))
         else:
-            messages.error(request, 'Invalid form data')
-        return redirect(reverse('web:send_message_view'))
-    else:
-        form = SendMessageForm()
-
+            display_form_validations(form=form, request=request)
     return render(request, 'web/content/send_message.html', {'form': form})
 
 
