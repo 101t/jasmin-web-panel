@@ -3,6 +3,9 @@ version: '3.7'
 services:
   jasmin_web:
     image: tarekaec/jasmin_web_panel:latest
+    #build:
+    #  context: ./
+    #  dockerfile: ./config/docker/slim/Dockerfile
     ports:
       - "8000:8000"
     deploy:
@@ -57,10 +60,21 @@ services:
       REDIS_REPLICATION_MODE: master
       ALLOW_EMPTY_PASSWORD: "yes"
 
+    ################################# POSTGRESQL ##################
+  jasmin_postgres:
+    image: postgres:16.0-alpine
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - .env
+
 volumes:
   redis_data:
     driver: local
   web_public:
     driver: local
   web_logs:
+    driver: local
+  postgres_data:
     driver: local
