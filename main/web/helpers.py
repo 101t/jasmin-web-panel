@@ -19,12 +19,14 @@ def received_handler(pdu):
     logger.info(f'Delivered seq={pdu.sequence} msgid={pdu.message_id}')
 
 
-def send_smpp(src_addr, dst_addr, text):
-    client = smpplib.client.Client(settings.TELNET_HOST, settings.TELNET_PORT)
+def send_smpp(
+        src_addr, dst_addr, text,
+        system_id: str = settings.SMPP_SYSTEM_ID, password: str = settings.SMPP_PASSWORD):
+    client = smpplib.client.Client(settings.SMPP_HOST, settings.SMPP_PORT)
     client.set_message_sent_handler(sent_handler)
     client.set_message_received_handler(received_handler)
     client.connect()
-    client.bind_transceiver(system_id=settings.TELNET_USERNAME, password=settings.TELNET_PW)
+    client.bind_transceiver(system_id=system_id, password=password)
     parts, encoding_flag, msg_type_flag = smpplib.gsm.make_parts(text)
 
     for part in parts:
@@ -48,20 +50,26 @@ def send_smpp(src_addr, dst_addr, text):
         res_status, res_message = 400, f"{e}"
     finally:
         client.unbind()
-    return res_status
+    return res_status, res_message
 
 
-def send_http(src_addr, dst_addr, text):
+def send_http(
+        src_addr, dst_addr, text,
+        username: str = settings.HTTP_USERNAME, password: str = settings.HTTP_PASSWORD):
     params = {
-        'username': settings.TELNET_USERNAME,
-        'password': settings.TELNET_PW,
+        'username': username,
+        'password': password,
         'from': src_addr,
         'to': dst_addr,
         'content': text
     }
     encoded_params = urllib.parse.urlencode(params)
-    req = urllib.request.urlopen(
-        f"{settings.HTTP_HOST}:{settings.HTTP_PORT}/send?{encoded_params}"
-    )
-    res_status, res_message = req.getcode(), req.read().decode('utf-8')
+    try:
+        req = urllib.request.urlopen(
+            f"{settings.HTTP_HOST}:{settings.HTTP_PORT}/send?{encoded_params}"
+        )
+        res_status, res_message = req.getcode(), req.read().decode('utf-8')
+    except urllib.error.HTTPError as e:
+        res_status, res_message = e.getcode(), e.read().decode('utf-8')
+        logger.error(f"HTTPError: {e.getcode()} {e.read().decode('utf-8')}")
     return res_status, res_message

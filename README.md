@@ -120,7 +120,8 @@ upstream jasmin_web{
 server {
     listen 80;
     charset utf-8;
-    server_name example.com www.example.com;
+    # server_name sms.example.com;
+    server_name _; # for IP Address access
     client_body_timeout 500;
     client_header_timeout 500;
     keepalive_timeout 500 500;
@@ -160,7 +161,7 @@ server {
 }
 ```
 
-> Note: Don't forget to replace `example.com` with your real domain
+> Note: Don't forget to replace `sms.example.com` with your real domain
 
 Once you are done, test and restart the Nginx Service with:
 
@@ -176,10 +177,8 @@ sudo nginx -s reload
 
 ```shell
 Username: admin
-Password: secret
+Password: secret  # please change the default password to avoid the security issue
 ```
-
-> Note: Please change the password to avoid the security issue
 
 ## Deployment using Docker
 
@@ -192,7 +191,7 @@ docker pull tarekaec/jasmin_web_panel
 also, you could build it on your local machine by navigating to the project directory
 
 ```shell
-docker build -f config/docker/slim/Dockerfile -t jasmin_web_panel:1.0 .
+docker build -f config/docker/slim/Dockerfile -t jasmin_web_panel:latest .
 ```
 
 You need to configure the environment variable in `.env` file
@@ -222,27 +221,6 @@ To work with Submit Log you need to install and configure [Submit Log](https://g
 ```shell
 SUBMIT_LOG=True
 ```
-
-## Release Notes
-
-What's new in version 2.0.0
-
-1. UI Improved, jQuery Fixed, jQuery Validation added.
-2. Backend fixing, upgrade to python3 and fresh Django version.
-3. Telnet connector fixing.
-4. Deployment made easier.
-5. Fixing common connection issues.
-6. Simple dashboard initialized.
-7. User Profile, Change Password, Add Avatar.
-8. Activity Log, to log your usage.
-
-What's new in version 2.0.1
-
-1. Adding **[Submit Log](https://github.com/101t/jasmin-submit-logs)** report (DLR report)
-
-What's new in version 2.0.2
-
-1. Adding FailOverRouter supports to MT / MO Router
 
 ## Tracking Issue
 

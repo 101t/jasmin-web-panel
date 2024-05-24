@@ -14,18 +14,22 @@
                     <option value="smpp" {% if form.send_type.value == 'smpp' %}selected{% endif %}>SMPP</option>
                     <option value="http" {% if form.send_type.value == 'http' %}selected{% endif %}>HTTP</option>
                 </select>
+                <small class="text-muted label-danger">{{ form.send_type.help_text }}</small>
             </div>
             <div class="form-group">
                 <label for="src_addr">{{ form.src_addr.label }}</label>
                 <input class="form-control" type="text" id="src_addr" name="src_addr" value="{{ form.src_addr.value }}">
+                <small class="text-muted">{{ form.src_addr.help_text }}</small>
             </div>
             <div class="form-group">
                 <label for="dst_addr">{{ form.dst_addr.label }}</label>
                 <input class="form-control" type="text" id="dst_addr" name="dst_addr" value="{{ form.dst_addr.value }}">
+                <small class="text-muted">{{ form.dst_addr.help_text }}</small>
             </div>
             <div class="form-group">
                 <label for="text">{{ form.text.label }}</label>
                 <textarea class="form-control" id="text" name="text" rows="4">{{ form.text.value }}</textarea>
+                <small class="text-muted">{{ form.text.help_text }}</small>
             </div>
             <button class="btn btn-primary" type="submit"><i class="fas fa-paper-plane"></i> Send SMS</button>
         </form>

@@ -183,8 +183,13 @@ SWAGGER_SETTINGS = {
 
 HTTP_HOST = os.environ.get('HTTP_HOST', default='http://127.0.0.1')
 HTTP_PORT = int(os.environ.get('HTTP_PORT', default=1401))
-HTTP_USERNAME = os.environ.get('HTTP_USERNAME', default='jcliadmin')  # noqa
-HTTP_PW = os.environ.get('HTTP_PW', default='jclipwd')  # noqa
+HTTP_USERNAME = os.environ.get('HTTP_USERNAME', default='jasmin_user')  # noqa
+HTTP_PASSWORD = os.environ.get('HTTP_PASSWORD', default='jasmin_pass')  # noqa
+
+SMPP_HOST = os.environ.get('SMPP_HOST', default='127.0.0.1')
+SMPP_PORT = int(os.environ.get('SMPP_PORT', default=2775))
+SMPP_SYSTEM_ID = os.environ.get('SMPP_SYSTEM_ID', default='jasmin_user')  # noqa
+SMPP_PASSWORD = os.environ.get('SMPP_PASSWORD', default='jasmin_pass')  # noqa
 
 # Jasmin SMS Gateway Settings - telnet configurations
 TELNET_HOST = os.environ.get('TELNET_HOST', default='127.0.0.1')

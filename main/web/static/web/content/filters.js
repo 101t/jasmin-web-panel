@@ -95,8 +95,8 @@
 				//setTimeout(location.reload.bind(location), 2000);
 			},
 			error: function(jqXHR, textStatus, errorThrown){
+			    inputs.prop("disabled", false);
 				toastr.error(JSON.parse(jqXHR.responseText)["message"], {closeButton: true, progressBar: true,});
-				inputs.prop("disabled", false);
 			}
 		});
     });

@@ -1,2 +1,2 @@
--r scripts/development.txt
+-r scripts/production.txt
 
