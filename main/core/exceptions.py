@@ -41,7 +41,7 @@ class MissingKeyError(APIException):
     default_detail = 'A mandatory key is missing'
 
 
-class MutipleValuesRequiredKeyError(APIException):
+class MultipleValuesRequiredKeyError(APIException):
     status_code = 400
     default_detail = 'Multiple values are required fro this key'
 

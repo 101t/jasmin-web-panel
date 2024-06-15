@@ -1,25 +1,29 @@
+import logging
+from collections import OrderedDict
+
 from django.conf import settings
 from django.utils.datastructures import MultiValueDictKeyError
 
-from collections import OrderedDict
-
-from ..tools import set_ikeys, split_cols
-from ..exceptions import (JasminSyntaxError, JasminError,
-						UnknownError, MissingKeyError,
-						MutipleValuesRequiredKeyError, ObjectNotFoundError)
-
-import logging
+from main.core.exceptions import (
+    JasminError,
+    UnknownError, MissingKeyError,
+    ObjectNotFoundError
+)
+from main.core.tools import set_ikeys, split_cols
 
 STANDARD_PROMPT = settings.STANDARD_PROMPT
 INTERACTIVE_PROMPT = settings.INTERACTIVE_PROMPT
 
 logger = logging.getLogger(__name__)
 
+
 class Filters(object):
     "Filters Class"
     lookup_field = 'fid'
+
     def __init__(self, telnet):
         self.telnet = telnet
+
     def _list(self):
         "List Filters as python dict"
         self.telnet.sendline('filter -l')
@@ -28,7 +32,7 @@ class Filters(object):
         if len(result) < 3:
             return {'filters': []}
         results = [l.replace(', ', ',').replace('(!)', '')
-            for l in result[2:-2] if l]
+                   for l in result[2:-2] if l]
         filters = split_cols(results)
         return {
             'filters':
@@ -41,21 +45,25 @@ class Filters(object):
                     } for f in filters
                 ]
         }
+
     def list(self):
         "List Filters. No parameters"
         return self._list()
+
     def get_filter(self, fid):
         "Return data for one filter as Python dict"
         filters = self._list()['filters']
         try:
             return {'filter':
-                next((m for m in filters if m['fid'] == fid), None)
-            }
+                        next((m for m in filters if m['fid'] == fid), None)
+                    }
         except StopIteration:
             raise ObjectNotFoundError('No Filter with fid: %s' % fid)
+
     def retrieve(self, fid):
         "Details for one Filter by fid (integer)"
         return self.get_filter(fid)
+
     def create(self, data):
         """Create Filter.
         Required parameters: type, fid, parameters
@@ -112,11 +120,12 @@ class Filters(object):
                 ikeys['tag'] = parameter
             elif ftype == 'evalpyfilter':
                 ikeys['pyCode'] = parameter
-        #print(ikeys)
+        # print(ikeys)
         set_ikeys(self.telnet, ikeys)
         self.telnet.sendline('persist')
         self.telnet.expect(r'.*' + STANDARD_PROMPT)
         return {'filter': self.get_filter(fid)}
+
     def simple_filter_action(self, action, fid, return_filter=True):
         self.telnet.sendline('filter -%s %s' % (action, fid))
         matched_index = self.telnet.expect([
@@ -132,9 +141,10 @@ class Filters(object):
             else:
                 return {'fid': fid}
         elif matched_index == 1:
-            raise UnknownError(detail='No filter:' +  fid)
+            raise UnknownError(detail='No filter:' + fid)
         else:
             raise JasminError(self.telnet.match.group(1))
+
     def destroy(self, fid):
         """Delete a filter. One parameter required, the filter identifier (a string)
 
