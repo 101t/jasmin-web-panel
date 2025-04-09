@@ -70,4 +70,3 @@ ENTRYPOINT ["bash", "docker-entrypoint.sh"]
 
 HEALTHCHECK --interval=10s --timeout=10s --retries=30 \
     CMD curl -L http://127.0.0.1:8000/api/health_check > /dev/null
-

@@ -1,66 +1,98 @@
-version: '3.7'
-
 services:
-  jasmin_web:
-    image: tarekaec/jasmin_web_panel:1.2
+  jasmin-web:
+    build:
+      context: .
+      dockerfile: config/docker/slim/Dockerfile
+    image: myapp:latest
+    container_name: myapp
+    env_file:
+      - .env
     ports:
-      - "8000:8000"
+      - "${JASMIN_WEB_PORT}:8000"
     deploy:
       replicas: 1
       update_config:
         order: start-first
-    # entrypoint: bash ./docker-entrypoint.sh
-    env_file:
-      - .env
     environment:
-      DEBUG: '1'
-      DJANGO_SETTINGS_MODULE: config.settings.pro
-      ALLOWED_HOSTS: '127.0.0.1,127.0.0.11'
-      PRODB_URL: postgres://jasmin:jasmin@172.17.0.1:5432/jasmin
-      REDIS_URI: redis://jasmin_redis:6379/1
-      TELNET_HOST: jasmin
-      SUBMIT_LOG: 1
+      DEBUG: "${DEBUG}"
+      DJANGO_SETTINGS_MODULE: "${DJANGO_SETTINGS_MODULE}"
+      ALLOWED_HOSTS: "${ALLOWED_HOSTS}"
+      PRODB_URL: "${PRODB_URL}"
+      REDIS_URI: "${REDIS_URI}"
+      TELNET_HOST: "${TELNET_HOST}"
+      SUBMIT_LOG: "${SUBMIT_LOG}"
     volumes:
-      - web_public:/app/public
-      - web_logs:/app/logs
-    depends_on:
-      - jasmin_redis
-  jasmin_celery:
-    image: tarekaec/jasmin_web_panel:1.2
-    entrypoint: bash ./docker-entrypoint-celery.sh
-    deploy:
-      replicas: 1
-    env_file:
-      - .env
+      - .:/app
+      - /app/env
+      - static_volume:/app/public/static
+      - media_volume:/app/public/media
+      - logs_volume:/app/logs
+    depends_on: [redis]
+    restart: unless-stopped
+
+  jasmin-postgres:
+    image: postgres:15
+    restart: always
     environment:
-      DEBUG: 0
-      PRODB_URL: postgres://jasmin:jasmin@172.17.0.1:5432/jasmin
-      DJANGO_SETTINGS_MODULE: config.settings.pro
-      CELERY_BROKER_URL: redis://jasmin_redis:6379/0
-      CELERY_RESULT_BACKEND: redis://jasmin_redis:6379/0
-      CELERY_LOG_LEVEL: info
-    healthcheck:
-      disable: true
-    depends_on:
-      - jasmin_redis
-  jasmin_redis:
+      POSTGRES_DB: "${POSTGRES_DB}"
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  redis:
     image: redis:alpine
-    tty: true
-    volumes:
-      - redis_data:/data
-    command:
-      - 'redis-server'
-      - '--appendonly yes'
-      - '--save 60 1'
-    # restart: unless-stopped
+    restart: unless-stopped
+    healthcheck:
+      test: redis-cli ping | grep PONG
+    deploy:
+      resources:
+        limits:
+          cpus: "${REDIS_CPU}"
+          memory: ${REDIS_MEM}
+    security_opt:
+      - no-new-privileges:true
+
+  rabbit-mq:
+    image: rabbitmq:3.10-management-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+    deploy:
+      resources:
+        limits:
+          cpus: "${RABBITMQ_CPU}"
+          memory: ${RABBITMQ_MEM}
+    security_opt:
+      - no-new-privileges:true
+
+  jasmin:
+    image: jookies/jasmin:latest
+    restart: unless-stopped
+    ports:
+      - "${JASMIN_SMS_PORT}:2775"
+      - "${JASMIN_DASHBOARD_PORT}:8990"
+      - "${JASMIN_HTTP_API_PORT}:1401"
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbit-mq:
+        condition: service_healthy
     environment:
-      REDIS_REPLICATION_MODE: master
-      ALLOW_EMPTY_PASSWORD: "yes"
+      REDIS_CLIENT_HOST: redis
+      AMQP_BROKER_HOST: rabbit-mq
+    deploy:
+      resources:
+        limits:
+          cpus: "${JASMIN_CPU}"
+          memory: ${JASMIN_MEM}
+    security_opt:
+      - no-new-privileges:true
 
 volumes:
-  redis_data:
-    driver: local
-  web_public:
-    driver: local
-  web_logs:
-    driver: local
+  static_volume:
+  media_volume:
+  logs_volume:
+  pg_data:
