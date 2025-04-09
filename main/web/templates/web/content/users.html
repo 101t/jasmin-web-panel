@@ -1,9 +1,9 @@
 {% extends "web/base.html" %}
 {% load static i18n %}
-{% block title %}{% trans "Users" %}{% endblock title %}
+{% block title %}{% trans "Customers" %}{% endblock title %}
 {% block extracss %}{% endblock extracss %}
 {% block content %}
-<h1 class="h3 mb-2 text-gray-800">{% trans "Users" %}</h1>
+<h1 class="h3 mb-2 text-gray-800">{% trans "Customers" %}</h1>
 <div class="card shadow mb-4">
     <div class="card-header py-3">
         <h4>
@@ -31,7 +31,7 @@
                 <tbody id="collectionlist"></tbody>
                 <tbody class="isEmpty" style="display:none;">
                     <tr>
-                        <td colspan="8" class="text-center"><i class="fas fa-user text-metal" style="font-size:5rem;"></i><br>{% trans "No User" %}</td>
+                        <td colspan="8" class="text-center"><i class="fas fa-user text-metal" style="font-size:5rem;"></i><br>{% trans "No Customer" %}</td>
                     </tr>
                 </tbody>
             </table>
@@ -43,7 +43,7 @@
         <div class="modal-content">
             <form id="add_modal_form" style="display:none" action="{% url 'web:users_view_manage' %}" method="post">{% csrf_token %}
                 <div class="modal-header">
-                    <h5 class="modal-title" id="collection_modalLabel">{% trans "Add New User" %}</h5>
+                    <h5 class="modal-title" id="collection_modalLabel">{% trans "Add New Customer" %}</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 </div>
                 <div class="modal-body">
@@ -76,7 +76,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Cancel" %}</button>
-                    <button type="submit" class="btn btn-primary">{% trans "Add New User" %}</button>
+                    <button type="submit" class="btn btn-primary">{% trans "Add New Customer" %}</button>
                 </div>
                 <input type="hidden" name="s" value="add">
             </form>
@@ -156,7 +156,7 @@
                                     <input type="checkbox" name="http_send"> {% trans "HTTP Send" %}
                                 </label>
                                 <small class="text-muted">
-                                    {% trans "Privilege to send SMS through Sending SMS-MT" %} - 
+                                    {% trans "Privilege to send SMS through Sending SMS-MT" %} -
                                     <a href="http://docs.jasminsms.com/en/latest/apis/ja-http/index.html#sending-sms-mt" target="_blank">{% trans "How?" %}</a>
                                 </small>
                             </div>
@@ -165,7 +165,7 @@
                                     <input type="checkbox" name="http_balance"> {% trans "HTTP Balance" %}
                                 </label>
                                 <small class="text-muted">
-                                    {% trans "Privilege to check balance through Checking account balance" %} - 
+                                    {% trans "Privilege to check balance through Checking account balance" %} -
                                     <a href="http://docs.jasminsms.com/en/latest/apis/ja-http/index.html#check-balance" target="_blank">{% trans "How?" %}</a>
                                 </small>
                             </div>
@@ -174,7 +174,7 @@
                                     <input type="checkbox" name="http_rate"> {% trans "HTTP Rate" %}
                                 </label>
                                 <small class="text-muted">
-                                    {% trans "Privilege to check a message rate through Checking rate price" %} - 
+                                    {% trans "Privilege to check a message rate through Checking rate price" %} -
                                     <a href="http://docs.jasminsms.com/en/latest/apis/ja-http/index.html#check-rate" target="_blank">{% trans "How?" %}</a>
                                 </small>
                             </div>
@@ -193,7 +193,7 @@
                                     <input type="checkbox" name="smpps_send"> {% trans "SMPP Send" %}
                                 </label>
                                 <small class="text-muted">
-                                    {% trans "Privilege to send SMS through SMPP Server API" %} - 
+                                    {% trans "Privilege to send SMS through SMPP Server API" %} -
                                     <a href="http://docs.jasminsms.com/en/latest/apis/smpp-server/index.html" target="_blank">{% trans "How?" %}</a>
                                 </small>
                             </div>
@@ -202,7 +202,7 @@
                                     <input type="checkbox" name="http_long_content"> {% trans "HTTP Long Content" %}
                                 </label>
                                 <small class="text-muted">
-                                    {% trans "Privilege to send long content SMS through Sending SMS-MT" %} - 
+                                    {% trans "Privilege to send long content SMS through Sending SMS-MT" %} -
                                     <a href="http://docs.jasminsms.com/en/latest/apis/ja-http/index.html#sending-sms-mt" target="_blank">{% trans "How?" %}</a>
                                 </small>
                             </div>

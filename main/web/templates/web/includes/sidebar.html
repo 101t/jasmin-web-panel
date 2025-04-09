@@ -6,7 +6,7 @@
         <!--<div class="sidebar-brand-icon">
             <i class="fas fa-user-cog"></i>
         </div>-->
-        <div class="sidebar-brand-text mx-2">{% trans 'Jasmin Panel' %} <sup>{{ VERSION }}</sup></div>
+        <div class="sidebar-brand-text mx-2">{% trans 'Jasmin OTP Tool' %}</div>
     </a>
 
     <!-- Divider -->
@@ -14,14 +14,14 @@
     <li class="nav-item smppccm-menu">
         <a class="nav-link" href="{% url 'web:smppccm_view' %}"><i class="fas fa-fw fa-atom"></i><span>{% trans 'SMPPCCM' %}</span></a>
     </li>
-    <li class="nav-item httpccm-menu">
+    <!-- <li class="nav-item httpccm-menu">
         <a class="nav-link" href="{% url 'web:httpccm_view' %}"><i class="fas fa-fw fa-atom"></i><span>{% trans 'HTTPCCM' %}</span></a>
-    </li>
+    </li> -->
 
     <hr class="sidebar-divider">
 
     <li class="nav-item users-menu">
-        <a class="nav-link" href="{% url 'web:users_view' %}"><i class="fas fa-fw fa-user"></i><span>{% trans 'Users' %}</span></a>
+        <a class="nav-link" href="{% url 'web:users_view' %}"><i class="fas fa-fw fa-user"></i><span>{% trans 'Customers' %}</span></a>
     </li>
 
     <li class="nav-item groups-menu">
@@ -37,10 +37,10 @@
     <li class="nav-item mtrouter-menu">
         <a class="nav-link" href="{% url 'web:mtrouter_view' %}"><i class="fas fa-fw fa-cloud-download-alt"></i><span>{% trans 'MT Router' %}</span></a>
     </li>
-    
-    <li class="nav-item morouter-menu">
+
+    <!-- <li class="nav-item morouter-menu">
         <a class="nav-link" href="{% url 'web:morouter_view' %}"><i class="fas fa-fw fa-cloud-upload-alt"></i><span>{% trans 'MO Router' %}</span></a>
-    </li>
+    </li> -->
     {% if SETTINGS.SUBMIT_LOG %}
     <hr class="sidebar-divider d-none d-md-block">
 
