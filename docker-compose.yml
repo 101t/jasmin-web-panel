@@ -3,8 +3,8 @@ services:
     build:
       context: .
       dockerfile: config/docker/slim/Dockerfile
-    image: myapp:latest
-    container_name: myapp
+    image: jasmin-web:latest
+    container_name: jasmin-web
     env_file:
       - .env
     ports:
