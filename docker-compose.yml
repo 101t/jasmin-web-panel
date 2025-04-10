@@ -3,8 +3,8 @@ services:
     build:
       context: .
       dockerfile: config/docker/slim/Dockerfile
-    image: jasmin-web:latest
-    container_name: jasmin-web
+    image: myapp:latest
+    container_name: myapp
     env_file:
       - .env
     ports:
@@ -29,6 +29,7 @@ services:
       - logs_volume:/app/logs
     depends_on: [redis]
     restart: unless-stopped
+
   jasmin-postgres:
     image: postgres:15
     restart: always
@@ -40,6 +41,7 @@ services:
       - "${POSTGRES_PORT}:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
+
   redis:
     image: redis:alpine
     restart: unless-stopped
@@ -52,6 +54,7 @@ services:
           memory: ${REDIS_MEM}
     security_opt:
       - no-new-privileges:true
+
   rabbit-mq:
     image: rabbitmq:3.10-management-alpine
     restart: unless-stopped
@@ -64,6 +67,7 @@ services:
           memory: ${RABBITMQ_MEM}
     security_opt:
       - no-new-privileges:true
+
   jasmin:
     image: jookies/jasmin:latest
     restart: unless-stopped
@@ -86,18 +90,7 @@ services:
           memory: ${JASMIN_MEM}
     security_opt:
       - no-new-privileges:true
-  nginx:
-    image: nginx:latest
-    container_name: nginx
-    ports:
-      - "80:80"
-    depends_on:
-      - jasmin-web
-    volumes:
-      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - static_volume:/app/public/static
-      - media_volume:/app/public/media
-    restart: unless-stopped
+
 volumes:
   static_volume:
   media_volume:
