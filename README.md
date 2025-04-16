@@ -27,32 +27,33 @@ Download and Extract folder We recommended installing python dependencies in `vi
 
 Install dependencies:
 
-> This version using `python >= 3.5` make sure you have installed on your system.
+> This version using `python >= 3.11` make sure you have installed on your system.
 
 go to `jasmin-web-panel/` and run
 
 ```sh
 cd jasmin-web-panel/
-pip install -r requirements.txt
-cp Sample.env .env
+pip install --upgrade pip wheel uv
+uv pip install -r pyproject.toml --extra=prod
+cp sample.env .env
 ```
 
 Preparing your `database` by running migrate commads:
 
 ```sh
 python manage.py migrate
-python manage.py load_new # to load new user
-python manage.py collectstatic
+python manage.py samples
+python manage.py collectstatic --no-input
 ```
 
 These commands used in production server, also you may edit **Jasmin SMS Gateway** credential connection
 
-```ini
-TELNET_HOST = 127.0.0.1
-TELNET_PORT = 8990
-TELNET_USERNAME = jcliadmin
-TELNET_PW = jclipwd
-TELNET_TIMEOUT = 10
+```sh
+TELNET_HOST=127.0.0.1
+TELNET_PORT=8990
+TELNET_USERNAME=jcliadmin
+TELNET_PW=jclipwd
+TELNET_TIMEOUT=10
 ```
 
 for production make sure `DEBUG=False` in `.env` file to ensure security.
@@ -82,9 +83,9 @@ User=username
 Group=username
 Environment="DJANGO_SETTINGS_MODULE=config.settings.pro"
 WorkingDirectory=/opt/jasmin-web-panel
-ExecStart=/opt/jasmin-web-panel/env/bin/gunicorn --bind 127.0.0.1:8000 config.wsgi -w 3 --timeout=120 --log-level=error
+ExecStart=/opt/jasmin-web-panel/env/bin/gunicorn --bind 127.0.0.1:8000 config.wsgi -w 3 --timeout=120 --log-level=info
 StandardOutput=file:/opt/jasmin-web-panel/logs/gunicorn.log
-StandardError=file:/opt/jasmin-web-panel/logs/gunicorn.log
+StandardError=file:/opt/jasmin-web-panel/logs/gunicorn_error.log
 StandardOutput=journal+console
 Restart=on-failure
 
@@ -117,6 +118,7 @@ For NGiNX go to `/etc/nginx/sites-available` and create a new file `jasmin_web`
 upstream jasmin_web{
     server 127.0.0.1:8000;
 }
+
 server {
     listen 80;
     charset utf-8;
@@ -199,7 +201,6 @@ You need to configure the environment variable in `.env` file
 ```shell
 DJANGO_SETTINGS_MODULE=config.settings.pro
 PRODB_URL=postgres://username:strong_password@postgre_hostname:5432/jasmin_web_db
-SYSCTL_HEALTH_CHECK=False # this option is not useful on docker
 ```
 
 to start docker container

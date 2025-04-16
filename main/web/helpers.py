@@ -39,7 +39,6 @@ def send_smpp(
             destination_addr=dst_addr,
             short_message=part,
             data_coding=encoding_flag,
-            # esm_class=msg_type_flag,
             esm_class=smpplib.consts.SMPP_MSGMODE_FORWARD,
             registered_delivery=False,
         )

@@ -206,25 +206,5 @@ INTERACTIVE_PROMPT = '> '
 # This is used for DLR Report
 SUBMIT_LOG = bool(os.environ.get('SUBMIT_LOG', '0'))
 
-"""
-SYSCTL_HEALTH_CHECK boolean field to enable Jasmin Health Check UI Monitoring
-SYSCTL_HEALTH_CHECK_SERVICES list of available services:
-- jasmin-celery
-- jasmin-dlrd
-- jasmin-dlrlookupd
-- jasmin-interceptord
-- jasmin-restapi
-- jasmind
-- sms_logger
-Additional Services:
-- redis
-- rabbitmq
-- postgresql
-"""
-SYSCTL_HEALTH_CHECK = os.environ.get("SYSCTL_HEALTH_CHECK", default=False)
-SYSCTL_HEALTH_CHECK_SERVICES = os.environ.get("SYSCTL_HEALTH_CHECK_SERVICES", default="jasmind")
-
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
-CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", default="redis://localhost:6379/0")
-CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", default="redis://localhost:6379/0")

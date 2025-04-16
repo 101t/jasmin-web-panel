@@ -1,7 +1,10 @@
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
 
-from .exceptions import (CanNotModifyError, JasminSyntaxError,
-                         JasminError, UnknownError)
+from functools import wraps
+from .exceptions import (CanNotModifyError, JasminSyntaxError, UnknownError)
 
 STANDARD_PROMPT = settings.STANDARD_PROMPT
 INTERACTIVE_PROMPT = settings.INTERACTIVE_PROMPT
@@ -30,7 +33,6 @@ def set_ikeys(telnet, keys2vals):
     if ok_index == 0:
         # remove whitespace and return error
         raise JasminSyntaxError(" ".join(telnet.match.group(1).split()))
-    return
 
 
 def split_cols(lines):
@@ -41,3 +43,23 @@ def split_cols(lines):
         fields = [s for s in raw_split if (s and raw_split[0][0] == '#')]
         parsed.append(fields)
     return parsed
+
+def require_ajax(view_func):
+    @wraps(view_func)
+    @require_http_methods(["POST"])
+    @login_required
+    def _wrapped_view(request, *args, **kwargs):
+        if request.headers.get('x-requested-with') != 'XMLHttpRequest':
+            return JsonResponse({'message': 'This is an AJAX-only endpoint', 'status': 400}, status=400)
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
+def require_get_ajax(view_func):
+    @wraps(view_func)
+    @require_http_methods(["GET"])
+    @login_required
+    def _wrapped_view(request, *args, **kwargs):
+        if request.headers.get('x-requested-with') != 'XMLHttpRequest':
+            return JsonResponse({'message': 'This is an AJAX-only endpoint', 'status': 400}, status=400)
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view

@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 class Groups(object):
     "Groups for managing *Jasmin* user groups (*not* Django auth groups)"
     lookup_field = 'gid'
+    available_actions = ['list', 'add', 'delete', 'enable', 'disable']
     def __init__(self, telnet):
         self.telnet = telnet
 
@@ -97,7 +98,6 @@ class Groups(object):
         """
         return self.simple_group_action('r', gid)
 
-    # methods=['put']
     def enable(self, gid):
         """Enable a group. One parameter required, the group identifier (a string)
 
@@ -110,7 +110,6 @@ class Groups(object):
         return self.simple_group_action('e', gid)
 
 
-    # methods=['put']
     def disable(self, gid):
         """Disable a group.
 

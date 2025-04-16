@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 class Filters(object):
     "Filters Class"
     lookup_field = 'fid'
+    available_actions = ['list', 'add', 'delete']
 
     def __init__(self, telnet):
         self.telnet = telnet

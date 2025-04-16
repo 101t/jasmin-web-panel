@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 APP_DIR=${APP_DIR:-'/app'}
 CELERY_LOG_LEVEL=${CELERY_LOG_LEVEL:-'warning'}
 
