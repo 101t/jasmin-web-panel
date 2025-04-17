@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.utils.deprecation import MiddlewareMixin
-from django.utils.functional import SimpleLazyObject
-from .exceptions import TelnetUnexpectedResponse, TelnetConnectionTimeout, TelnetLoginFailed
+from django.core.cache import cache
+from django.db import transaction
 from .utils import get_user_agent, get_client_ip, LazyEncoder
 from .models import ActivityLog
 
@@ -11,18 +11,6 @@ import json
 
 logger = logging.getLogger(__name__)
 
-def is_ajax(request):
-    """Check if the request is an AJAX request."""
-    return request.headers.get('x-requested-with') == 'XMLHttpRequest'
-
-class AjaxMiddleware:
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-        request.is_ajax = is_ajax(request)
-        response = self.get_response(request)
-        return response
 
 class TelnetConnectionMiddleware(MiddlewareMixin):
     """Middleware to manage a Telnet connection."""
@@ -60,31 +48,45 @@ class TelnetConnectionMiddleware(MiddlewareMixin):
 
 class UserAgentMiddleware(MiddlewareMixin):
     """Middleware to process the user agent."""
-
+    
     def __init__(self, get_response=None):
         self.get_response = get_response
 
     def __call__(self, request):
-        self.process_request(request)
+        # Check if we need to process the request (check the path or other conditions)
+        if self.should_process_request(request):
+            self.process_request(request)
         return self.get_response(request)
 
-    def clean_params(self, params):
-        """Clean the parameters by removing specific keys."""
-        params = params.copy()
-        params.pop("csrfmiddlewaretoken", None)
-        params.pop("s", None)
-        return params
+    def should_process_request(self, request):
+        # Add logic to decide if the request should be processed
+        return request.user.is_authenticated and request.path.endswith('/manage/')
 
     def process_request(self, request):
-        user_agent = get_user_agent(request)
-        if request.user.is_authenticated and is_ajax(request) and request.path.endswith('/manage/'):
-            params = self.clean_params(request.POST or request.GET or {})
-            ActivityLog.objects.create(
-                user=request.user,
-                service=request.POST.get("s", "unknown"),
-                method=request.method,
-                params=json.dumps(params, cls=LazyEncoder),
-                path=request.path,
-                ip=get_client_ip(request),
-                user_agent=json.dumps(user_agent.__dict__ or {}, cls=LazyEncoder),
-            )
+        cached_user_agent = cache.get('user_agent_' + request.META['HTTP_USER_AGENT'])
+        if not cached_user_agent:
+            user_agent = get_user_agent(request)
+            cache.set('user_agent_' + request.META['HTTP_USER_AGENT'], user_agent, 120)  # Cache for 2 minutes
+        else:
+            user_agent = cached_user_agent
+
+        self._enqueue_activity_log_creation(request, user_agent)
+
+    def _enqueue_activity_log_creation(self, request, user_agent):
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            executor.submit(self._create_activity_log, request, user_agent)
+
+    @transaction.atomic
+    def _create_activity_log(self, request, user_agent):
+        params = self.clean_params(request.POST or request.GET or {})
+        activity_log = ActivityLog(
+            user=request.user,
+            service=request.POST.get("s", "unknown"),
+            method=request.method,
+            params=json.dumps(params, cls=LazyEncoder),
+            path=request.path,
+            ip=get_client_ip(request),
+            user_agent=json.dumps(user_agent.__dict__ or {}, cls=LazyEncoder),
+        )
+        activity_log.save()

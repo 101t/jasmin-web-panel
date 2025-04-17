@@ -5,7 +5,7 @@ from django.db.models import Count, Case, When, IntegerField
 
 from main.core.models import SubmitLog
 from main.core.utils import paginate
-from main.core.tools import require_ajax
+from main.core.tools import require_post_ajax
 
 
 @login_required
@@ -25,7 +25,7 @@ def submit_logs_view(request):
     })
 
 
-@require_ajax
+@require_post_ajax
 def submit_logs_view_manage(request):
     response = {}
     return JsonResponse(response)

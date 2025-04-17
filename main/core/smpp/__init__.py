@@ -5,4 +5,13 @@ from .mtrouter import MTRouter
 from .smppccm import SMPPCCM
 from .httpccm import HTTPCCM
 from .filters import Filters
-from .conn import TelnetConnection
+
+__all__ = [
+    'Groups',
+    'Users',
+    'MORouter',
+    'MTRouter',
+    'SMPPCCM',
+    'HTTPCCM',
+    'Filters',
+]

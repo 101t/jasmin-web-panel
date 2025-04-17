@@ -5,6 +5,7 @@ from main.core.exceptions import (
     JasminSyntaxError, JasminError, ActionFailed,
     ObjectNotFoundError, UnknownError, 
 )
+from .conn import TelnetConnection
 
 import logging
 
@@ -13,12 +14,11 @@ INTERACTIVE_PROMPT = settings.INTERACTIVE_PROMPT
 
 logger = logging.getLogger(__name__)
 
-class HTTPCCM(object):
+class HTTPCCM(TelnetConnection):
     "HTTPCCM for managing HTTP Client Connectors"
     lookup_field = 'cid'
-    def __init__(self, telnet):
-        self.telnet = telnet
-
+    available_actions = ['list', 'add', 'delete', 'enable', 'disable']
+    
     def get_httpccm(self, cid, silent=False):
         #Some of this could be abstracted out - similar pattern in users.py
         self.telnet.sendline('httpccm -s ' + cid)

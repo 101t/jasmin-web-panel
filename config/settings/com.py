@@ -30,8 +30,6 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     "django.contrib.sites",
 
-    # 'channels',
-    'crequest',  # noqa
     'rest_framework',
 
     'main.api',
@@ -50,9 +48,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "django.contrib.sites.middleware.CurrentSiteMiddleware",
-    'crequest.middleware.CrequestMiddleware',  # noqa
-    'main.core.middleware.AjaxMiddleware',
-    'main.core.middleware.TelnetConnectionMiddleware',
     'main.core.middleware.UserAgentMiddleware',
     'main.users.middleware.LastUserActivityMiddleware',
 ]
@@ -146,7 +141,7 @@ MEDIA_ROOT = str(ROOT_DIR('public/media'))
 
 MEDIA_URL = '/media/'
 
-REDIS_HOST = os.environ.get("REDIS_HOST", default="jasmin_redis")
+REDIS_HOST = os.environ.get("REDIS_HOST", default="redis")
 REDIS_PORT = int(os.environ.get("REDIS_PORT", default=6379))
 REDIS_DB = int(os.environ.get("REDIS_DB", default=0))
 REDIS_URL = (REDIS_HOST, REDIS_PORT)
@@ -167,8 +162,6 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.CoreJSONRenderer',
-        # 'rest_framework_swagger.renderers.SwaggerUIRenderer',
-        # 'rest_framework_swagger.renderers.OpenAPIRenderer',
     ),
 }
 

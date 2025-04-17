@@ -49,7 +49,7 @@ ENV PATH="$APP_DIR/env/bin:$PATH"
 
 COPY --chown=$APP_USER pyproject.toml .
 
-RUN pip install -U pip wheel uv && uv pip install -r pyproject.toml
+RUN pip install -U pip uv wheel && uv pip install -r pyproject.toml --extra prod
 
 # copy code to image
 COPY --chown=$APP_USER . .

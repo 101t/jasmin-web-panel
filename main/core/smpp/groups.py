@@ -2,6 +2,7 @@ from django.conf import settings
 
 from ..exceptions import MissingKeyError, ActionFailed, ObjectNotFoundError
 
+from .conn import TelnetConnection
 import logging
 
 STANDARD_PROMPT = settings.STANDARD_PROMPT
@@ -9,12 +10,10 @@ INTERACTIVE_PROMPT = settings.INTERACTIVE_PROMPT
 
 logger = logging.getLogger(__name__)
 
-class Groups(object):
+class Groups(TelnetConnection):
     "Groups for managing *Jasmin* user groups (*not* Django auth groups)"
     lookup_field = 'gid'
     available_actions = ['list', 'add', 'delete', 'enable', 'disable']
-    def __init__(self, telnet):
-        self.telnet = telnet
 
     def list(self):
         "List groups. No data parameters provided or required."

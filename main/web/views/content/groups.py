@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
 from main.core.smpp import Groups
-from main.core.tools import require_ajax
+from main.core.tools import require_post_ajax
 
 
 @login_required
@@ -12,10 +12,10 @@ def groups_view(request):
     return render(request, "web/content/groups.html")
 
 
-@require_ajax
+@require_post_ajax
 def groups_view_manage(request):
     response = {}
-    groups = Groups(request.telnet)
+    groups = Groups()
     s = request.POST.get("s")
     gid = request.POST.get("gid")
     if s == "list":

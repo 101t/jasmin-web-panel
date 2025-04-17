@@ -10,6 +10,7 @@ from main.core.exceptions import (
     ObjectNotFoundError
 )
 from main.core.tools import set_ikeys, split_cols
+from .conn import TelnetConnection
 
 STANDARD_PROMPT = settings.STANDARD_PROMPT
 INTERACTIVE_PROMPT = settings.INTERACTIVE_PROMPT
@@ -17,13 +18,10 @@ INTERACTIVE_PROMPT = settings.INTERACTIVE_PROMPT
 logger = logging.getLogger(__name__)
 
 
-class Filters(object):
+class Filters(TelnetConnection):
     "Filters Class"
     lookup_field = 'fid'
     available_actions = ['list', 'add', 'delete']
-
-    def __init__(self, telnet):
-        self.telnet = telnet
 
     def _list(self):
         "List Filters as python dict"

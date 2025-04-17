@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 
 from main.core.smpp import SMPPCCM
-from main.core.tools import require_ajax
+from main.core.tools import require_post_ajax
 
 
 @login_required
@@ -12,11 +12,11 @@ def smppccm_view(request):
     return render(request, "web/content/smppccm.html")
 
 
-@require_ajax
+@require_post_ajax
 def smppccm_view_manage(request):
     response = {}
     s = request.POST.get("s")
-    smppccm = SMPPCCM(telnet=request.telnet)
+    smppccm = SMPPCCM()
     if s == "list":
         response = smppccm.list()
     elif s == "add":

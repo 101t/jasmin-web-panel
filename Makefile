@@ -29,7 +29,7 @@ install:
 	virtualenv -p python3.12 env/
 	source env/bin/activate
 	pip install --upgrade pip wheel uv
-	uv pip install -r pyproject.toml
+	uv pip install -r pyproject.toml --extra dev
 
 run:
 	PYTHONPATH=. python manage.py runserver 0.0.0.0:8000

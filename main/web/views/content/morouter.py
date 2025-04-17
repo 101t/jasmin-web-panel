@@ -1,12 +1,10 @@
 from django.utils.translation import gettext as _
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse, HttpResponse
+from django.shortcuts import render
+from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 
-import json
-
 from main.core.smpp import MORouter
-from main.core.tools import require_ajax
+from main.core.tools import require_post_ajax
 
 
 @login_required
@@ -14,11 +12,11 @@ def morouter_view(request):
     return render(request, "web/content/morouter.html")
 
 
-@require_ajax
+@require_post_ajax
 def morouter_view_manage(request):
     response = {}
     s = request.POST.get("s")
-    morouter = MORouter(telnet=request.telnet)
+    morouter = MORouter()
 
     if s == "list":
         response = morouter.list()

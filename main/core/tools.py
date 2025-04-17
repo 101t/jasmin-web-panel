@@ -44,7 +44,7 @@ def split_cols(lines):
         parsed.append(fields)
     return parsed
 
-def require_ajax(view_func):
+def require_post_ajax(view_func):
     @wraps(view_func)
     @require_http_methods(["POST"])
     @login_required

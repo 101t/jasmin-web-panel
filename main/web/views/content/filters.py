@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 
-from main.core.tools import require_ajax
+from main.core.tools import require_post_ajax
 from main.core.smpp import Filters
 
 
@@ -12,9 +12,9 @@ def filters_view(request):
     return render(request, "web/content/filters.html")
 
 
-@require_ajax
+@require_post_ajax
 def filters_view_manage(request):
-    filters = Filters(telnet=request.telnet)
+    filters = Filters()
     s = request.POST.get("s")
     if s == "list":
         response = filters.list()

@@ -13,18 +13,18 @@ from main.core.exceptions import (
 from main.core.utils import is_int
 from main.core.tools import set_ikeys, split_cols
 
+from .conn import TelnetConnection
+
 STANDARD_PROMPT = settings.STANDARD_PROMPT
 INTERACTIVE_PROMPT = settings.INTERACTIVE_PROMPT
 
 logger = logging.getLogger(__name__)
 
 
-class MORouter(object):
+class MORouter(TelnetConnection):
     """MORouter for managing MO Routes"""
     lookup_field = 'order'
-
-    def __init__(self, telnet):
-        self.telnet = telnet
+    available_actions = ['list', 'add', 'delete']
 
     def _list(self):
         """List MO router as python dict"""

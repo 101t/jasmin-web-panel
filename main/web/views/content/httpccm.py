@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 
 from main.core.smpp import HTTPCCM
-from main.core.tools import require_ajax
+from main.core.tools import require_post_ajax
 
 
 @login_required
@@ -12,10 +12,10 @@ def httpccm_view(request):
     return render(request, "web/content/httpccm.html")
 
 
-@require_ajax
+@require_post_ajax
 def httpccm_view_manage(request):
     response = {}
-    httpccm = HTTPCCM(request.telnet)
+    httpccm = HTTPCCM()
     s = request.POST.get("s")
     if s == "list":
         response = httpccm.list()

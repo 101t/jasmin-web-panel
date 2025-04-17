@@ -1,13 +1,10 @@
-# -*- encoding: utf-8 -*-
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _
 from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 
-import json
-
-from main.core.smpp import TelnetConnection, Users
-from main.core.tools import require_ajax
+from main.core.smpp import Users
+from main.core.tools import require_post_ajax
 
 
 @login_required
@@ -15,11 +12,11 @@ def users_view(request):
     return render(request, "web/content/users.html")
 
 
-@require_ajax
+@require_post_ajax
 def users_view_manage(request):
     response = {}
     s = request.POST.get("s")
-    users = Users(telnet=request.telnet)
+    users = Users()
     if s == "list":
         response = users.list()
     elif s == "add":
