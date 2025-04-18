@@ -9,7 +9,10 @@ from main.core.smpp import Filters
 
 @login_required
 def filters_view(request):
-    return render(request, "web/content/filters.html")
+    context = {
+        "filter_types": Filters.FILTER_TYPES,
+    }
+    return render(request, "web/content/filters.html", context)
 
 
 @require_post_ajax
@@ -19,11 +22,16 @@ def filters_view_manage(request):
     if s == "list":
         response = filters.list()
     elif s == "add":
-        response = filters.create(
-            fid=request.POST.get("fid"),
-            type=request.POST.get("type"),
-            parameter=request.POST.get("parameter"),
-        )
+        filter_type = request.POST.get("type")
+        data_filter = {
+            "fid": request.POST.get("fid"),
+            "type": filter_type,
+        }
+        
+        if filter_type != "transparentfilter":
+            data_filter['parameter'] = request.POST.get("parameter")
+        
+        response = filters.create(data=data_filter)
         response["message"] = str(_("Filter added successfully!"))
     elif s == "delete":
         response = filters.destroy(fid=request.POST.get("fid"))

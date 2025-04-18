@@ -23,6 +23,21 @@ class Filters(TelnetConnection):
     lookup_field = 'fid'
     available_actions = ['list', 'add', 'delete']
 
+    FILTER_TYPES = (
+        ('transparentfilter', 'Transparent Filter'),
+        ('connectorfilter', 'Connector Filter'),
+        ('userfilter', 'User Filter'),
+        ('groupfilter', 'Group Filter'),
+        ('sourceaddrfilter', 'Source Addr Filter'),
+        ('destinationaddrfilter', 'Destination Addr Filter'),
+        ('shortmessagefilter', 'Short Message Filter'),
+        ('dateintervalfilter', 'Date Interval Filter'),
+        ('timeintervalfilter', 'Time Interval Filter'),
+        ('tagfilter', 'Tag Filter'),
+        ('evalpyfilter', 'EvalPy Filter'),
+    )
+    FILTER_PARAMETERS = ['cid', 'uid', 'gid', 'source_addr', 'destination_addr', 'short_message', 'dateInterval', 'timeInterval', 'tag', 'pyCode']
+
     def _list(self):
         "List Filters as python dict"
         self.telnet.sendline('filter -l')
@@ -119,7 +134,6 @@ class Filters(TelnetConnection):
                 ikeys['tag'] = parameter
             elif ftype == 'evalpyfilter':
                 ikeys['pyCode'] = parameter
-        # print(ikeys)
         set_ikeys(self.telnet, ikeys)
         self.telnet.sendline('persist')
         self.telnet.expect(r'.*' + STANDARD_PROMPT)

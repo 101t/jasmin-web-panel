@@ -101,4 +101,77 @@
 		});
     });
     $("li.nav-item.filters-menu").addClass("active");
+    $("#filter_type").on("change", function(e){
+        var val = $(this).val();
+        if (['transparentfilter'].includes(val)) {
+            $("#filter_routes").hide();
+        } else {
+            $("#filter_routes").show();
+            switch (val) {
+                case "connectorfilter":
+                    $("#filter_routes_inputs").html(`
+                        <input type="text" name="parameter" class="form-control" placeholder="smpp-01" required>
+                        <span class="text-muted"><b>cid</b> of the connector to match</span>
+                    `);
+                    break;
+                case "userfilter":
+                    $("#filter_routes_inputs").html(`
+                        <input type="text" name="parameter" class="form-control" placeholder="bobo" required>
+                        <span class="text-muted"><b>uid</b> of the user to match</span>
+                    `);
+                    break;
+                case "groupfilter":
+                    $("#filter_routes_inputs").html(`
+                        <input type="text" name="parameter" class="form-control" placeholder="partners" required>
+                        <span class="text-muted"><b>gid</b> of the group to match</span>
+                    `);
+                    break;
+                case "sourceaddrfilter":
+                    $("#filter_routes_inputs").html(`
+                        <input type="text" name="parameter" class="form-control" placeholder="^20d+" required>
+                        <span class="text-muted"><b>source_addr</b> Regular expression to match source address</span>
+                    `);
+                    break;
+                case "destinationaddrfilter":
+                    $("#filter_routes_inputs").html(`
+                        <input type="text" name="parameter" class="form-control" placeholder="^85111$" required>
+                        <span class="text-muted"><b>destination_addr</b> Regular expression to match destination address</span>
+                    `);
+                    break;
+                case "shortmessagefilter":
+                    $("#filter_routes_inputs").html(`
+                        <input type="text" name="parameter" class="form-control" placeholder="^hello.*$" required>
+                        <span class="text-muted"><b>short_message</b> Regular expression to match message content</span>
+                    `);
+                    break;
+                case "dateintervalfilter":
+                    $("#filter_routes_inputs").html(`
+                        <input type="text" name="parameter" class="form-control" placeholder="2014-09-18;2014-09-28" required>
+                        <span class="text-muted"><b>dateInterval</b> Two dates separated by ; (date format is YYYY-MM-DD)</span>
+                    `);
+                    break;
+                case "timeintervalfilter":
+                    $("#filter_routes_inputs").html(`
+                        <input type="text" name="parameter" class="form-control" placeholder="08:00:00;18:00:00" required>
+                        <span class="text-muted"><b>timeInterval</b> Two timestamps separated by ; (timestamp format is HH:MM:SS)</span>
+                    `);
+                    break;
+                case "tagfilter":
+                    $("#filter_routes_inputs").html(`
+                        <input type="text" name="parameter" class="form-control" placeholder="32401" required>
+                        <span class="text-muted"><b>tag</b> numeric tag to match in message</span>
+                    `);
+                    break;
+                case "evalpyfilter":
+                    $("#filter_routes_inputs").html(`
+                        <input type="text" name="parameter" class="form-control" placeholder="/root/thirdparty.py" required>
+                        <span class="text-muted"><b>pyCode</b> Path to a python script, (<a href="https://docs.jasminsms.com/en/latest/management/jcli/modules.html#external-buslogig-filters" target="_blank">External business logic</a> for more details)</span>
+                    `);
+                    break;
+                default:
+                    $("#filter_routes_inputs").html('');
+                    break;
+            }
+        }
+    }).trigger("change");
 })(jQuery);
