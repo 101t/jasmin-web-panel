@@ -105,6 +105,27 @@ services:
           memory: ${JASMIN_MEM:-512M}
     security_opt:
       - no-new-privileges:true
+  sms_logger:
+    image: jookies/jasmin:latest
+    command: bash -c "pip install psycopg2-binary mysql-connector-python && exec python /build/misc/scripts/sms_logger.py"
+    volumes:
+      - /opt/jasmin-web-panel/config/docker/jasmin/jasmin/resource:/app/resource
+    environment:
+      DB_TYPE_MYSQL: ${DB_TYPE_MYSQL:-0}
+      AMQP_BROKER_HOST: ${AMQP_BROKER_HOST:-rabbit-mq}
+      AMQP_BROKER_PORT: ${AMQP_BROKER_PORT:-5672}
+      AMQP_SPEC_FILE: '/app/resource/amqp0-9-1.xml'
+      DB_HOST: ${DB_HOST:-db}
+      DB_DATABASE: ${DB_DATABASE:-jasmin}
+      DB_TABLE: ${DB_TABLE:-submit_log}
+      DB_USER: ${DB_USER:-jasmin}
+      DB_PASS: ${DB_PASS:-top_secret}
+    depends_on:
+      - rabbit-mq
+      - db
+    restart: unless-stopped
+    healthcheck:
+      disable: true
   prometheus:
     image: prom/prometheus:latest
     restart: unless-stopped
