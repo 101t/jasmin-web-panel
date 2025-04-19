@@ -48,7 +48,9 @@ services:
     command:
       - 'redis-server'
       - '--appendonly yes'
-      - '--save 60 1'
+      - '--save 10 1'
+      - '--auto-aof-rewrite-percentage 100'
+      - '--auto-aof-rewrite-min-size 64mb'
     restart: unless-stopped
     environment:
       REDIS_REPLICATION_MODE: master
