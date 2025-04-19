@@ -26,7 +26,7 @@ test:
 
 install:
 	@echo "Installing dependencies"
-	virtualenv -p python3.12 env/
+	virtualenv -p python3.11 env/
 	source env/bin/activate
 	pip install --upgrade pip wheel uv
 	uv pip install -r pyproject.toml --extra dev
@@ -34,14 +34,11 @@ install:
 run:
 	PYTHONPATH=. python manage.py runserver 0.0.0.0:8000
 
-run_uvicorn:
-	PYTHONPATH=. uvicorn config.asgi:application --reload --host 0.0.0.0 --port 8000
+run_gunicorn:
+	PYTHONPATH=. gunicorn -b 0.0.0.0:8000 config.wsgi:application
 
 run_celery:
 	PYTHONPATH=. celery -A config worker --max-tasks-per-child 1 -l info
-
-run_channels:
-	PYTHONPATH=. daphne config.asgi:application -b 0.0.0.0 -p 9000
 
 run_docker: generate_dot_env
 	docker-compose build
