@@ -9,7 +9,10 @@ from main.core.tools import require_post_ajax
 
 @login_required
 def morouter_view(request):
-    return render(request, "web/content/morouter.html")
+    context = {
+        "mo_router_types": MORouter.MO_ROUTER_TYPES,
+    }
+    return render(request, "web/content/morouter.html", context)
 
 
 @require_post_ajax
@@ -22,13 +25,14 @@ def morouter_view_manage(request):
         response = morouter.list()
     elif s == "add":
         try:
-            morouter.create(data=dict(
+            data = dict(
                 type=request.POST.get("type"),
                 order=request.POST.get("order"),
-                smppconnectors=request.POST.get("smppconnectors"),
-                httpconnectors=request.POST.get("httpconnectors"),
-                filters=request.POST.get("filters"),
-            ))
+                smppconnectors=request.POST.get("smppconnectors") or "",
+                httpconnectors=request.POST.get("httpconnectors") or "",
+                filters=request.POST.get("filters") or "",
+            )
+            morouter.create(data=data)
             response["message"] = str(_("MO Router added successfully!"))
         except Exception as e:
             return JsonResponse({"message": str(e), "status": 400}, status=400)

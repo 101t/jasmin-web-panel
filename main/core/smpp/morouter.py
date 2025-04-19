@@ -1,9 +1,9 @@
 import logging
 import random
 from collections import OrderedDict
+from typing import List
 
 from django.conf import settings
-from django.utils.datastructures import MultiValueDictKeyError
 
 from main.core.exceptions import (
     JasminError,
@@ -26,48 +26,52 @@ class MORouter(TelnetConnection):
     lookup_field = 'order'
     available_actions = ['list', 'add', 'delete']
 
-    def _list(self):
+    MO_ROUTER_TYPES = (
+        ('DefaultRoute', 'Default Route'),
+        ('StaticMORoute', 'Static MO Route'),
+        ('RandomRoundrobinMORoute', 'Random Roundrobin MO Route'),
+        ('FailoverMORoute', 'Failover MO Route'),
+    )
+
+    def _list(self) -> List[dict]:
         """List MO router as python dict"""
         self.telnet.sendline('morouter -l')
         self.telnet.expect([r'(.+)\n' + STANDARD_PROMPT])
         result = str(self.telnet.match.group(0)).strip().replace("\\r", '').split("\\n")
         if len(result) < 3:
-            return {'morouters': []}
+            return []
         results = [s.replace(', ', ',').replace('(!)', '') for s in result[2:-2] if s]
         routers = split_cols(results)
-        # print(routers)
-        return {
-            'morouters':
-                [
-                    {
-                        'order': r[0].strip().lstrip('#'),
-                        'type': r[1],
-                        'connectors': [c.strip() for c in r[2].split(',')],
-                        'filters': [c.strip() for c in ' '.join(r[3:]).split(',')
-                                    ] if len(r) > 3 else []
-                    } for r in routers
-                ]
-        }
+        return [
+            {
+                'order': r[0].strip().lstrip('#'),
+                'type': r[1],
+                'connectors': [c.strip() for c in r[2].split(',')],
+                'filters': [c.strip() for c in ' '.join(r[3:]).split(',')
+                            ] if len(r) > 3 else []
+            } for r in routers
+        ]
 
     def list(self):
         """List MO routers. No parameters"""
-        return self._list()
+        return {'morouters': self._list()}
 
-    def get_router(self, order):
+    def get_router(self, order: str):
         """Return data for one morouter as Python dict"""
-        morouters = self._list()['morouters']
+        routers = self._list()
         try:
-            return {
-                'morouter': next(m for m in morouters if m['order'] == order)
-            }
-        except StopIteration:
+            return {'morouter': next(m for m in routers if m['order'] == order)}
+        except (StopIteration, IndexError):
             raise ObjectNotFoundError('No MoROuter with order: %s' % order)
+    
+    def router_exists(self, order: str) -> bool:
+        routers = self._list()
+        return any(m['order'] == order for m in routers)
 
     def retrieve(self, order):
         """Details for one MORouter by order (integer)"""
         return self.get_router(order)
 
-    # methods=['delete']
     def flush(self):
         """Flush entire routing table"""
         self.telnet.sendline('morouter -f')
@@ -77,69 +81,38 @@ class MORouter(TelnetConnection):
         return {'morouters': []}
 
     def create(self, data):
-        """Create MORouter.
-        Required parameters: type, order, smppconnectors, httpconnectors
-        More than one connector is allowed only for RandomRoundrobinMORoute and FailoverMORoute
-        ---
-        # YAML
-        omit_serializer: true
-        parameters:
-        - name: type
-          description: One of DefaultRoute, StaticMORoute, RandomRoundrobinMORoute, FailoverMORoute
-          required: true
-          type: string
-          paramType: form
-        - name: order
-          description: Router order, also used to identify router
-          required: true
-          type: string
-          paramType: form
-        - name: smppconnectors
-          description: List of SMPP connector ids.
-          required: false
-          type: array
-          paramType: form
-        - name: httpconnectors
-          description: List of HTTP connector ids.
-          required: false
-          type: array
-          paramType: form
-        - name: filters
-          description: List of filters, required except for DefaultRoute
-          required: false
-          type: array
-          paramType: form
-        """
-        try:
-            route_type, order = data.get('type'), data.get('order')
-            self.retrieve(order)
-        except Exception:  # noqa
-            route_type, order = "defaultroute", "1"
-        else:
-            raise MissingKeyError('MO route already exists')
-        # raise MissingKeyError('Missing parameter: type or order required')
-        route_type = route_type.lower()
-        self.telnet.sendline('morouter -a')
-        self.telnet.expect(r'Adding a new MO Route(.+)\n' + INTERACTIVE_PROMPT)
-        ikeys = OrderedDict({'type': route_type})
-        if route_type != 'defaultroute':
-            try:
-                filters = data['filters'] or ""
-                filters = filters.split(',')
-            except MultiValueDictKeyError:
-                raise MissingKeyError('%s router requires filters' % route_type)
-            ikeys['filters'] = ';'.join(filters)
-        ikeys['order'] = order if is_int(order) else str(random.randrange(1, 99))
+        """Add a new MORouter"""
+        route_type = data.get('type') or "DefaultRoute"
+        order = data.get('order') or "1"
+        filters = data.get('filters') or ""
         smppconnectors = data.get('smppconnectors') or ""
         httpconnectors = data.get('httpconnectors') or ""
+
+        if self.router_exists(order):
+            raise MultipleValuesRequiredKeyError('Order %s already exists' % order)
+        
+        self.telnet.sendline('morouter -a')
+        self.telnet.expect(r'Adding a new MO Route(.+)\n' + INTERACTIVE_PROMPT)
+        
+        ikeys = OrderedDict({
+            'type': route_type,
+            'order': order if is_int(order) else str(random.randrange(1, 99)),
+        })
+
+        if route_type != 'DefaultRoute':
+            if not filters:
+                raise MissingKeyError('%s router requires filters' % route_type)
+            filters = filters.split(',')
+            ikeys['filters'] = ';'.join(filters)
+
         connectors = ['smpps(%s)' % c.strip()
                       for c in smppconnectors.split(',') if c.strip()
                       ] + ['http(%s)' % c for c in httpconnectors.split(',') if c.strip()]
-        if route_type == 'randomroundrobinmoroute':
+        if route_type == 'RandomRoundrobinMORoute':
             if len(connectors) < 2:
                 raise MultipleValuesRequiredKeyError('Round Robin route requires at least two connectors')
             ikeys['connectors'] = ';'.join(connectors)
-        elif route_type == 'failovermoroute':
+        elif route_type == 'FailoverMORoute':
             if len(connectors) < 2:
                 raise MultipleValuesRequiredKeyError('FailOver route requires at least two connectors')
             ikeys['connectors'] = ';'.join(connectors)
@@ -147,6 +120,7 @@ class MORouter(TelnetConnection):
             if len(connectors) != 1:
                 raise MissingKeyError('One and only one connector required')
             ikeys['connector'] = connectors[0]
+        
         set_ikeys(self.telnet, ikeys)
         self.telnet.sendline('persist')
         self.telnet.expect(r'.*' + STANDARD_PROMPT)

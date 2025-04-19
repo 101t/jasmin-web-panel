@@ -54,3 +54,13 @@ class ActionFailed(APIException):
 class ObjectNotFoundError(APIException):
     status_code = 404
     default_detail = 'Object not found'
+
+
+class DuplicateEntryError(APIException):
+    status_code = 400
+    default_detail = 'Duplicate entry'
+
+
+class ValidationError(APIException):
+    status_code = 400
+    default_detail = 'Validation error'

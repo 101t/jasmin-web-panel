@@ -9,7 +9,10 @@ from main.core.tools import require_post_ajax
 
 @login_required
 def mtrouter_view(request):
-    return render(request, "web/content/mtrouter.html")
+    context = {
+        "mt_router_types": MTRouter.MT_ROUTER_TYPES,
+    }
+    return render(request, "web/content/mtrouter.html", context)
 
 
 @require_post_ajax
@@ -26,7 +29,6 @@ def mtrouter_view_manage(request):
                 order=request.POST.get("order"),
                 rate=request.POST.get("rate"),
                 smppconnectors=request.POST.get("smppconnectors"),
-                # httpconnectors=request.POST.get("httpconnectors"),
                 filters=request.POST.get("filters"),
             ))
             response["message"] = str(_("MT Router added successfully!"))
