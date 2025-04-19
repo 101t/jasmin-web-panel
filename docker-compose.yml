@@ -109,7 +109,7 @@ services:
     image: prom/prometheus:latest
     restart: unless-stopped
     ports:
-      - "${PROMETHEUS_PORT}:9090"
+      - "${PROMETHEUS_PORT:-9090}:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - monitoring_data:/prometheus
@@ -124,8 +124,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "${PROMETHEUS_CPU}"
-          memory: ${PROMETHEUS_MEM}
+          cpus: "${PROMETHEUS_CPU:-2}"
+          memory: ${PROMETHEUS_MEM:-512M}
     security_opt:
       - no-new-privileges:true
 
