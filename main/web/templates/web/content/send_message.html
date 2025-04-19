@@ -1,0 +1,44 @@
+{% extends "web/base.html" %}
+{% load static i18n %}
+{% block title %}{% trans "Send SMS" %}{% endblock title %}
+{% block extracss %}{% endblock extracss %}
+{% block content %}
+<h1 class="h3 mb-2 text-gray-800">{% trans "Send SMS" %}</h1>
+<div class="card shadow mb-4 col-6">
+    <div class="card-body">
+        {% include "web/includes/message.html" %}
+        <form action="{% url 'web:send_message_view' %}" method="post">{% csrf_token %}
+            <div class="form-group">
+                <label for="send_type">{{ form.send_type.label }}</label>
+                <select class="form-control select-control" name="send_type" id="send_type">
+                    <option value="smpp" {% if form.send_type.value == 'smpp' %}selected{% endif %}>SMPP</option>
+                    <option value="http" {% if form.send_type.value == 'http' %}selected{% endif %}>HTTP</option>
+                </select>
+                <small class="text-muted label-danger">{{ form.send_type.help_text }}</small>
+            </div>
+            <div class="form-group">
+                <label for="src_addr">{{ form.src_addr.label }}</label>
+                <input class="form-control" type="text" id="src_addr" name="src_addr" value="{{ form.src_addr.value }}">
+                <small class="text-muted">{{ form.src_addr.help_text }}</small>
+            </div>
+            <div class="form-group">
+                <label for="dst_addr">{{ form.dst_addr.label }}</label>
+                <input class="form-control" type="text" id="dst_addr" name="dst_addr" value="{{ form.dst_addr.value }}">
+                <small class="text-muted">{{ form.dst_addr.help_text }}</small>
+            </div>
+            <div class="form-group">
+                <label for="text">{{ form.text.label }}</label>
+                <textarea class="form-control" id="text" name="text" rows="4">{{ form.text.value }}</textarea>
+                <small class="text-muted">{{ form.text.help_text }}</small>
+            </div>
+            <button class="btn btn-primary" type="submit"><i class="fas fa-paper-plane"></i> Send SMS</button>
+        </form>
+    </div>
+</div>
+{% endblock content %}
+{% block extrajs %}
+<script>
+var main_trans = {};
+</script>
+<script src="{% static 'web/content/send_message.js' %}"></script>
+{% endblock extrajs %}

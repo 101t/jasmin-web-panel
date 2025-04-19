@@ -44,16 +44,18 @@
                 </div>
                 <div class="modal-body">
                     <div class="alert alert-info">
-<small>- <strong>DefaultRoute</strong> a route without a filter, this one can only set with the lowest order to be a default/fallback route</small><br>
-<small>- <strong>StaticMORoute</strong> a basic route with Filters and one Connector</small><br>
-<small>- <strong>RandomRoundrobinMORoute</strong> a route with Filters and many Connectors, will return a random Connector if its Filters are matching, can be used as a load balancer route</small><br>
-<small>- <strong>FailoverMORoute</strong> a route with Filters and many Connectors, will return an available (connected) Connector if its Filters are matched</small>
+                        <small>- <strong>DefaultRoute</strong> a route without a filter, this one can only set with the lowest order to be a default/fallback route</small><br>
+                        <small>- <strong>StaticMORoute</strong> a basic route with Filters and one Connector</small><br>
+                        <small>- <strong>RandomRoundrobinMORoute</strong> a route with Filters and many Connectors, will return a random Connector if its Filters are matching, can be used as a load balancer route</small><br>
+                        <small>- <strong>FailoverMORoute</strong> a route with Filters and many Connectors, will return an available (connected) Connector if its Filters are matched</small>
                     </div>
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "Type" %}</label>
                         <div class="col-sm-10">
                             <select name="type" class="form-control select">
-                                <option>DefaultRoute</option><option>StaticMORoute</option><option>RandomRoundrobinMORoute</option><option>FailoverMORoute</option>
+                                {% for mo_router_type in mo_router_types %}
+                                <option value="{{ mo_router_type.0 }}">{{ mo_router_type.1 }}</option>
+                                {% endfor %}
                             </select>
                             <small class="text-muted">{% trans "One of the supported MO Routes: DefaultRoute, StaticMORoute, RandomRoundrobinMORoute and FailoverMORoute" %}</small>
                         </div>
@@ -61,8 +63,8 @@
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "Order" %}</label>
                         <div class="col-sm-10">
-                            <input type="text" name="order" class="form-control" placeholder="{% trans 'Order' %}" required>
-                            <small class="text-muted">{% trans "MO Route priority order" %}</small>
+                            <input type="number" name="order" class="form-control" placeholder="{% trans 'Order' %}" required>
+                            <small class="text-muted">{% trans "MO Route priority order, order must be unique and starts from 0" %}</small>
                         </div>
                     </div>
                     <div class="form-group row">

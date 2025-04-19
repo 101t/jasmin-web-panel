@@ -1,27 +1,31 @@
-import json
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from django.http import JsonResponse
+from django.db.models import Count, Case, When, IntegerField
 
 from main.core.models import SubmitLog
 from main.core.utils import paginate
-
-from django.utils.translation import gettext as _
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, HttpResponse
-
-
-def submit_logs_view(request):
-    collection_list = SubmitLog.objects.all().order_by("-created_at")
-    collection_list = paginate(collection_list, per_page=25, page=request.GET.get("page"))
-    return render(request, "web/content/submit_logs.html", dict(collection_list=collection_list))
+from main.core.tools import require_post_ajax
 
 
 @login_required
+def submit_logs_view(request):
+    stats = SubmitLog.objects.aggregate(
+        total_count=Count('id'),
+        success_count=Count(Case(When(status="success", then=1), output_field=IntegerField())),
+        fail_count=Count(Case(When(status="fail", then=1), output_field=IntegerField())),
+        unknown_count=Count(Case(When(status="unknown", then=1), output_field=IntegerField())),
+    )
+    submit_logs = SubmitLog.objects.order_by("-created_at")
+
+    submit_logs = paginate(submit_logs, per_page=25, page=request.GET.get("page"))
+    return render(request, "web/content/submit_logs.html", context={
+        "submit_logs": submit_logs,
+        "stats": stats,
+    })
+
+
+@require_post_ajax
 def submit_logs_view_manage(request):
-    args, res_status, res_message = {}, 400, _("Sorry, Command does not matched.")
-    if request.POST and request.is_ajax():
-        s = request.POST.get("s")
-    if isinstance(args, dict):
-        args["status"] = res_status
-        args["message"] = str(res_message)
-    else:
-        res_status = 200
-    return HttpResponse(json.dumps(args), status=res_status, content_type="application/json")
+    response = {}
+    return JsonResponse(response)

@@ -30,8 +30,6 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     "django.contrib.sites",
 
-    # 'channels',
-    'crequest',  # noqa
     'rest_framework',
 
     'main.api',
@@ -50,9 +48,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "django.contrib.sites.middleware.CurrentSiteMiddleware",
-    'crequest.middleware.CrequestMiddleware',  # noqa
-    'main.core.middleware.AjaxMiddleware',
-    'main.core.middleware.TelnetConnectionMiddleware',
     'main.core.middleware.UserAgentMiddleware',
     'main.users.middleware.LastUserActivityMiddleware',
 ]
@@ -146,7 +141,7 @@ MEDIA_ROOT = str(ROOT_DIR('public/media'))
 
 MEDIA_URL = '/media/'
 
-REDIS_HOST = os.environ.get("REDIS_HOST", default="jasmin_redis")
+REDIS_HOST = os.environ.get("REDIS_HOST", default="redis")
 REDIS_PORT = int(os.environ.get("REDIS_PORT", default=6379))
 REDIS_DB = int(os.environ.get("REDIS_DB", default=0))
 REDIS_URL = (REDIS_HOST, REDIS_PORT)
@@ -167,8 +162,6 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.CoreJSONRenderer',
-        # 'rest_framework_swagger.renderers.SwaggerUIRenderer',
-        # 'rest_framework_swagger.renderers.OpenAPIRenderer',
     ),
 }
 
@@ -180,6 +173,16 @@ SWAGGER_SETTINGS = {
     'APIS_SORTER': 'alpha',
     'SHOW_REQUEST_HEADERS': True,
 }
+
+HTTP_HOST = os.environ.get('HTTP_HOST', default='http://127.0.0.1')
+HTTP_PORT = int(os.environ.get('HTTP_PORT', default=1401))
+HTTP_USERNAME = os.environ.get('HTTP_USERNAME', default='jasmin_user')  # noqa
+HTTP_PASSWORD = os.environ.get('HTTP_PASSWORD', default='jasmin_pass')  # noqa
+
+SMPP_HOST = os.environ.get('SMPP_HOST', default='127.0.0.1')
+SMPP_PORT = int(os.environ.get('SMPP_PORT', default=2775))
+SMPP_SYSTEM_ID = os.environ.get('SMPP_SYSTEM_ID', default='jasmin_user')  # noqa
+SMPP_PASSWORD = os.environ.get('SMPP_PASSWORD', default='jasmin_pass')  # noqa
 
 # Jasmin SMS Gateway Settings - telnet configurations
 TELNET_HOST = os.environ.get('TELNET_HOST', default='127.0.0.1')
@@ -196,25 +199,5 @@ INTERACTIVE_PROMPT = '> '
 # This is used for DLR Report
 SUBMIT_LOG = bool(os.environ.get('SUBMIT_LOG', '0'))
 
-"""
-SYSCTL_HEALTH_CHECK boolean field to enable Jasmin Health Check UI Monitoring
-SYSCTL_HEALTH_CHECK_SERVICES list of available services:
-- jasmin-celery
-- jasmin-dlrd
-- jasmin-dlrlookupd
-- jasmin-interceptord
-- jasmin-restapi
-- jasmind
-- sms_logger
-Additional Services:
-- redis
-- rabbitmq
-- postgresql
-"""
-SYSCTL_HEALTH_CHECK = os.environ.get("SYSCTL_HEALTH_CHECK", default=False)
-SYSCTL_HEALTH_CHECK_SERVICES = os.environ.get("SYSCTL_HEALTH_CHECK_SERVICES", default="jasmind")
-
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
-CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", default="redis://localhost:6379/0")
-CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", default="redis://localhost:6379/0")

@@ -46,22 +46,22 @@
                         <label class="col-sm-2 col-form-label">{% trans "FID" %}</label>
                         <div class="col-sm-10">
                             <input type="text" name="fid" class="form-control" placeholder="{% trans 'FID Name' %}">
-                            <small class="text-muted">{% trans "Filter Unique Name" %}</small>
+                            <span class="text-muted">{% trans "Filter Unique Name" %}</span>
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-sm-2 col-form-label">{% trans "Parameter" %}</label>
-                        <div class="col-sm-10">
-                            <input type="text" name="parameter" class="form-control" placeholder="{% trans 'Parameter' %}">
-                        </div>
-                    </div>
-                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "Type" %}</label>
                         <div class="col-sm-10">
-                           <select name="type" id="type_select" class="form-control" required="required">
-                                <option>TransparentFilter</option><option>ConnectorFilter</option><option>UserFilter</option><option>GroupFilter</option><option>SourceAddrFilter</option><option>DestinationAddrFilter</option><option>ShortMessageFilter</option><option>DateIntervalFilter</option><option>TimeIntervalFilter</option><option>TagFilter</option><option>EvalPyFilter</option>
+                            <select name="type" id="filter_type" class="form-control" required="required">
+                            {% for filter_type in filter_types %}
+                            <option value="{{ filter_type.0 }}">{{ filter_type.1 }}</option>
+                            {% endfor %}
                             </select>
                         </div>
+                    </div>
+                    <div class="form-group row" id="filter_routes">
+                        <label class="col-sm-2 col-form-label">{% trans "Filter Routes" %}</label>
+                        <div class="col-sm-10" id="filter_routes_inputs"></div>
                     </div>
                 </div>
                 <div class="modal-footer">

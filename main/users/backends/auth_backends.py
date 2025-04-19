@@ -31,5 +31,3 @@ class UserModelBackend(ModelBackend):
             if not self._user_class:
                 raise ImproperlyConfigured('Could not get auth user model')
         return self._user_class
-    # def user_can_authenticate(self, user):
-    #     return True

@@ -27,32 +27,33 @@ Download and Extract folder We recommended installing python dependencies in `vi
 
 Install dependencies:
 
-> This version using `python >= 3.5` make sure you have installed on your system.
+> This version using `python >= 3.11` make sure you have installed on your system.
 
 go to `jasmin-web-panel/` and run
 
 ```sh
 cd jasmin-web-panel/
-pip install -r requirements.txt
-cp Sample.env .env
+pip install --upgrade pip wheel uv
+uv pip install -r pyproject.toml --extra=prod
+cp sample.env .env
 ```
 
 Preparing your `database` by running migrate commads:
 
 ```sh
 python manage.py migrate
-python manage.py load_new # to load new user
-python manage.py collectstatic
+python manage.py samples
+python manage.py collectstatic --no-input
 ```
 
 These commands used in production server, also you may edit **Jasmin SMS Gateway** credential connection
 
-```ini
-TELNET_HOST = 127.0.0.1
-TELNET_PORT = 8990
-TELNET_USERNAME = jcliadmin
-TELNET_PW = jclipwd
-TELNET_TIMEOUT = 10
+```sh
+TELNET_HOST=127.0.0.1
+TELNET_PORT=8990
+TELNET_USERNAME=jcliadmin
+TELNET_PW=jclipwd
+TELNET_TIMEOUT=10
 ```
 
 for production make sure `DEBUG=False` in `.env` file to ensure security.
@@ -82,9 +83,9 @@ User=username
 Group=username
 Environment="DJANGO_SETTINGS_MODULE=config.settings.pro"
 WorkingDirectory=/opt/jasmin-web-panel
-ExecStart=/opt/jasmin-web-panel/env/bin/gunicorn --bind 127.0.0.1:8000 config.wsgi -w 3 --timeout=120 --log-level=error
+ExecStart=/opt/jasmin-web-panel/env/bin/gunicorn --bind 127.0.0.1:8000 config.wsgi -w 3 --timeout=120 --log-level=info
 StandardOutput=file:/opt/jasmin-web-panel/logs/gunicorn.log
-StandardError=file:/opt/jasmin-web-panel/logs/gunicorn.log
+StandardError=file:/opt/jasmin-web-panel/logs/gunicorn_error.log
 StandardOutput=journal+console
 Restart=on-failure
 
@@ -117,10 +118,12 @@ For NGiNX go to `/etc/nginx/sites-available` and create a new file `jasmin_web`
 upstream jasmin_web{
     server 127.0.0.1:8000;
 }
+
 server {
     listen 80;
     charset utf-8;
-    server_name example.com www.example.com;
+    # server_name sms.example.com;
+    server_name _; # for IP Address access
     client_body_timeout 500;
     client_header_timeout 500;
     keepalive_timeout 500 500;
@@ -160,7 +163,7 @@ server {
 }
 ```
 
-> Note: Don't forget to replace `example.com` with your real domain
+> Note: Don't forget to replace `sms.example.com` with your real domain
 
 Once you are done, test and restart the Nginx Service with:
 
@@ -176,10 +179,8 @@ sudo nginx -s reload
 
 ```shell
 Username: admin
-Password: secret
+Password: secret  # please change the default password to avoid the security issue
 ```
-
-> Note: Please change the password to avoid the security issue
 
 ## Deployment using Docker
 
@@ -192,7 +193,7 @@ docker pull tarekaec/jasmin_web_panel
 also, you could build it on your local machine by navigating to the project directory
 
 ```shell
-docker build -f config/docker/slim/Dockerfile -t jasmin_web_panel:1.0 .
+docker build -f config/docker/slim/Dockerfile -t jasmin_web_panel:latest .
 ```
 
 You need to configure the environment variable in `.env` file
@@ -200,7 +201,6 @@ You need to configure the environment variable in `.env` file
 ```shell
 DJANGO_SETTINGS_MODULE=config.settings.pro
 PRODB_URL=postgres://username:strong_password@postgre_hostname:5432/jasmin_web_db
-SYSCTL_HEALTH_CHECK=False # this option is not useful on docker
 ```
 
 to start docker container
@@ -215,6 +215,20 @@ you could check service on terminal
 docker service ls | grep jasmin
 ```
 
+## Deployment using Docker Compose (Works with AArch64 or ARM64)
+
+You need to configure the environment variable in `.env` file
+You also need to comment line 38 of "config/docker/slim/Dockerfile" (ENV LD_PRELOAD /usr/lib/x86_64-linux-gnu/libjemalloc.so.2) 
+Then start docker container in detach mode. You can remove "-d" if you want to see logs
+```
+docker compose up -d
+```
+
+Then check docker containers
+```
+docker ps
+```
+
 ## Submit Log
 
 To work with Submit Log you need to install and configure [Submit Log](https://github.com/101t/jasmin-submit-logs) service, make sure you have `SUBMIT_LOG` (default `False`) in environment variable:
@@ -222,27 +236,6 @@ To work with Submit Log you need to install and configure [Submit Log](https://g
 ```shell
 SUBMIT_LOG=True
 ```
-
-## Release Notes
-
-What's new in version 2.0.0
-
-1. UI Improved, jQuery Fixed, jQuery Validation added.
-2. Backend fixing, upgrade to python3 and fresh Django version.
-3. Telnet connector fixing.
-4. Deployment made easier.
-5. Fixing common connection issues.
-6. Simple dashboard initialized.
-7. User Profile, Change Password, Add Avatar.
-8. Activity Log, to log your usage.
-
-What's new in version 2.0.1
-
-1. Adding **[Submit Log](https://github.com/101t/jasmin-submit-logs)** report (DLR report)
-
-What's new in version 2.0.2
-
-1. Adding FailOverRouter supports to MT / MO Router
 
 ## Tracking Issue
 

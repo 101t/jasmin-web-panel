@@ -29,7 +29,7 @@
                     </tr>
                 </thead>
                 <tbody id="collection_list">
-                {% for record in collection_list %}
+                {% for record in submit_logs %}
                     <tr>
                         <td>{{ record.msgid }}</td>
                         <td>{{ record.source_addr }}</td>
@@ -49,7 +49,13 @@
                 {% endfor %}
                 </tbody>
             </table>
-            {% include "web/includes/paginate.html" with page_obj=collection_list %}
+            <div class="status-counts">
+                <span class="badge badge-default">Total: {{ stats.total_count }}</span>
+                <span class="badge badge-success">Success: {{ stats.success_count }}</span>
+                <span class="badge badge-danger">Failed: {{ stats.fail_count }}</span>
+                <span class="badge badge-secondary">Unknown: {{ stats.unknown_count }}</span>
+            </div>
+            {% include "web/includes/paginate.html" with page_obj=submit_logs %}
         </div>
     </div>
 </div>
