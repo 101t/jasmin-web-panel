@@ -88,6 +88,26 @@ class SubmitLog(models.Model):
                 return "Undecodable"
         return "N/A"
 
+    @property
+    def decoded_source_addr(self):
+        if self.source_addr:
+            # Remove the '\x' prefix and decode from hex to bytes, then to UTF-8 string
+            try:
+                # The data might already be in bytes format in Python
+                if isinstance(self.source_addr, bytes):
+                    return self.source_addr.decode('utf-8')
+                # Otherwise, it might be a memoryview or hex string
+                elif isinstance(self.source_addr, memoryview):
+                    return self.source_addr.tobytes().decode('utf-8')
+                # Handle the case where it's a string with \x prefix
+                elif isinstance(self.source_addr, str) and self.source_addr.startswith('\\x'):
+                    hex_string = self.source_addr[2:]  # Remove \x prefix
+                    return binascii.unhexlify(hex_string).decode('utf-8')
+                return str(self.source_addr)
+            except (UnicodeDecodeError, binascii.Error):
+                return "Undecodable"
+        return "N/A"
+
     class Meta:
         db_table = "submit_log"
         verbose_name = _("Submit Log")
