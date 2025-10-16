@@ -15,9 +15,10 @@
             <table class="table table-hover table-striped table-bordered table-sm">
                 <thead>
                     <tr>
-                        <th>{% trans "Message ID" %}</th>
+                       <th>{% trans "Message ID" %}</th>
                         <th>{% trans "Src. Address" %}</th>
                         <th>{% trans "Dst. Address" %}</th>
+                        <th>{% trans "Short message" %}</th>
                         <th>{% trans "Rate" %}</th>
                         <th>{% trans "PDU Count" %}</th>
                         <th>{% trans "UID" %}</th>
@@ -32,8 +33,9 @@
                 {% for record in submit_logs %}
                     <tr>
                         <td>{{ record.msgid }}</td>
-                        <td>{{ record.source_addr }}</td>
-                        <td>{{ record.destination_addr }}</td>
+                        <td>{{ record.decoded_source_addr }}</td>
+                        <td>{{ record.decoded_destination_addr }}</td>
+                        <td>{{ record.decoded_short_message }}</td>
                         <td>{{ record.rate }}</td>
                         <td>{{ record.pdu_count }}</td>
                         <td>{{ record.uid }}</td>

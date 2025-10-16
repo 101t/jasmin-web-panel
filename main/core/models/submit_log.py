@@ -27,6 +27,7 @@ Requirement:
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 """
 
+import binascii
 from django.utils.translation import gettext as _
 from django.db import models
 
@@ -46,6 +47,66 @@ class SubmitLog(models.Model):
     trials = models.PositiveIntegerField(_("Trials"), default=1)
     created_at = models.DateTimeField(_("Created At"), null=False, db_index=True)
     status_at = models.DateTimeField(_("Status At"), null=False)
+
+    @property
+    def decoded_destination_addr(self):
+        if self.destination_addr:
+            # Remove the '\x' prefix and decode from hex to bytes, then to UTF-8 string
+            try:
+                # The data might already be in bytes format in Python
+                if isinstance(self.destination_addr, bytes):
+                    return self.destination_addr.decode('utf-8')
+                # Otherwise, it might be a memoryview or hex string
+                elif isinstance(self.destination_addr, memoryview):
+                    return self.destination_addr.tobytes().decode('utf-8')
+                # Handle the case where it's a string with \x prefix
+                elif isinstance(self.destination_addr, str) and self.destination_addr.startswith('\\x'):
+                    hex_string = self.destination_addr[2:]  # Remove \x prefix
+                    return binascii.unhexlify(hex_string).decode('utf-8')
+                return str(self.destination_addr)
+            except (UnicodeDecodeError, binascii.Error):
+                return "Undecodable"
+        return "N/A"
+
+    @property
+    def decoded_short_message(self):
+        if self.short_message:
+            # Remove the '\x' prefix and decode from hex to bytes, then to UTF-8 string
+            try:
+                # The data might already be in bytes format in Python
+                if isinstance(self.short_message, bytes):
+                    return self.short_message.decode('utf-8')
+                # Otherwise, it might be a memoryview or hex string
+                elif isinstance(self.short_message, memoryview):
+                    return self.short_message.tobytes().decode('utf-8')
+                # Handle the case where it's a string with \x prefix
+                elif isinstance(self.short_message, str) and self.short_message.startswith('\\x'):
+                    hex_string = self.short_message[2:]  # Remove \x prefix
+                    return binascii.unhexlify(hex_string).decode('utf-8')
+                return str(self.short_message)
+            except (UnicodeDecodeError, binascii.Error):
+                return "Undecodable"
+        return "N/A"
+
+    @property
+    def decoded_source_addr(self):
+        if self.source_addr:
+            # Remove the '\x' prefix and decode from hex to bytes, then to UTF-8 string
+            try:
+                # The data might already be in bytes format in Python
+                if isinstance(self.source_addr, bytes):
+                    return self.source_addr.decode('utf-8')
+                # Otherwise, it might be a memoryview or hex string
+                elif isinstance(self.source_addr, memoryview):
+                    return self.source_addr.tobytes().decode('utf-8')
+                # Handle the case where it's a string with \x prefix
+                elif isinstance(self.source_addr, str) and self.source_addr.startswith('\\x'):
+                    hex_string = self.source_addr[2:]  # Remove \x prefix
+                    return binascii.unhexlify(hex_string).decode('utf-8')
+                return str(self.source_addr)
+            except (UnicodeDecodeError, binascii.Error):
+                return "Undecodable"
+        return "N/A"
 
     class Meta:
         db_table = "submit_log"
