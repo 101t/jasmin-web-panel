@@ -5,12 +5,30 @@
 {% block content %}
 <h1 class="h3 mb-2 text-gray-800">{% trans "Submit Logs" %}</h1>
 <div class="card shadow mb-4">
-    <!--<div class="card-header py-3">
-        <h4>
-            <button class="btn btn-success btn-sm float-right" id="add_new_obj"><i class="fas fa-plus"></i> {% trans "Add New" %}</button>
-        </h4>
-    </div>-->
+    <div class="card-header py-3">
+        <form method="get" class="form-inline" id="filter-form">
+            <div class="form-group mr-2 mb-2">
+                <input type="text" name="search" class="form-control" placeholder="{% trans 'Search...' %}" value="{{ search_query }}">
+            </div>
+            <div class="form-group mr-2 mb-2">
+                <select name="status_filter" class="form-control">
+                    <option value="">{% trans "All Status" %}</option>
+                    <option value="success" {% if status_filter == 'success' %}selected{% endif %}>{% trans "Success" %}</option>
+                    <option value="fail" {% if status_filter == 'fail' %}selected{% endif %}>{% trans "Failed" %}</option>
+                    <option value="unknown" {% if status_filter == 'unknown' %}selected{% endif %}>{% trans "Unknown" %}</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm mr-2 mb-2"><i class="fas fa-search"></i> {% trans "Filter" %}</button>
+            <a href="{% url 'web:submit_logs_view' %}" class="btn btn-secondary btn-sm mb-2"><i class="fas fa-redo"></i> {% trans "Reset" %}</a>
+        </form>
+    </div>
     <div class="card-body">
+        <div class="status-counts mb-3">
+            <span class="badge badge-default">{% trans "Total" %}: {{ stats.total_count }}</span>
+            <span class="badge badge-success">{% trans "Success" %}: {{ stats.success_count }}</span>
+            <span class="badge badge-danger">{% trans "Failed" %}: {{ stats.fail_count }}</span>
+            <span class="badge badge-secondary">{% trans "Unknown" %}: {{ stats.unknown_count }}</span>
+        </div>
         <div class="table-responsive">
             <table class="table table-hover table-striped table-bordered table-sm">
                 <thead>
@@ -42,21 +60,23 @@
                         <td>{{ record.trials }}</td>
                         <td>{{ record.created_at }}</td>
                         <td>{{ record.status_at }}</td>
-                        <td>{{ record.status }}</td>
+                        <td class="text-center">
+                            {% if record.status == 'ESME_ROK' or record.status == 'ESME_RINVNUMDESTS' %}
+                                <span class="badge badge-success">{{ record.status }}</span>
+                            {% elif record.status == 'ESME_RDELIVERYFAILURE' %}
+                                <span class="badge badge-danger">{{ record.status }}</span>
+                            {% else %}
+                                <span class="badge badge-secondary">{{ record.status }}</span>
+                            {% endif %}
+                        </td>
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="10" class="text-center"><i class="fas fa-clipboard-list text-metal" style="font-size:5rem;"></i><br>{% trans "No Submit Logs" %}</td>
+                        <td colspan="11" class="text-center"><i class="fas fa-clipboard-list text-metal" style="font-size:5rem;"></i><br>{% trans "No Submit Logs" %}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
-            <div class="status-counts">
-                <span class="badge badge-default">Total: {{ stats.total_count }}</span>
-                <span class="badge badge-success">Success: {{ stats.success_count }}</span>
-                <span class="badge badge-danger">Failed: {{ stats.fail_count }}</span>
-                <span class="badge badge-secondary">Unknown: {{ stats.unknown_count }}</span>
-            </div>
             {% include "web/includes/paginate.html" with page_obj=submit_logs %}
         </div>
     </div>
