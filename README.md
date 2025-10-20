@@ -1,73 +1,321 @@
 # Jasmin Web Panel
 
-<p>
-	<a href="https://travis-ci.org/101t/jasmin-web-panel"><img src="https://travis-ci.org/101t/jasmin-web-panel.svg?branch=master" alt="travis-ci"></a>
-</p>
+<div align="center">
 
-Jasmin Web Application to manage [Jasmin SMS Gateway](https://github.com/jookies/jasmin)
+[![Build Status](https://travis-ci.org/101t/jasmin-web-panel.svg?branch=master)](https://travis-ci.org/101t/jasmin-web-panel)
+[![Docker Hub](https://img.shields.io/badge/docker-hub-blue.svg)](https://hub.docker.com/u/tarekaec)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-### Table Of Contents:
+**A modern, feature-rich web interface for managing [Jasmin SMS Gateway](https://github.com/jookies/jasmin)**
 
-1. [Installing and Deployment](#installing-and-deployment)
-    - [Installation](#installation)
-    - [Deployment with NGiNX and Systemd](#deployment-with-nginx-and-systemd)
-    - [Deployment using Docker](#deployment-using-docker)
-    - [Submit Log](#submit-log)
-2. [Release Notes](#release-notes)
-3. [Tracking Issue](#tracking-issue)
-4. [Contact Us](#contacts)
+[Features](#-features) • [Quick Start](#-quick-start) • [Installation](#-installation) • [Docker](#-docker-deployment) • [Support](#-support)
 
-## Installing and Deployment
+</div>
 
-Before starting please make sure you have installed and running [Jasmin SMS Gateway](http://docs.jasminsms.com/en/latest/installation/index.html) on your server.
+---
 
-### Installation
+## 📋 Table of Contents
 
-Download and Extract folder We recommended installing python dependencies in `virtualenv`
+- [Overview](#-overview)
+- [Features](#-features)
+- [Prerequisites](#-prerequisites)
+- [Quick Start](#-quick-start)
+- [Installation](#-installation)
+  - [Manual Installation](#manual-installation)
+  - [Docker Deployment](#-docker-deployment)
+  - [Docker Compose](#docker-compose-deployment)
+- [Configuration](#-configuration)
+- [Production Deployment](#-production-deployment)
+- [Submit Log Integration](#-submit-log-integration)
+- [Default Credentials](#-default-credentials)
+- [Troubleshooting](#-troubleshooting)
+- [Support](#-support)
 
-Install dependencies:
+---
 
-> This version using `python >= 3.11` make sure you have installed on your system.
+## 🎯 Overview
 
-go to `jasmin-web-panel/` and run
+Jasmin Web Panel is a comprehensive web-based management interface for [Jasmin SMS Gateway](https://github.com/jookies/jasmin). Built with Django and modern web technologies, it provides an intuitive dashboard to configure, monitor, and manage your SMS operations efficiently.
 
-```sh
-cd jasmin-web-panel/
-pip install --upgrade pip wheel uv
-uv pip install -r pyproject.toml --extra=prod
+---
+
+## ✨ Features
+
+### Core Functionality
+- 🚀 **Dashboard**: Real-time statistics and system health monitoring
+- 👥 **User Management**: Create and manage users with role-based access control
+- 📡 **SMPP Connectors**: Configure and monitor SMPP client/server connections
+- 🌐 **HTTP API**: Manage HTTP connectors for sending SMS via REST API
+- 🔀 **Message Routing**: Define routing rules and filters for message delivery
+- 📨 **MO/MT Routers**: Configure Mobile Originated and Mobile Terminated message routing
+
+### Monitoring & Analytics
+- 📊 **Submit Logs**: Comprehensive message tracking with advanced search and filtering
+  - Search by Message ID, Source/Destination address, UID, and content
+  - Filter by status: Success (`ESME_ROK`, `ESME_RINVNUMDESTS`), Failed (`ESME_RDELIVERYFAILURE`), Unknown
+  - Real-time statistics with color-coded status badges
+- 🔍 **Service Monitoring**: Monitor Jasmin gateway service health
+- 📈 **Real-time Status**: Live SMPP connector status monitoring
+
+### Advanced Features
+- 🔧 **RESTful API**: Programmatic access to all management functions
+- ⚡ **Rate Limiting**: Configure throughput limits per user/connector
+- 🔒 **Multi-tenancy**: Manage multiple clients/users
+- 📝 **Audit Logging**: Track all administrative actions
+- 🌍 **Internationalization**: Multi-language support ready
+- 📱 **Responsive Design**: Mobile-friendly interface
+
+---
+
+## 📦 Prerequisites
+
+### Required Components
+- **[Jasmin SMS Gateway](http://docs.jasminsms.com/en/latest/installation/index.html)**: v0.9+ installed and running
+- **Python**: 3.11 or higher
+- **Database**: PostgreSQL 12+ (recommended) or MySQL 8.0+
+- **Redis**: 6.0+ (for caching and Celery)
+- **RabbitMQ**: 3.10+ (for message queuing)
+
+### System Requirements
+- **OS**: Linux (Ubuntu 20.04+, Debian 11+, CentOS 8+)
+- **RAM**: Minimum 2GB (4GB+ recommended for production)
+- **Disk**: 10GB+ free space
+- **Network**: Connectivity to Jasmin telnet interface (default: port 8990)
+
+---
+
+## 🚀 Quick Start
+
+### Using Docker Compose (Recommended)
+
+```bash
+# Clone the repository
+git clone https://github.com/101t/jasmin-web-panel.git
+cd jasmin-web-panel
+
+# Copy and configure environment file
 cp sample.env .env
+# Edit .env with your settings
+
+# Start all services
+docker compose up -d
+
+# Access the web interface
+open http://localhost:8999
 ```
 
-Preparing your `database` by running migrate commads:
+**Default credentials**: `admin` / `secret` ⚠️ **Change immediately after first login!**
 
-```sh
-python manage.py migrate
-python manage.py samples
-python manage.py collectstatic --no-input
+---
+
+## 💻 Installation
+
+### Manual Installation
+
+#### 1. Clone and Setup Environment
+
+```bash
+# Clone repository
+git clone https://github.com/101t/jasmin-web-panel.git
+cd jasmin-web-panel
+
+# Create virtual environment (recommended)
+python3 -m venv env
+source env/bin/activate  # On Windows: env\Scripts\activate
+
+# Upgrade pip and install build tools
+pip install --upgrade pip wheel uv
+
+# Install dependencies
+uv pip install -r pyproject.toml --extra=prod
 ```
 
-These commands used in production server, also you may edit **Jasmin SMS Gateway** credential connection
+#### 2. Configure Application
 
-```sh
+```bash
+# Copy sample environment file
+cp sample.env .env
+
+# Edit .env with your configuration
+nano .env  # or use your preferred editor
+```
+
+**Essential configuration**:
+
+```ini
+# Django Settings
+DEBUG=False  # Always False in production
+SECRET_KEY=your-very-long-random-secret-key-here
+ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
+
+# Database
+PRODB_URL=postgres://username:password@localhost:5432/jasmin_web_db
+
+# Jasmin Gateway Connection
 TELNET_HOST=127.0.0.1
 TELNET_PORT=8990
 TELNET_USERNAME=jcliadmin
 TELNET_PW=jclipwd
 TELNET_TIMEOUT=10
+
+# Redis & Celery
+REDIS_URL=redis://localhost:6379/0
+CELERY_BROKER_URL=amqp://guest:guest@localhost:5672//
+
+# Submit Log Feature
+SUBMIT_LOG=True
 ```
 
-for production make sure `DEBUG=False` in `.env` file to ensure security.
-You may run project manually
+#### 3. Initialize Database
 
-```sh
-python manage.py runserver
+```bash
+# Run migrations
+python manage.py migrate
+
+# Load sample data (optional)
+python manage.py samples
+
+# Collect static files
+python manage.py collectstatic --no-input
+
+# Create superuser (optional)
+python manage.py createsuperuser
 ```
 
-### Deployment with `NGiNX and Systemd`
+#### 4. Run Development Server
 
-> Make sure you have installed `gunicorn` using `pip`.
+```bash
+python manage.py runserver 0.0.0.0:8000
+```
 
-Navigate to `/etc/systemd/system` and create new service called `jasmin-web.service`
+Access the application at `http://localhost:8000`
+
+---
+
+## 🐳 Docker Deployment
+
+### Using Pre-built Image
+
+```bash
+# Pull the latest image
+docker pull tarekaec/jasmin_web_panel:1.4
+
+# Configure environment
+cp sample.env .env
+# Edit .env with your settings
+
+# Run container
+docker run -d \
+  --name jasmin-web \
+  -p 8999:8000 \
+  --env-file .env \
+  -v ./public:/app/public \
+  tarekaec/jasmin_web_panel:1.4
+```
+
+### Building Custom Image
+
+```bash
+# Build from Dockerfile
+docker build -f config/docker/slim/Dockerfile -t jasmin_web_panel:custom .
+
+# Run your custom image
+docker run -d \
+  --name jasmin-web \
+  -p 8999:8000 \
+  --env-file .env \
+  jasmin_web_panel:custom
+```
+
+### Docker Compose Deployment
+
+Full stack deployment with all dependencies:
+
+```bash
+# Ensure .env is configured
+cp sample.env .env
+
+# Start all services
+docker compose up -d
+
+# View logs
+docker compose logs -f jasmin-web
+
+# Check service status
+docker compose ps
+
+# Stop all services
+docker compose down
+```
+
+**Services included**:
+- `jasmin-web`: Web application (port 8999)
+- `jasmin-celery`: Background task processor
+- `db`: PostgreSQL database
+- `redis`: Redis cache
+- `rabbit-mq`: RabbitMQ message broker
+- `jasmin`: Jasmin SMS Gateway (ports 2775, 8990, 1401)
+- `sms_logger`: SMS submit log collector
+
+#### ARM64/AArch64 Support
+
+For ARM-based systems:
+
+1. Comment out line 38 in `config/docker/slim/Dockerfile`:
+   ```dockerfile
+   # ENV LD_PRELOAD /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
+   ```
+
+2. Start services:
+   ```bash
+   docker compose up -d
+   ```
+
+---
+
+## ⚙️ Configuration
+
+### Environment Variables Reference
+
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `DEBUG` | Enable debug mode | `False` | ✅ |
+| `SECRET_KEY` | Django secret key | - | ✅ |
+| `ALLOWED_HOSTS` | Allowed hosts | `*` | ✅ |
+| `PRODB_URL` | PostgreSQL URL | - | ✅ |
+| `REDIS_URL` | Redis URL | `redis://redis:6379/0` | ✅ |
+| `CELERY_BROKER_URL` | RabbitMQ URL | `amqp://guest:guest@rabbit-mq:5672//` | ✅ |
+| `TELNET_HOST` | Jasmin telnet host | `127.0.0.1` | ✅ |
+| `TELNET_PORT` | Jasmin telnet port | `8990` | ✅ |
+| `TELNET_USERNAME` | Jasmin admin username | `jcliadmin` | ✅ |
+| `TELNET_PW` | Jasmin admin password | `jclipwd` | ✅ |
+| `SUBMIT_LOG` | Enable submit log tracking | `False` | ❌ |
+
+### Jasmin Gateway Configuration
+
+Ensure Jasmin is configured properly:
+
+1. Enable `submit_sm_resp` publishing in `jasmin.cfg`:
+   ```ini
+   [sm-listener]
+   publish_submit_sm_resp = True
+   ```
+
+2. Restart Jasmin:
+   ```bash
+   systemctl restart jasmin
+   ```
+
+---
+
+## 🚀 Production Deployment
+
+### Nginx & Systemd Setup
+
+#### 1. Create Systemd Service
+
+Create `/etc/systemd/system/jasmin-web.service`:
 
 ```ini
 [Unit]
@@ -78,169 +326,226 @@ After=network.target postgresql.service
 [Service]
 Type=simple
 SyslogIdentifier=jasminwebpanel
-PermissionsStartOnly=true
-User=username
-Group=username
-Environment="DJANGO_SETTINGS_MODULE=config.settings.pro"
+User=www-data
+Group=www-data
 WorkingDirectory=/opt/jasmin-web-panel
-ExecStart=/opt/jasmin-web-panel/env/bin/gunicorn --bind 127.0.0.1:8000 config.wsgi -w 3 --timeout=120 --log-level=info
-StandardOutput=file:/opt/jasmin-web-panel/logs/gunicorn.log
-StandardError=file:/opt/jasmin-web-panel/logs/gunicorn_error.log
-StandardOutput=journal+console
+Environment="DJANGO_SETTINGS_MODULE=config.settings.pro"
+ExecStart=/opt/jasmin-web-panel/env/bin/gunicorn \
+    --bind 127.0.0.1:8000 \
+    --workers 4 \
+    --timeout 120 \
+    --log-level info \
+    --access-logfile /opt/jasmin-web-panel/logs/gunicorn.log \
+    --error-logfile /opt/jasmin-web-panel/logs/gunicorn_error.log \
+    config.wsgi:application
 Restart=on-failure
+RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-Reload systemd
+#### 2. Enable and Start Service
 
-```sh
+```bash
 sudo systemctl daemon-reload
-```
-
-Now, you can do:
-
-```sh
 sudo systemctl enable jasmin-web.service
 sudo systemctl start jasmin-web.service
-```
-
-To ensure web app running without issue:
-
-```sh
 sudo systemctl status jasmin-web.service
 ```
 
-For NGiNX go to `/etc/nginx/sites-available` and create a new file `jasmin_web`
+#### 3. Configure Nginx
+
+Create `/etc/nginx/sites-available/jasmin_web`:
 
 ```nginx
-upstream jasmin_web{
+upstream jasmin_web {
     server 127.0.0.1:8000;
 }
 
 server {
     listen 80;
+    server_name sms.yourdomain.com;  # Replace with your domain
     charset utf-8;
-    # server_name sms.example.com;
-    server_name _; # for IP Address access
-    client_body_timeout 500;
-    client_header_timeout 500;
-    keepalive_timeout 500 500;
-    send_timeout 30;
+    
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    
+    # Logging
     access_log /var/log/nginx/jasmin_web_access.log combined;
     error_log /var/log/nginx/jasmin_web_error.log;
-
+    
+    # Static files
+    location /static/ {
+        alias /opt/jasmin-web-panel/public/static/;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+    
+    # Media files
+    location /media/ {
+        alias /opt/jasmin-web-panel/public/media/;
+    }
+    
+    # Proxy to Django
     location / {
         proxy_pass http://jasmin_web;
         proxy_http_version 1.1;
-        proxy_read_timeout 86400;
-        proxy_redirect     off;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-Host $server_name;
-        proxy_max_temp_file_size 1600m;
         proxy_buffering off;
-        proxy_request_buffering on;
         client_max_body_size 20M;
-        client_body_buffer_size  256K;
-    }
-
-    location ^~ /media/ {
-        root /opt/jasmin-web-panel/public/;
-        add_header Accept-Ranges bytes;
-    }
-    location ^~ /static/ {
-        root /opt/jasmin-web-panel/public/;
-        add_header Pragma public;
-        add_header Cache-Control "public";
-        expires 30d;
     }
 }
 ```
 
-> Note: Don't forget to replace `sms.example.com` with your real domain
+#### 4. Enable Nginx Configuration
 
-Once you are done, test and restart the Nginx Service with:
-
-```sh
-ln -s /etc/nginx/sites-available/jasmin_web /etc/nginx/sites-enabled/jasmin_web
+```bash
+sudo ln -s /etc/nginx/sites-available/jasmin_web /etc/nginx/sites-enabled/
 sudo nginx -t
-sudo nginx -s reload
-# or sudo service nginx restart
-# or sudo systemctl restart nginx
+sudo systemctl reload nginx
 ```
 
-### Login information:
+#### 5. Setup SSL (Recommended)
 
-```shell
+```bash
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d sms.yourdomain.com
+```
+
+---
+
+## 📊 Submit Log Integration
+
+Track all SMS messages submitted through Jasmin Gateway with detailed status information.
+
+### Setup Instructions
+
+1. **Enable in configuration**:
+   ```ini
+   SUBMIT_LOG=True
+   ```
+
+2. **Configure SMS Logger**:
+   ```ini
+   DB_HOST=db
+   DB_DATABASE=jasmin
+   DB_USER=jasmin
+   DB_PASS=jasmin
+   DB_TABLE=submit_log
+   ```
+
+### Features
+
+- ✅ **Real-time Tracking**: Monitor message submission and delivery status
+- 🔍 **Advanced Search**: Search by Message ID, addresses, UID, or content
+- 🎯 **Status Filtering**: 
+  - Success: `ESME_ROK`, `ESME_RINVNUMDESTS`
+  - Failed: `ESME_RDELIVERYFAILURE`
+  - Unknown: All other status codes
+- 📈 **Statistics Dashboard**: View total, success, failed, and unknown counts
+- 🎨 **Color-coded Badges**: Visual status identification
+- 📄 **Pagination**: Handle large volumes efficiently
+
+---
+
+## 🔐 Default Credentials
+
+⚠️ **SECURITY WARNING**: Change default credentials immediately after first login!
+
+```
 Username: admin
-Password: secret  # please change the default password to avoid the security issue
+Password: secret
 ```
 
-## Deployment using Docker
+### Change Password
 
-You could download the built image on [docker hub](https://hub.docker.com/u/tarekaec):
+**Via Web Interface**:
+1. Log in with default credentials
+2. Navigate to **Profile** → **Change Password**
+3. Enter new secure password
 
-```shell
-docker pull tarekaec/jasmin_web_panel
+**Via Command Line**:
+```bash
+python manage.py changepassword admin
 ```
 
-also, you could build it on your local machine by navigating to the project directory
+---
 
-```shell
-docker build -f config/docker/slim/Dockerfile -t jasmin_web_panel:latest .
+## 🔧 Troubleshooting
+
+### Cannot connect to Jasmin Gateway
+
+**Solutions**:
+- Verify Jasmin is running: `systemctl status jasmin`
+- Check telnet connectivity: `telnet localhost 8990`
+- Confirm `TELNET_*` settings match Jasmin configuration
+- Ensure firewall allows port 8990
+
+### Submit logs not appearing
+
+**Solutions**:
+- Verify `SUBMIT_LOG=True` in `.env`
+- Check SMS Logger service: `docker compose ps sms_logger`
+- Confirm `publish_submit_sm_resp = True` in `jasmin.cfg`
+- Check logs: `docker compose logs sms_logger`
+
+### Static files not loading
+
+**Solutions**:
+```bash
+python manage.py collectstatic --no-input --clear
+sudo chown -R www-data:www-data /opt/jasmin-web-panel/public/
+sudo nginx -t && sudo systemctl reload nginx
 ```
 
-You need to configure the environment variable in `.env` file
+### View Application Logs
 
-```shell
-DJANGO_SETTINGS_MODULE=config.settings.pro
-PRODB_URL=postgres://username:strong_password@postgre_hostname:5432/jasmin_web_db
+```bash
+# Docker Compose
+docker compose logs -f jasmin-web
+
+# Systemd
+sudo journalctl -u jasmin-web.service -f
 ```
 
-to start docker container
+---
 
-```shell
-docker stack deploy -c docker-compose.yml jasmin1
-```
+## 💬 Support
 
-you could check service on terminal
+### Community Support
 
-```shell
-docker service ls | grep jasmin
-```
+- **Telegram**: Join our community → [https://t.me/jasminwebpanel](https://t.me/jasminwebpanel)
+- **GitHub Issues**: [Report bugs or request features](https://github.com/101t/jasmin-web-panel/issues)
+- **Email**: [tarek.it.eng@gmail.com](mailto:tarek.it.eng@gmail.com)
 
-## Deployment using Docker Compose (Works with AArch64 or ARM64)
+### Contributing
 
-You need to configure the environment variable in `.env` file
-You also need to comment line 38 of "config/docker/slim/Dockerfile" (ENV LD_PRELOAD /usr/lib/x86_64-linux-gnu/libjemalloc.so.2) 
-Then start docker container in detach mode. You can remove "-d" if you want to see logs
-```
-docker compose up -d
-```
+We welcome contributions! To contribute:
 
-Then check docker containers
-```
-docker ps
-```
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
 
-## Submit Log
+---
 
-To work with Submit Log you need to install and configure [Submit Log](https://github.com/101t/jasmin-submit-logs) service, make sure you have `SUBMIT_LOG` (default `False`) in environment variable:
+## 📄 License
 
-```shell
-SUBMIT_LOG=True
-```
+This project is licensed under the MIT License. See [LICENSE](LICENSE) file for details.
 
-## Tracking Issue
+---
 
-You may submit issue [here](https://github.com/101t/jasmin-web-panel/issues)
+<div align="center">
 
-## Contacts
+**Made with ❤️ for the Jasmin SMS Gateway community**
 
-For question and suggestion: [tarek.it.eng@gmail.com](mailto:tarek.it.eng@gmail.com), Join Telegram Channel: [https://t.me/jasminwebpanel](https://t.me/jasminwebpanel), all suggestion and questions are welcomed.
+[⬆ Back to Top](#jasmin-web-panel)
+
+</div>

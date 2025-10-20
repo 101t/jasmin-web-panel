@@ -2,9 +2,9 @@ version: '3.8'
 
 services:
   jasmin-web:
-    image: tarekaec/jasmin_web_panel:latest
+    image: tarekaec/jasmin_web_panel:1.3
     ports:
-      - "${JASMIN_WEB_PORT:-8000}:8000"
+      - "${JASMIN_WEB_PORT:-8999}:8000"
     deploy:
       replicas: 1
     env_file:
@@ -22,8 +22,11 @@ services:
     depends_on:
       - redis
       - db
+      - rabbit-mq
+    restart: unless-stopped
+
   jasmin-celery:
-    image: tarekaec/jasmin_web_panel:latest
+    image: tarekaec/jasmin_web_panel:1.3
     entrypoint: bash ./docker-entrypoint-celery.sh
     deploy:
       replicas: 1
@@ -40,6 +43,8 @@ services:
     depends_on:
       - redis
       - db
+    restart: unless-stopped
+
   redis:
     image: redis:alpine
     tty: true
@@ -64,9 +69,13 @@ services:
           memory: ${REDIS_MEM:-512M}
     security_opt:
       - no-new-privileges:true
+
   rabbit-mq:
     image: rabbitmq:3.10-management-alpine
     restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
     healthcheck:
       test: rabbitmq-diagnostics -q ping
     deploy:
@@ -76,30 +85,40 @@ services:
           memory: ${RABBITMQ_MEM:-512M}
     security_opt:
       - no-new-privileges:true
+
   db:
-    image: postgres:16.0-alpine
+    image: postgres:18.0-alpine
     restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
       POSTGRES_DB: "${POSTGRES_DB:-jasmin}"
       POSTGRES_USER: "${POSTGRES_USER:-jasmin}"
-      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-top_secret}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-jasmin}"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-jasmin}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   jasmin:
     image: jookies/jasmin:latest
     restart: unless-stopped
+    volumes:
+      - ./jasmin_config/resource:/etc/jasmin/resource
+      - ./jasmin_config/store:/etc/jasmin/store
+      - ./jasmin_config:/etc/jasmin
     ports:
       - "${JASMIN_SMS_PORT:-2775}:2775"
       - "${JASMIN_DASHBOARD_PORT:-8990}:8990"
       - "${JASMIN_HTTP_API_PORT:-1401}:1401"
     depends_on:
-      redis:
-        condition: service_healthy
-      rabbit-mq:
-        condition: service_healthy
+      - redis
+      - rabbit-mq
     environment:
       REDIS_CLIENT_HOST: redis
       AMQP_BROKER_HOST: rabbit-mq
+      AMQP_BROKER_PORT: 5672
     deploy:
       resources:
         limits:
@@ -107,72 +126,32 @@ services:
           memory: ${JASMIN_MEM:-512M}
     security_opt:
       - no-new-privileges:true
+
   sms_logger:
     image: jookies/jasmin:latest
-    command: bash -c "pip install psycopg2-binary mysql-connector-python && exec python /build/misc/scripts/sms_logger.py"
     volumes:
-      - /opt/jasmin-web-panel/config/docker/jasmin/jasmin/resource:/app/resource
+      - ./jasmin_config/resource:/etc/jasmin/resource
+      - ./jasmin_config:/etc/jasmin
+      - ./sms_logger.py:/build/misc/scripts/sms_logger.py:ro
+    command: bash -c "sleep 15 && pip install -U pip psycopg2-binary mysql-connector-python && exec python /build/misc/scripts/sms_logger.py"
     environment:
       DB_TYPE_MYSQL: ${DB_TYPE_MYSQL:-0}
       AMQP_BROKER_HOST: ${AMQP_BROKER_HOST:-rabbit-mq}
       AMQP_BROKER_PORT: ${AMQP_BROKER_PORT:-5672}
-      AMQP_SPEC_FILE: '/app/resource/amqp0-9-1.xml'
+      AMQP_SPEC_FILE: '/etc/jasmin/resource/amqp0-9-1.xml'
       DB_HOST: ${DB_HOST:-db}
       DB_DATABASE: ${DB_DATABASE:-jasmin}
       DB_TABLE: ${DB_TABLE:-submit_log}
       DB_USER: ${DB_USER:-jasmin}
-      DB_PASS: ${DB_PASS:-top_secret}
+      DB_PASS: ${DB_PASS:-jasmin}
     depends_on:
       - rabbit-mq
       - db
+      - jasmin
     restart: unless-stopped
     healthcheck:
       disable: true
-  prometheus:
-    image: prom/prometheus:latest
-    restart: unless-stopped
-    ports:
-      - "${PROMETHEUS_PORT:-9090}:9090"
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-      - monitoring_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--web.enable-lifecycle'
-    depends_on:
-      - jasmin
-    deploy:
-      resources:
-        limits:
-          cpus: "${PROMETHEUS_CPU:-2}"
-          memory: ${PROMETHEUS_MEM:-512M}
-    security_opt:
-      - no-new-privileges:true
 
-  grafana:
-    image: grafana/grafana
-    restart: unless-stopped
-    ports:
-      - "${GRAFANA_PORT:-2345}:3000"
-    environment:
-      GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource"
-    volumes:
-      - ./provisioning/datasources:/etc/grafana/provisioning/datasources:ro
-      - ./provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
-      - ./dashboards:/opt/grafana-dashboards:ro
-      - monitoring_data:/var/lib/grafana
-    depends_on:
-      - prometheus
-    deploy:
-      resources:
-        limits:
-          cpus: "${GRAFANA_CPU:-2}"
-          memory: ${GRAFANA_MEM:-512M}
-    security_opt:
-      - no-new-privileges:true
 volumes:
   web_public:
     driver: local
