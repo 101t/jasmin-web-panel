@@ -146,6 +146,15 @@ REDIS_PORT = int(os.environ.get("REDIS_PORT", default=6379))
 REDIS_DB = int(os.environ.get("REDIS_DB", default=0))
 REDIS_URL = (REDIS_HOST, REDIS_PORT)
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}',
+        'KEY_PREFIX': 'jasmin_cache',
+        'TIMEOUT': 300,  # 5 minutes default
+    }
+}
+
 DEFAULT_USER_AVATAR = STATIC_URL + "assets/img/user.png"
 DEFAULT_USER_FOLDER = "users"
 LAST_ACTIVITY_INTERVAL_SECS = 3600

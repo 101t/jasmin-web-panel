@@ -81,6 +81,7 @@ def smppccm_view_manage(request):
         response["message"] = str(_("SMPPCCM stoped successfully!"))
     elif s == "restart":
         smppccm.stop(cid=request.POST.get("cid"))
+        time.sleep(1)
         response = smppccm.start(cid=request.POST.get("cid"))
         response["message"] = str(_("SMPPCCM restarted successfully!"))
     else:
