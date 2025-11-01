@@ -8,7 +8,7 @@ before_install:
   - cp -rf sample.env .env
 before_script:
   # install requirements:
-  - pip install -U pip wheel uv && uv pip install -r pyproject.toml
+  - pip install -U pip wheel uv && uv pip install -r pyproject.toml --extra prod
 services:
   - redis-server
 addons:

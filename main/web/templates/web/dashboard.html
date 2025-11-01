@@ -1,7 +1,26 @@
 {% extends "web/base.html" %}
 {% load static i18n humanize %}
 {% block title %}{% trans "Dashboard" %}{% endblock title %}
-{% block extracss %}{% endblock extracss %}
+{% block extracss %}
+<style>
+.chart-container {
+    position: relative;
+    height: 400px;
+    margin-bottom: 1rem;
+}
+.chart-card {
+    height: 100%;
+}
+.grouping-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+.grouping-buttons .btn {
+    flex: 1;
+}
+</style>
+{% endblock extracss %}
 {% block content %}
 <div class="row">
     <div class="col-lg-4 mb-4">
@@ -31,7 +50,69 @@
         </div>
     </div>
 </div>
+
+<!-- Submit Log Analytics -->
+<div class="row mt-4">
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow chart-card">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">{% trans "Submit Log Timeline" %}</h6>
+                <div class="grouping-buttons">
+                    <button type="button" class="btn btn-sm btn-outline-primary active" data-grouping="daily">{% trans "Daily" %}</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-grouping="weekly">{% trans "Weekly" %}</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-grouping="monthly">{% trans "Monthly" %}</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-grouping="yearly">{% trans "Yearly" %}</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow chart-card">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">{% trans "Message Status" %}</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="donutChart"></canvas>
+                </div>
+                <div class="mt-4 text-center small">
+                    <span class="mr-2">
+                        <i class="fas fa-circle text-success"></i> {% trans "Success" %}: <strong>{{ submit_stats.success|default:0 }}</strong>
+                    </span>
+                    <span class="mr-2">
+                        <i class="fas fa-circle text-danger"></i> {% trans "Failed" %}: <strong>{{ submit_stats.failed|default:0 }}</strong>
+                    </span>
+                    <span>
+                        <i class="fas fa-circle text-secondary"></i> {% trans "Unknown" %}: <strong>{{ submit_stats.unknown|default:0 }}</strong>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock content %}
 {% block extrajs %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Chart data from Django
+var chartData = {
+    timeline: {
+        labels: {{ timeline_labels|safe }},
+        success: {{ timeline_success|safe }},
+        failed: {{ timeline_failed|safe }}
+    },
+    donut: {
+        success: {{ submit_stats.success|default:0 }},
+        failed: {{ submit_stats.failed|default:0 }},
+        unknown: {{ submit_stats.unknown|default:0 }}
+    }
+};
+</script>
 <script type="text/javascript" src="{% static 'web/dashboard.js' %}"></script>
 {% endblock extrajs %}

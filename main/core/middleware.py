@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.utils.deprecation import MiddlewareMixin
 from django.core.cache import cache
-from django.db import transaction
+from django.db import transaction, connection
 from .utils import get_user_agent, get_client_ip, LazyEncoder
 from .models import ActivityLog
 
@@ -73,20 +73,54 @@ class UserAgentMiddleware(MiddlewareMixin):
         self._enqueue_activity_log_creation(request, user_agent)
 
     def _enqueue_activity_log_creation(self, request, user_agent):
-        from concurrent.futures import ThreadPoolExecutor
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            executor.submit(self._create_activity_log, request, user_agent)
+        # Extract data from request before threading to avoid context issues
+        log_data = {
+            'user_id': request.user.id,
+            'service': request.POST.get("s", "unknown"),
+            'method': request.method,
+            'params': self.clean_params(request.POST or request.GET or {}),
+            'path': request.path,
+            'ip': get_client_ip(request),
+            'user_agent': user_agent,
+        }
+        
+        # Use threading.Thread instead of ThreadPoolExecutor for simpler lifecycle
+        import threading
+        thread = threading.Thread(target=self._create_activity_log_safe, args=(log_data,), daemon=True)
+        thread.start()
 
+    def clean_params(self, params):
+        """Clean sensitive parameters before logging."""
+        cleaned = dict(params)
+        sensitive_keys = ['password', 'passwd', 'pwd', 'secret', 'token', 'api_key', 'apikey']
+        for key in list(cleaned.keys()):
+            if any(sensitive in key.lower() for sensitive in sensitive_keys):
+                cleaned[key] = '***REDACTED***'
+        return cleaned
+
+    def _create_activity_log_safe(self, log_data):
+        """Thread-safe activity log creation with proper DB connection handling."""
+        try:
+            self._create_activity_log(log_data)
+        except Exception as e:
+            logger.error(f"Failed to create activity log: {str(e)}", exc_info=True)
+        finally:
+            # Close database connection for this thread
+            connection.close()
+    
     @transaction.atomic
-    def _create_activity_log(self, request, user_agent):
-        params = self.clean_params(request.POST or request.GET or {})
+    def _create_activity_log(self, log_data):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        
+        user = User.objects.get(id=log_data['user_id'])
         activity_log = ActivityLog(
-            user=request.user,
-            service=request.POST.get("s", "unknown"),
-            method=request.method,
-            params=json.dumps(params, cls=LazyEncoder),
-            path=request.path,
-            ip=get_client_ip(request),
-            user_agent=json.dumps(user_agent.__dict__ or {}, cls=LazyEncoder),
+            user=user,
+            service=log_data['service'],
+            method=log_data['method'],
+            params=json.dumps(log_data['params'], cls=LazyEncoder),
+            path=log_data['path'],
+            ip=log_data['ip'],
+            user_agent=json.dumps(log_data['user_agent'].__dict__ or {}, cls=LazyEncoder),
         )
         activity_log.save()

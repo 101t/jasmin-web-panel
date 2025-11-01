@@ -144,7 +144,20 @@ MEDIA_URL = '/media/'
 REDIS_HOST = os.environ.get("REDIS_HOST", default="redis")
 REDIS_PORT = int(os.environ.get("REDIS_PORT", default=6379))
 REDIS_DB = int(os.environ.get("REDIS_DB", default=0))
-REDIS_URL = (REDIS_HOST, REDIS_PORT)
+REDIS_PASSWORD = os.environ.get("REDIS_PASSWORD", default="")
+if REDIS_PASSWORD:
+    REDIS_URL = f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'
+else:
+    REDIS_URL = f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': REDIS_URL,
+        'KEY_PREFIX': 'jasmin_cache',
+        'TIMEOUT': 300,  # 5 minutes default
+    }
+}
 
 DEFAULT_USER_AVATAR = STATIC_URL + "assets/img/user.png"
 DEFAULT_USER_FOLDER = "users"
