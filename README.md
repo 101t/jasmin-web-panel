@@ -159,9 +159,11 @@ TELNET_USERNAME=jcliadmin
 TELNET_PW=jclipwd
 TELNET_TIMEOUT=10
 
-# Redis & Celery
-REDIS_URL=redis://localhost:6379/0
-CELERY_BROKER_URL=amqp://guest:guest@localhost:5672//
+# Redis for Cache & Celery
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_DB=0
+REDIS_PASSWORD=<Optional>
 
 # Submit Log Feature
 SUBMIT_LOG=True
@@ -284,8 +286,9 @@ For ARM-based systems:
 | `SECRET_KEY` | Django secret key | - | ✅ |
 | `ALLOWED_HOSTS` | Allowed hosts | `*` | ✅ |
 | `PRODB_URL` | PostgreSQL URL | - | ✅ |
-| `REDIS_URL` | Redis URL | `redis://redis:6379/0` | ✅ |
-| `CELERY_BROKER_URL` | RabbitMQ URL | `amqp://guest:guest@rabbit-mq:5672//` | ✅ |
+| `REDIS_HOST` | Redis host | `redis` | ✅ |
+| `REDIS_PORT` | Redis port | `6379` | ✅ |
+| `REDIS_DB` | Redis database | `0` | ✅ |
 | `TELNET_HOST` | Jasmin telnet host | `127.0.0.1` | ✅ |
 | `TELNET_PORT` | Jasmin telnet port | `8990` | ✅ |
 | `TELNET_USERNAME` | Jasmin admin username | `jcliadmin` | ✅ |

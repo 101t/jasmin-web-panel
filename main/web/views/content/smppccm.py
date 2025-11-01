@@ -1,3 +1,5 @@
+import time
+
 from django.utils.translation import gettext as _
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -81,7 +83,7 @@ def smppccm_view_manage(request):
         response["message"] = str(_("SMPPCCM stoped successfully!"))
     elif s == "restart":
         smppccm.stop(cid=request.POST.get("cid"))
-        time.sleep(1)
+        time.sleep(6)
         response = smppccm.start(cid=request.POST.get("cid"))
         response["message"] = str(_("SMPPCCM restarted successfully!"))
     else:

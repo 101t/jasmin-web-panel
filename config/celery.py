@@ -12,8 +12,8 @@ from celery.utils.log import get_task_logger
 from django.utils import timezone
 
 logger = get_task_logger(__name__)
-CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", default="redis://localhost:6379/0")
-CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", default="redis://localhost:6379/0")
+CELERY_BROKER_URL = settings.REDIS_URL
+CELERY_RESULT_BACKEND = settings.REDIS_URL
 
 
 app = Celery('config')
