@@ -17,13 +17,14 @@
                 var datalist = data["connectors"];
                 var output = $.map(datalist, function(val, i){
                     var html = "";
+                    var maskedPassword = val.password ? '•'.repeat(Math.min(val.password.length, 8)) : '';
                     html += `<tr>
                         <td>${i+1}</td>
                         <td>${val.cid}</td>
                         <td>${val.host}</td>
                         <td>${val.port}</td>
                         <td>${val.username}</td>
-                        <td>${val.password}</td>
+                        <td><span class="password-masked" title="{% trans 'Password is masked for security' %}">${maskedPassword}</span></td>
                         <td class="text-center">${val.status === "started"?'<i class="fas fa-circle fa-lg text-success"><i/>':'<i class="fas fa-circle fa-lg text-default"><i/>'}</td>
                         <td class="text-center" style="padding-top:4px;padding-bottom:4px;">
                             <div class="btn-group btn-group-sm">
@@ -151,5 +152,22 @@
 			}
 		});
     });
+    
+    // Toggle password visibility
+    $(document).on('click', '.toggle-password', function(e){
+        e.preventDefault();
+        var $button = $(this);
+        var $input = $button.closest('.input-group').find('.password-input');
+        var $icon = $button.find('i');
+        
+        if ($input.attr('type') === 'password') {
+            $input.attr('type', 'text');
+            $icon.removeClass('fa-eye').addClass('fa-eye-slash');
+        } else {
+            $input.attr('type', 'password');
+            $icon.removeClass('fa-eye-slash').addClass('fa-eye');
+        }
+    });
+    
     $("li.nav-item.smppccm-menu").addClass("active");
 })(jQuery);

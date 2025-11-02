@@ -17,6 +17,7 @@
                 var datalist = data["users"];
                 var output = $.map(datalist, function(val, i){
                     var html = "";
+                    var maskedPassword = val.password ? '•'.repeat(Math.min(val.password.length, 8)) : '';
                     html += `<tr>
                         <td>${i+1}</td>
                         <td>${val.uid}</td>
@@ -159,5 +160,22 @@
 			}
 		});
     });
+    
+    // Toggle password visibility
+    $(document).on('click', '.toggle-password', function(e){
+        e.preventDefault();
+        var $button = $(this);
+        var $input = $button.closest('.input-group').find('.password-input');
+        var $icon = $button.find('i');
+        
+        if ($input.attr('type') === 'password') {
+            $input.attr('type', 'text');
+            $icon.removeClass('fa-eye').addClass('fa-eye-slash');
+        } else {
+            $input.attr('type', 'password');
+            $icon.removeClass('fa-eye-slash').addClass('fa-eye');
+        }
+    });
+    
     $("li.nav-item.users-menu").addClass("active");
 })(jQuery);

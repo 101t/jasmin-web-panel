@@ -70,7 +70,14 @@
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "Password" %}</label>
                         <div class="col-sm-10">
-                            <input type="text" name="password" class="form-control" placeholder="{% trans 'Password' %}">
+                            <div class="input-group">
+                                <input type="password" name="password" class="form-control password-input" placeholder="{% trans 'Password' %}">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary toggle-password" type="button" title="{% trans 'Show/Hide Password' %}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -109,7 +116,14 @@
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "Password" %}</label>
                         <div class="col-sm-10">
-                            <input type="text" name="password" class="form-control" placeholder="{% trans 'Password' %}">
+                            <div class="input-group">
+                                <input type="password" name="password" class="form-control password-input" placeholder="{% trans 'Password' %}">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary toggle-password" type="button" title="{% trans 'Show/Hide Password' %}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <h3>{% trans "Quota" %}</h3>
