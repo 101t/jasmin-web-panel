@@ -17,6 +17,13 @@
                 <small class="text-muted label-danger">{{ form.send_type.help_text }}</small>
             </div>
             <div class="form-group">
+                <label for="user_uid">{{ form.user_uid.label }}</label>
+                <select class="form-control" name="user_uid" id="user_uid">
+                    <option value="">{% trans "Default (Environment Credentials)" %}</option>
+                </select>
+                <small class="text-muted">{{ form.user_uid.help_text }}</small>
+            </div>
+            <div class="form-group">
                 <label for="src_addr">{{ form.src_addr.label }}</label>
                 <input class="form-control" type="text" id="src_addr" name="src_addr" value="{{ form.src_addr.value }}">
                 <small class="text-muted">{{ form.src_addr.help_text }}</small>
