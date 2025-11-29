@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   jasmin-web:
-    image: tarekaec/jasmin_web_panel:1.4.2
+    image: tarekaec/jasmin_web_panel:1.4.4
     ports:
       - "${JASMIN_WEB_PORT:-8999}:8000"
     deploy:
@@ -26,7 +26,7 @@ services:
     restart: unless-stopped
 
   jasmin-celery:
-    image: tarekaec/jasmin_web_panel:1.4.2
+    image: tarekaec/jasmin_web_panel:1.4.4
     entrypoint: bash ./docker-entrypoint-celery.sh
     deploy:
       replicas: 1

@@ -6,6 +6,10 @@ class SendMessageForm(forms.Form):
         label='Send Type', choices=(('smpp', 'SMPP'), ('http', 'HTTP')), initial='smpp',
         help_text='Choose the way to send SMS via gateway, smpp or http'
     )
+    user_uid = forms.CharField(
+        label='Gateway User', max_length=50, required=False,
+        help_text='Select a user from gateway (optional, defaults to environment credentials)'
+    )
     src_addr = forms.CharField(
         label='Header', max_length=20, initial="JasminSMS",
         help_text="Header (from) field, it's represent the source address")
