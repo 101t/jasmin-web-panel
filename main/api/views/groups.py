@@ -12,11 +12,34 @@ INTERACTIVE_PROMPT = settings.INTERACTIVE_PROMPT
 
 
 class GroupsViewSet(ViewSet):
-    """GroupsView to manage *Jasmin* user groups """
+    """
+    GroupsViewSet to manage Jasmin user groups.
+    
+    Groups are containers for users. Users must belong to a group.
+    """
     lookup_field = 'gid'
 
     def list(self, request):  # noqa
-        """Group List, no request parameters provided"""
+        """
+        List all Jasmin groups.
+        
+        Returns a list of all groups with their status (enabled/disabled).
+        
+        **Example Request:**
+        ```bash
+        curl -u admin:password http://localhost:8000/api/groups/
+        ```
+        
+        **Example Response:**
+        ```json
+        {
+            "groups": [
+                {"name": "group1", "status": "enabled"},
+                {"name": "group2", "status": "disabled"}
+            ]
+        }
+        ```
+        """
         if not hasattr(request, 'telnet'):
             return Response(data={"status": "bad request"}, status=http_status.HTTP_400_BAD_REQUEST)
         telnet = request.telnet
@@ -34,17 +57,24 @@ class GroupsViewSet(ViewSet):
         ]})
 
     def create(self, request):  # noqa
-        """Create a group.
-        One POST parameter required, the group identifier (a string)
-        ---
-        # YAML
-        omit_serializer: true
-        parameters:
-        - name: gid
-          description: Group identifier
-          required: true
-          type: string
-          paramType: form
+        """
+        Create a new Jasmin group.
+        
+        **Required Fields:**
+        - `gid` - Group identifier (unique string)
+        
+        **Example Request:**
+        ```bash
+        curl -u admin:password -X POST \\
+          -H "Content-Type: application/json" \\
+          -d '{"gid": "mygroup"}' \\
+          http://localhost:8000/api/groups/
+        ```
+        
+        **Example Response:**
+        ```json
+        {"name": "mygroup"}
+        ```
         """
         telnet = request.telnet
         telnet.sendline('group -a')
@@ -83,32 +113,61 @@ class GroupsViewSet(ViewSet):
             raise ActionFailed(telnet.match.group(1))
 
     def destroy(self, request, gid):
-        """Delete a group. One parameter required, the group identifier (a string)
-        HTTP codes indicate result as follows
-        - 200: successful deletion
-        - 404: nonexistent group
-        - 400: other error
+        """
+        Delete a group.
+        
+        **URL Parameters:**
+        - `gid` - Group identifier to delete
+        
+        **Example Request:**
+        ```bash
+        curl -u admin:password -X DELETE http://localhost:8000/api/groups/mygroup/
+        ```
+        
+        **Example Response:**
+        ```json
+        {"name": "mygroup"}
+        ```
         """
         return self.simple_group_action(request.telnet, 'r', gid)
 
     @action(methods=['put'], detail=True)
     def enable(self, request, gid):
-        """Enable a group. One parameter required, the group identifier (a string)
-        HTTP codes indicate result as follows
-        - 200: successful deletion
-        - 404: nonexistent group
-        - 400: other error
+        """
+        Enable a disabled group.
+        
+        **URL Parameters:**
+        - `gid` - Group identifier to enable
+        
+        **Example Request:**
+        ```bash
+        curl -u admin:password -X PUT http://localhost:8000/api/groups/mygroup/enable/
+        ```
+        
+        **Example Response:**
+        ```json
+        {"name": "mygroup"}
+        ```
         """
         return self.simple_group_action(request.telnet, 'e', gid)
 
     @action(methods=['put'], detail=True)
     def disable(self, request, gid):
-        """Disable a group.
-        One parameter required, the group identifier (a string)
-        HTTP codes indicate result as follows
-        - 200: successful deletion
-        - 404: nonexistent group
-        - 400: other error
+        """
+        Disable a group (disables all users in the group).
+        
+        **URL Parameters:**
+        - `gid` - Group identifier to disable
+        
+        **Example Request:**
+        ```bash
+        curl -u admin:password -X PUT http://localhost:8000/api/groups/mygroup/disable/
+        ```
+        
+        **Example Response:**
+        ```json
+        {"name": "mygroup"}
+        ```
         """
         return self.simple_group_action(request.telnet, 'd', gid)
 

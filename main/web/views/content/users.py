@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 
 from main.core.smpp import Users
+from main.core.models import UsersModel, GroupsModel
 from main.core.tools import require_post_ajax
 
 
@@ -21,12 +22,30 @@ def users_view_manage(request):
         response = users.list()
     elif s == "add":
         try:
+            uid = request.POST.get("uid")
+            gid = request.POST.get("gid")
+            username = request.POST.get("username")
+            password = request.POST.get("password")
+            
             users.create(data=dict(
-                uid=request.POST.get("uid"),
-                gid=request.POST.get("gid"),
-                username=request.POST.get("username"),
-                password=request.POST.get("password"),
+                uid=uid,
+                gid=gid,
+                username=username,
+                password=password,
             ))
+            
+            # Store credentials in Django model for send_message feature
+            group_model, _ = GroupsModel.objects.get_or_create(gid=gid)
+            UsersModel.objects.update_or_create(
+                uid=uid,
+                defaults={
+                    'gid': group_model,
+                    'username': username,
+                    'password': password,
+                    'parameters': '',
+                    'user': request.user,
+                }
+            )
             response["message"] = str(_("User added successfully!"))
         except Exception as e:
             return JsonResponse({"message": str(e), "status": 400}, status=400)
@@ -74,12 +93,24 @@ def users_view_manage(request):
             password = request.POST.get("password", "")
             if len(password) > 0:
                 data.append(["password", password])
-            users.partial_update(data, uid=request.POST.get("uid"))
+            
+            uid = request.POST.get("uid")
+            users.partial_update(data, uid=uid)
+            
+            # Update Django model if password changed
+            if len(password) > 0:
+                UsersModel.objects.filter(uid=uid).update(
+                    username=request.POST.get("username"),
+                    password=password,
+                )
             response["message"] = str(_("User edited successfully!"))
         except Exception as e:
             return JsonResponse({"message": str(e), "status": 400}, status=400)
     elif s == "delete":
-        response = users.destroy(uid=request.POST.get("uid"))
+        uid = request.POST.get("uid")
+        response = users.destroy(uid=uid)
+        # Also delete from Django model
+        UsersModel.objects.filter(uid=uid).delete()
         response["message"] = str(_("User deleted successfully!"))
     elif s == "enable":
         response = users.enable(uid=request.POST.get("uid"))
