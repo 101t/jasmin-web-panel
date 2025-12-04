@@ -162,7 +162,7 @@ services:
       - jasmin
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "pgrep", "-f", "sms_logger.py"]
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.settimeout(2); s.connect(('rabbitmq', 5672)); s.close()"]
       interval: 30s
       timeout: 10s
       retries: 3
