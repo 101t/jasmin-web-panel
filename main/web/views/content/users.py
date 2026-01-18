@@ -35,7 +35,7 @@ def users_view_manage(request):
             ))
             
             # Store credentials in Django model for send_message feature
-            group_model, _ = GroupsModel.objects.get_or_create(gid=gid)
+            group_model, created = GroupsModel.objects.get_or_create(gid=gid)
             UsersModel.objects.update_or_create(
                 uid=uid,
                 defaults={
