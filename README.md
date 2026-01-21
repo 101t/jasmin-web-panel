@@ -348,6 +348,34 @@ RestartSec=10
 WantedBy=multi-user.target
 ```
 
+### Create Celery Worker Service
+
+The web panel requires a Celery worker to process background tasks like report exports from Submit Logs Page.
+
+Create `/etc/systemd/system/jasmin-web-panel-celery.service`:
+
+```ini
+[Unit]
+Description=Jasmin Web Panel Celery Worker
+After=network.target redis.service
+Requires=redis.service
+
+[Service]
+Type=simple
+SyslogIdentifier=jasmin-web-panel-celery
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/jasmin-web-panel
+Environment="DJANGO_SETTINGS_MODULE=config.settings.pro"
+Environment="CELERY_LOG_LEVEL=info"
+ExecStart=/opt/jasmin-web-panel/env/bin/celery --app config worker --max-tasks-per-child 1 -l info
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
 #### 2. Enable and Start Service
 
 ```bash
@@ -356,6 +384,14 @@ sudo systemctl enable jasmin-web.service
 sudo systemctl start jasmin-web.service
 sudo systemctl status jasmin-web.service
 ```
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable jasmin-web-panel-celery.service
+sudo systemctl start jasmin-web-panel-celery.service
+sudo systemctl status jasmin-web-panel-celery.service
+```
+
 
 #### 3. Configure Nginx
 
