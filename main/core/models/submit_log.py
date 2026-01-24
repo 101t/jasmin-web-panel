@@ -33,18 +33,19 @@ from django.db import models
 
 
 class SubmitLog(models.Model):
-    msgid = models.CharField(_("Message ID"), max_length=45)  # noqa
-    source_connector = models.CharField(_("Source Connector"), max_length=15)
-    routed_cid = models.CharField(_("Routed CID"), max_length=30, db_index=True)
-    source_addr = models.CharField(_("Source Address"), max_length=40)  # noqa
-    destination_addr = models.CharField(_("Destination Address"), max_length=40, null=False, blank=False)  # noqa
-    rate = models.DecimalField(_("Rate"), default=0.0, decimal_places=2, max_digits=8)
-    pdu_count = models.PositiveIntegerField(_("PDU Count"), default=1)
-    short_message = models.BinaryField(_("Short Message"))
-    binary_message = models.BinaryField(_("Binary Message"))
+    msgid = models.CharField(_("Message ID"), max_length=45, unique=True)  # Added unique=True
+    source_connector = models.CharField(_("Source Connector"), max_length=15, null=True, blank=True)  # Added null=True, blank=True
+    routed_cid = models.CharField(_("Routed CID"), max_length=30, null=True, blank=True, db_index=True)  # Added null=True, blank=True
+    source_addr = models.CharField(_("Source Address"), max_length=40, null=True, blank=True)  # Added null=True, blank=True
+    destination_addr = models.CharField(_("Destination Address"), max_length=40, null=False, blank=False)
+    rate = models.DecimalField(_("Rate"), default=0.0, decimal_places=7, max_digits=12, null=True, blank=True)  # Changed from (2,8) to (7,12)
+    charge = models.DecimalField(_("Charge"), default=0.0, decimal_places=7, max_digits=12, null=True, blank=True)  # NEW FIELD
+    pdu_count = models.PositiveIntegerField(_("PDU Count"), default=1, null=True, blank=True)  # Added null=True, blank=True
+    short_message = models.BinaryField(_("Short Message"), null=True, blank=True)  # Added null=True, blank=True
+    binary_message = models.BinaryField(_("Binary Message"), null=True, blank=True)  # Added null=True, blank=True
     status = models.CharField(_("Status"), max_length=15, null=False, blank=False, db_index=True)
     uid = models.CharField(_("UID"), max_length=15, null=False, blank=False, db_index=True)
-    trials = models.PositiveIntegerField(_("Trials"), default=1)
+    trials = models.PositiveIntegerField(_("Trials"), default=1, null=True, blank=True)  # Added null=True, blank=True
     created_at = models.DateTimeField(_("Created At"), null=False, db_index=True)
     status_at = models.DateTimeField(_("Status At"), null=False)
 
