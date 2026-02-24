@@ -95,6 +95,7 @@ services:
     restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+      - ./config/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     environment:
       POSTGRES_DB: "${POSTGRES_DB:-jasmin}"
       POSTGRES_USER: "${POSTGRES_USER:-jasmin}"
