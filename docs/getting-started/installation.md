@@ -54,10 +54,11 @@ Edit the `.env` file to match your local services (Database, Redis, Jasmin Telne
 Connect to PostgreSQL as a superuser and run:
 
 ```sql
-CREATE USER jasmin WITH PASSWORD 'your_password';
-CREATE DATABASE jasmin OWNER jasmin;
-\c jasmin
-GRANT USAGE, CREATE ON SCHEMA public TO jasmin;
+-- Replace these placeholders with the same values you will set in PRODB_URL in your .env file
+CREATE USER your_db_user WITH PASSWORD 'your_db_password';
+CREATE DATABASE your_db_name OWNER your_db_user;
+\c your_db_name
+GRANT USAGE, CREATE ON SCHEMA public TO your_db_user;
 ```
 
 Update your `.env` file to set `PRODB_URL` to match the credentials above.
