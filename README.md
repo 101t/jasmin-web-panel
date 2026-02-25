@@ -547,7 +547,7 @@ If you created the database without setting the owner correctly, you can also fi
 ALTER DATABASE jasmin OWNER TO jasmin;
 ```
 
-For Docker deployments this is handled automatically by `config/docker/postgres/init.sql`.
+For new Docker deployments this is handled automatically by `config/docker/postgres/init.sql` when the Postgres data volume is first initialized. If you already have an existing `postgres_data` volume, you must either run the GRANT statements above manually or recreate the Postgres volume so the init script can run.
 
 ### Cannot connect to Jasmin Gateway
 
