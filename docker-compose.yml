@@ -95,6 +95,10 @@ services:
     restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+      # NOTE: Scripts in /docker-entrypoint-initdb.d run only on first initialization of the data
+      # directory. For existing postgres_data volumes this init.sql will NOT be applied automatically;
+      # run the GRANT statements manually (see Troubleshooting in README) or recreate the volume.
+      - ./config/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     environment:
       POSTGRES_DB: "${POSTGRES_DB:-jasmin}"
       POSTGRES_USER: "${POSTGRES_USER:-jasmin}"

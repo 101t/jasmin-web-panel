@@ -47,7 +47,23 @@ cp sample.env .env
 
 Edit the `.env` file to match your local services (Database, Redis, Jasmin Telnet ports).
 
-### 4. Database Setup
+### 4. PostgreSQL Database Setup
+
+> **Note**: PostgreSQL 15 and newer revoke the `CREATE` privilege on the `public` schema from all users by default. You must explicitly grant it to the application user.
+
+Connect to PostgreSQL as a superuser and run:
+
+```sql
+-- Replace these placeholders with the same values you will set in PRODB_URL in your .env file
+CREATE USER your_db_user WITH PASSWORD 'your_db_password';
+CREATE DATABASE your_db_name OWNER your_db_user;
+\c your_db_name
+GRANT USAGE, CREATE ON SCHEMA public TO your_db_user;
+```
+
+Update your `.env` file to set `PRODB_URL` to match the credentials above.
+
+### 5. Database Setup
 
 Initialize the database schema:
 
@@ -57,13 +73,13 @@ make migrate
 python manage.py migrate
 ```
 
-### 5. Create Admin User
+### 6. Create Admin User
 
 ```bash
 python manage.py createsuperuser
 ```
 
-### 6. Run the Server
+### 7. Run the Server
 
 ```bash
 make run

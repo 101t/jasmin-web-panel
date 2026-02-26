@@ -169,7 +169,20 @@ REDIS_PASSWORD=<Optional>
 SUBMIT_LOG=True
 ```
 
-#### 3. Initialize Database
+#### 3. Create PostgreSQL Database
+
+> **Note**: If you are using PostgreSQL 15 or newer, the `CREATE` privilege on the `public` schema is **no longer granted to all users by default**. Run the following commands as a PostgreSQL superuser to create the application database and grant the required permissions.
+
+```sql
+-- Connect as a PostgreSQL superuser (e.g. psql -U postgres)
+-- Replace the values below with those you set in PRODB_URL in your .env file
+CREATE USER your_db_user WITH PASSWORD 'your_db_password';
+CREATE DATABASE your_db_name OWNER your_db_user;
+\c your_db_name
+GRANT USAGE, CREATE ON SCHEMA public TO your_db_user;
+```
+
+#### 4. Initialize Database
 
 ```bash
 # Run migrations
@@ -185,7 +198,7 @@ python manage.py collectstatic --no-input
 python manage.py createsuperuser
 ```
 
-#### 4. Run Development Server
+#### 5. Run Development Server
 
 ```bash
 python manage.py runserver 0.0.0.0:8000
@@ -517,6 +530,25 @@ python manage.py changepassword admin
 ---
 
 ## 🔧 Troubleshooting
+
+### `permission denied for schema public` during migrations
+
+This error occurs on **PostgreSQL 15+** where the `CREATE` privilege on the `public` schema is no longer granted to all users by default.
+
+**Solution** — connect to PostgreSQL as a superuser and run:
+
+```sql
+\c your_db_name     -- connect to your application database (matches DB name in PRODB_URL)
+GRANT USAGE, CREATE ON SCHEMA public TO your_db_user;  -- matches DB user in PRODB_URL
+```
+
+If you created the database without setting the owner correctly, you can also fix it with:
+
+```sql
+ALTER DATABASE your_db_name OWNER TO your_db_user;
+```
+
+For new Docker deployments this is handled automatically by `config/docker/postgres/init.sql` when the Postgres data volume is first initialized. If you already have an existing `postgres_data` volume, you must either run the GRANT statements above manually or recreate the Postgres volume so the init script can run.
 
 ### Cannot connect to Jasmin Gateway
 
