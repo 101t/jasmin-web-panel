@@ -32,10 +32,33 @@ dependencies = [
 
 [project.optional-dependencies]
 "dev" = [
-    "django-upgrade>=1.24.0,<2.0"
+    "django-upgrade>=1.24.0,<2.0",
+    "pytest>=8.0.0,<9.0",
+    "pytest-django>=4.8.0,<5.0",
+    "ruff>=0.4.0,<1.0",
 ]
 "prod" = [
     "gunicorn>=23.0.0,<24.0",
     "uvicorn>=0.34.1,<0.35.0"
 ]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.dev"
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+exclude = [
+    "*/migrations/*",
+    "env/",
+    ".git/",
+    "__pycache__/",
+]
+
+[tool.ruff.lint]
+select = ["E", "W", "F"]
+ignore = ["E501"]
 

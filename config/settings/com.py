@@ -176,6 +176,14 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ),
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ),
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': os.environ.get('API_THROTTLE_ANON', '20/minute'),
+        'user': os.environ.get('API_THROTTLE_USER', '120/minute'),
+    },
 }
 
 SWAGGER_SETTINGS = {

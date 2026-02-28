@@ -63,10 +63,13 @@ class UserAgentMiddleware(MiddlewareMixin):
         return request.user.is_authenticated and request.path.endswith('/manage/')
 
     def process_request(self, request):
-        cached_user_agent = cache.get('user_agent_' + request.META['HTTP_USER_AGENT'])
+        user_agent_header = request.META.get('HTTP_USER_AGENT', '')
+        if not user_agent_header:
+            return
+        cached_user_agent = cache.get('user_agent_' + user_agent_header)
         if not cached_user_agent:
             user_agent = get_user_agent(request)
-            cache.set('user_agent_' + request.META['HTTP_USER_AGENT'], user_agent, 120)  # Cache for 2 minutes
+            cache.set('user_agent_' + user_agent_header, user_agent, 120)  # Cache for 2 minutes
         else:
             user_agent = cached_user_agent
 
