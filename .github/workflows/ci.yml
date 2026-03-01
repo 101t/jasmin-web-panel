@@ -78,9 +78,6 @@ jobs:
           pip install --upgrade pip wheel uv
           uv pip install -r pyproject.toml --extra=dev
 
-      - name: Install test dependencies
-        run: pip install pytest pytest-django
-
       - name: Copy sample env
         run: cp sample.env .env
 

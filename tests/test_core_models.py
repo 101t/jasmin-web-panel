@@ -32,7 +32,10 @@ class TestSubmitLogModel:
         assert log.decoded_destination_addr == '255700000001'
 
     def test_decoded_destination_addr_bytes(self):
-        log = self._make_submit_log(destination_addr=b'255700000001')
+        # Set bytes on an unsaved instance to exercise the bytes-handling branch
+        # (passing bytes to objects.create() would coerce to str via CharField)
+        log = self._make_submit_log()
+        log.destination_addr = b'255700000001'
         assert log.decoded_destination_addr == '255700000001'
 
     def test_decoded_destination_addr_empty(self):
@@ -53,7 +56,7 @@ class TestSubmitLogModel:
         assert log.decoded_source_addr == 'N/A'
 
     def test_meta_ordering(self):
-        log1 = self._make_submit_log(
+        self._make_submit_log(
             msgid='msg-001',
             created_at=timezone.now() - timezone.timedelta(minutes=5),
         )
@@ -76,8 +79,9 @@ class TestFiltersModel:
         assert str(f) == 'f1'
 
     def test_filter_unique_fid(self):
+        from django.db import IntegrityError
         FiltersModel.objects.create(type='TransparentFilter', fid='unique-fid', parameters='')
-        with pytest.raises(Exception):
+        with pytest.raises(IntegrityError):
             FiltersModel.objects.create(type='ConnectorFilter', fid='unique-fid', parameters='')
 
 

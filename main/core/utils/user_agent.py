@@ -1,4 +1,3 @@
-import sys
 from hashlib import md5
 
 from django.conf import settings
@@ -6,13 +5,16 @@ from django.core.cache import DEFAULT_CACHE_ALIAS, caches
 from user_agents import parse
 
 
-USER_AGENTS_CACHE = getattr(settings, 'USER_AGENTS_CACHE', DEFAULT_CACHE_ALIAS)
-
-
 def _get_cache():
-    """Return the cache backend lazily, respecting runtime settings overrides."""
-    if USER_AGENTS_CACHE:
-        return caches[USER_AGENTS_CACHE]
+    """Return the cache backend lazily, respecting runtime settings overrides.
+
+    Reading USER_AGENTS_CACHE from ``settings`` on every call (rather than at
+    import time) ensures that ``override_settings`` and any runtime settings
+    changes are honoured correctly.
+    """
+    alias = getattr(settings, 'USER_AGENTS_CACHE', DEFAULT_CACHE_ALIAS)
+    if alias:
+        return caches[alias]
     return None
 
 

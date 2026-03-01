@@ -1,7 +1,6 @@
 """
 Tests for core utility functions.
 """
-import pytest
 from main.core.utils.boolean import is_json, is_int, is_float, is_decimal, is_date
 from main.core.utils.common import (
     shorten_large_number,
