@@ -1,5 +1,5 @@
 site_name: Jasmin Web Panel
-site_url: https://example.com/
+site_url: https://about.supernovasoft.com/jasmin-web-panel/
 site_description: Advanced Web Panel for Jasmin SMS Gateway
 repo_url: https://github.com/101t/jasmin-web-panel
 edit_uri: edit/main/docs/
@@ -42,6 +42,7 @@ markdown_extensions:
       alternate_style: true 
   - tables
   - attr_list
+  - md_in_html
 
 nav:
   - Home: index.md
