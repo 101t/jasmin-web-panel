@@ -64,14 +64,15 @@ class UserAgentMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
         user_agent_header = request.META.get('HTTP_USER_AGENT', '')
-        if not user_agent_header:
-            return
-        cached_user_agent = cache.get('user_agent_' + user_agent_header)
-        if not cached_user_agent:
-            user_agent = get_user_agent(request)
-            cache.set('user_agent_' + user_agent_header, user_agent, 120)  # Cache for 2 minutes
+        if user_agent_header:
+            cached_user_agent = cache.get('user_agent_' + user_agent_header)
+            if not cached_user_agent:
+                user_agent = get_user_agent(request)
+                cache.set('user_agent_' + user_agent_header, user_agent, 120)  # Cache for 2 minutes
+            else:
+                user_agent = cached_user_agent
         else:
-            user_agent = cached_user_agent
+            user_agent = get_user_agent(request)
 
         self._enqueue_activity_log_creation(request, user_agent)
 

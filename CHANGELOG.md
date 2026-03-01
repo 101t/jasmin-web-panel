@@ -1,6 +1,6 @@
 # Change history
 
-## 3.1.0
+## Unreleased
 
 Changes
 
@@ -10,7 +10,7 @@ Changes
    - Added `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1)
    - Added GitHub issue templates (bug report, feature request, question)
    - Added GitHub pull request template
-   - Added GitHub Actions CI workflow replacing outdated Travis CI configuration
+   - Added GitHub Actions CI workflow alongside existing Travis CI configuration
 2. **Testing Infrastructure**
    - Added `pytest` and `pytest-django` as dev dependencies
    - Added initial test suite covering core utilities, models, web views, and REST API
