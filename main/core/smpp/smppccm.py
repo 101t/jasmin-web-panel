@@ -1,9 +1,9 @@
 from django.conf import settings
 
-from main.core.tools import set_ikeys, split_cols
+from main.core.tools import split_cols
 from main.core.exceptions import (
     JasminSyntaxError, JasminError, ActionFailed,
-    ObjectNotFoundError, UnknownError, 
+    ObjectNotFoundError, UnknownError,
 )
 from .conn import TelnetConnection
 

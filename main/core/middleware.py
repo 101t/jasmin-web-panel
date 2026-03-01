@@ -48,7 +48,7 @@ class TelnetConnectionMiddleware(MiddlewareMixin):
 
 class UserAgentMiddleware(MiddlewareMixin):
     """Middleware to process the user agent."""
-    
+
     def __init__(self, get_response=None):
         self.get_response = get_response
 
@@ -63,12 +63,16 @@ class UserAgentMiddleware(MiddlewareMixin):
         return request.user.is_authenticated and request.path.endswith('/manage/')
 
     def process_request(self, request):
-        cached_user_agent = cache.get('user_agent_' + request.META['HTTP_USER_AGENT'])
-        if not cached_user_agent:
-            user_agent = get_user_agent(request)
-            cache.set('user_agent_' + request.META['HTTP_USER_AGENT'], user_agent, 120)  # Cache for 2 minutes
+        user_agent_header = request.META.get('HTTP_USER_AGENT', '')
+        if user_agent_header:
+            cached_user_agent = cache.get('user_agent_' + user_agent_header)
+            if not cached_user_agent:
+                user_agent = get_user_agent(request)
+                cache.set('user_agent_' + user_agent_header, user_agent, 120)  # Cache for 2 minutes
+            else:
+                user_agent = cached_user_agent
         else:
-            user_agent = cached_user_agent
+            user_agent = get_user_agent(request)
 
         self._enqueue_activity_log_creation(request, user_agent)
 
@@ -83,7 +87,7 @@ class UserAgentMiddleware(MiddlewareMixin):
             'ip': get_client_ip(request),
             'user_agent': user_agent,
         }
-        
+
         # Use threading.Thread instead of ThreadPoolExecutor for simpler lifecycle
         import threading
         thread = threading.Thread(target=self._create_activity_log_safe, args=(log_data,), daemon=True)
@@ -107,12 +111,12 @@ class UserAgentMiddleware(MiddlewareMixin):
         finally:
             # Close database connection for this thread
             connection.close()
-    
+
     @transaction.atomic
     def _create_activity_log(self, log_data):
         from django.contrib.auth import get_user_model
         User = get_user_model()
-        
+
         user = User.objects.get(id=log_data['user_id'])
         activity_log = ActivityLog(
             user=user,

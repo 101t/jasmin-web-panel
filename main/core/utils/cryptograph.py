@@ -1,8 +1,5 @@
 # -*- encoding: utf-8 -*-
 from __future__ import unicode_literals
-from django.utils.translation import gettext_lazy as _
-import base64
-from random import randint
 import hashlib
 
 def md5(data):

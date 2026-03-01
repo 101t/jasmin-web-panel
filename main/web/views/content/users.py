@@ -26,14 +26,14 @@ def users_view_manage(request):
             gid = request.POST.get("gid")
             username = request.POST.get("username")
             password = request.POST.get("password")
-            
+
             users.create(data=dict(
                 uid=uid,
                 gid=gid,
                 username=username,
                 password=password,
             ))
-            
+
             # Store credentials in Django model for send_message feature
             group_model, created = GroupsModel.objects.get_or_create(gid=gid)
             UsersModel.objects.update_or_create(
@@ -93,10 +93,10 @@ def users_view_manage(request):
             password = request.POST.get("password", "")
             if len(password) > 0:
                 data.append(["password", password])
-            
+
             uid = request.POST.get("uid")
             users.partial_update(data, uid=uid)
-            
+
             # Update Django model if password changed
             if len(password) > 0:
                 UsersModel.objects.filter(uid=uid).update(

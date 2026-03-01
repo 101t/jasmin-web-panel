@@ -1,26 +1,21 @@
-import sys
 from hashlib import md5
 
 from django.conf import settings
-from django.core.cache import DEFAULT_CACHE_ALIAS
+from django.core.cache import DEFAULT_CACHE_ALIAS, caches
 from user_agents import parse
 
 
-# `get_cache` function has been deprecated since Django 1.7 in favor of `caches`.
-try:
-    from django.core.cache import caches
+def _get_cache():
+    """Return the cache backend lazily, respecting runtime settings overrides.
 
-    def get_cache(backend, **kwargs):
-        return caches[backend]
-except ImportError:
-    from django.core.cache import get_cache
-
-USER_AGENTS_CACHE = getattr(settings, 'USER_AGENTS_CACHE', DEFAULT_CACHE_ALIAS)
-
-if USER_AGENTS_CACHE:
-    cache = get_cache(USER_AGENTS_CACHE)
-else:
-    cache = None
+    Reading USER_AGENTS_CACHE from ``settings`` on every call (rather than at
+    import time) ensures that ``override_settings`` and any runtime settings
+    changes are honoured correctly.
+    """
+    alias = getattr(settings, 'USER_AGENTS_CACHE', DEFAULT_CACHE_ALIAS)
+    if alias:
+        return caches[alias]
+    return None
 
 
 def get_cache_key(ua_string):
@@ -41,6 +36,7 @@ def get_user_agent(request):
     if not isinstance(ua_string, str):
         ua_string = ua_string.decode('utf-8', 'ignore')
 
+    cache = _get_cache()
     if cache:
         key = get_cache_key(ua_string)
         user_agent = cache.get(key)

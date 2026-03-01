@@ -3,7 +3,7 @@ from django.utils import translation
 # from django.template.loader import render_to_string
 from django.conf import settings
 
-from main.core.mailer import PyMail, PyMailMultiPart
+from main.core.mailer import PyMailMultiPart
 from config.celery import app
 
 

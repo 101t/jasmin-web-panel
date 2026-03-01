@@ -1,9 +1,9 @@
 from django.conf import settings
 
-from main.core.tools import set_ikeys, split_cols
+from main.core.tools import split_cols
 from main.core.exceptions import (
-    JasminSyntaxError, JasminError, ActionFailed,
-    ObjectNotFoundError, UnknownError, 
+    JasminSyntaxError, ActionFailed,
+    ObjectNotFoundError,
 )
 from .conn import TelnetConnection
 
@@ -18,7 +18,7 @@ class HTTPCCM(TelnetConnection):
     "HTTPCCM for managing HTTP Client Connectors"
     lookup_field = 'cid'
     available_actions = ['list', 'add', 'delete', 'enable', 'disable']
-    
+
     def get_httpccm(self, cid, silent=False):
         #Some of this could be abstracted out - similar pattern in users.py
         self.telnet.sendline('httpccm -s ' + cid)

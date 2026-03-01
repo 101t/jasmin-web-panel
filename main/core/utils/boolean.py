@@ -1,7 +1,5 @@
 # -*- encoding: utf-8 -*-
 from __future__ import unicode_literals
-from django.utils.translation import gettext_lazy as _
-from django.conf import settings
 
 from dateutil.parser import parse
 from decimal import Decimal

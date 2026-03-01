@@ -1,5 +1,4 @@
-from django.utils.translation import gettext, gettext_lazy as _
-from django.contrib import admin, messages
+from django.contrib import admin
 
 from ..utils import USER_SEARCH_FIELDS
 from ..models import ActivityLog

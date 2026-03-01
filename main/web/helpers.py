@@ -47,7 +47,7 @@ def send_smpp(
     """
     system_id = system_id or settings.SMPP_SYSTEM_ID
     password = password or settings.SMPP_PASSWORD
-    
+
     client = None
     try:
         client = smpplib.client.Client(settings.SMPP_HOST, settings.SMPP_PORT)
@@ -55,9 +55,9 @@ def send_smpp(
         client.set_message_received_handler(_received_handler)
         client.connect()
         client.bind_transceiver(system_id=system_id, password=password)
-        
+
         parts, encoding_flag, msg_type_flag = smpplib.gsm.make_parts(text)
-        
+
         for part in parts:
             client.send_message(
                 source_addr_ton=smpplib.consts.SMPP_TON_SBSCR,
@@ -71,7 +71,7 @@ def send_smpp(
                 esm_class=smpplib.consts.SMPP_MSGMODE_FORWARD,
                 registered_delivery=False,
             )
-        
+
         client.read_once()
         return 200, "OK"
     except smpplib.exceptions.ConnectionError as e:
@@ -114,7 +114,7 @@ def send_http(
     """
     username = username or settings.HTTP_USERNAME
     password = password or settings.HTTP_PASSWORD
-    
+
     params = {
         'username': username,
         'password': password,
@@ -124,7 +124,7 @@ def send_http(
     }
     encoded_params = urllib.parse.urlencode(params)
     url = f"{settings.HTTP_HOST}:{settings.HTTP_PORT}/send?{encoded_params}"
-    
+
     try:
         req = urllib.request.urlopen(url, timeout=30)
         return req.getcode(), req.read().decode('utf-8')

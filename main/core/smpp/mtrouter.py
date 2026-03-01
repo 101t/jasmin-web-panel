@@ -87,13 +87,13 @@ class MTRouter(TelnetConnection):
         rate = data.get('rate') or "0.0"
         """ MT Router only support SMPP connectors, HTTP not allowed """
         smppconnectors = data.get('smppconnectors') or ""
-        
+
         if self.router_exists(order):
             raise MultipleValuesRequiredKeyError('Order %s already exists' % order)
 
         self.telnet.sendline('mtrouter -a')
         self.telnet.expect(r'Adding a new MT Route(.+)\n' + INTERACTIVE_PROMPT)
-        
+
         ikeys = OrderedDict({
             'type': route_type,
             'order': order if is_int(order) else str(random.randrange(1, 99)),
@@ -105,7 +105,7 @@ class MTRouter(TelnetConnection):
                 raise MissingKeyError('%s router requires filters' % route_type)
             filters = filters.split(',')
             ikeys['filters'] = ';'.join(filters)
-        
+
         connectors = ['smppc(%s)' % c.strip() for c in smppconnectors.split(',') if c.strip()]
         if route_type == 'RandomRoundrobinMTRoute':
             if len(connectors) < 2:
@@ -119,7 +119,7 @@ class MTRouter(TelnetConnection):
             if len(connectors) != 1:
                 raise MissingKeyError('One and only one connector required')
             ikeys['connector'] = connectors[0]
-        
+
         set_ikeys(self.telnet, ikeys)
         self.telnet.sendline('persist')
         self.telnet.expect(r'.*' + STANDARD_PROMPT)

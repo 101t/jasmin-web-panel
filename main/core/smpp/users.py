@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class Users(TelnetConnection):
     "Users for managing *Jasmin* users (*not* Django auth users)"
     lookup_field = 'uid'
-    
+
     def get_user(self, uid, silent=False):
         """Gets a single users data
         silent supresses Http404 exception if user not found"""
@@ -39,11 +39,11 @@ class Users(TelnetConnection):
                 user[d[0]] = d[1]
             elif len(d) == 4:
                 #Not DRY, could be more elegant
-                if not d[0] in user:
+                if d[0] not in user:
                     user[d[0]] = {}
-                if not d[1] in user[d[0]]:
+                if d[1] not in user[d[0]]:
                     user[d[0]][d[1]] = {}
-                if not d[2] in user[d[0]][d[1]]:
+                if d[2] not in user[d[0]][d[1]]:
                     user[d[0]][d[1]][d[2]] = {}
                 user[d[0]][d[1]][d[2]] = d[3]
             #each line has two or four lines so above exhaustive

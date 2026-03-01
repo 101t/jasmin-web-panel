@@ -49,7 +49,7 @@ class Groups(TelnetConnection):
         """
         self.telnet.sendline('group -a')
         self.telnet.expect(r'Adding a new Group(.+)\n' + INTERACTIVE_PROMPT)
-        if not 'gid' in data:
+        if 'gid' not in data:
             logger.error("MissingKeyError: {}".format(MissingKeyError('Missing gid (group identifier)')))
             #raise MissingKeyError('Missing gid (group identifier)')
         self.telnet.sendline('gid ' + data['gid'] + '\n')

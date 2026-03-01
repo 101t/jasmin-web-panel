@@ -1,5 +1,27 @@
 # Change history
 
+## Unreleased
+
+Changes
+
+1. **Open Source Enhancements**
+   - Added `CONTRIBUTING.md` with detailed contributor guide
+   - Added `SECURITY.md` with security policy and responsible disclosure process
+   - Added `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1)
+   - Added GitHub issue templates (bug report, feature request, question)
+   - Added GitHub pull request template
+   - Added GitHub Actions CI workflow alongside existing Travis CI configuration
+2. **Testing Infrastructure**
+   - Added `pytest` and `pytest-django` as dev dependencies
+   - Added initial test suite covering core utilities, models, web views, and REST API
+   - Tests run without requiring Redis or a live Jasmin gateway (use LocMemCache in tests)
+3. **API Security**
+   - Added configurable rate limiting to the REST API (`API_THROTTLE_ANON`, `API_THROTTLE_USER`)
+   - Rate limits configurable via environment variables
+4. **Bug Fixes**
+   - Fixed `UserAgentMiddleware` crash when `HTTP_USER_AGENT` header is absent
+   - Fixed `user_agent.py` module-level cache initialization to use lazy evaluation, respecting runtime settings overrides (benefits testing and deployments that reconfigure the cache)
+
 ## 3.0.1
 Changes
 1. JavaScript fixes

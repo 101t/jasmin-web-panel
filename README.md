@@ -307,6 +307,8 @@ For ARM-based systems:
 | `TELNET_USERNAME` | Jasmin admin username | `jcliadmin` | ✅ |
 | `TELNET_PW` | Jasmin admin password | `jclipwd` | ✅ |
 | `SUBMIT_LOG` | Enable submit log tracking | `False` | ❌ |
+| `API_THROTTLE_ANON` | API rate limit for anonymous requests | `20/minute` | ❌ |
+| `API_THROTTLE_USER` | API rate limit for authenticated requests | `120/minute` | ❌ |
 
 ### Jasmin Gateway Configuration
 
@@ -597,13 +599,15 @@ sudo journalctl -u jasmin-web.service -f
 
 ### Contributing
 
-We welcome contributions! To contribute:
+We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) before submitting a pull request.
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+3. Follow the [coding standards](CONTRIBUTING.md#coding-standards)
+4. Write tests for your changes
+5. Open a Pull Request using our [PR template](.github/PULL_REQUEST_TEMPLATE.md)
+
+Please also review our [Code of Conduct](CODE_OF_CONDUCT.md) and [Security Policy](SECURITY.md).
 
 ---
 

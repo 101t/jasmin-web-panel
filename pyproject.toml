@@ -32,10 +32,47 @@ dependencies = [
 
 [project.optional-dependencies]
 "dev" = [
-    "django-upgrade>=1.24.0,<2.0"
+    "django-upgrade>=1.24.0,<2.0",
+    "pytest>=8.0.0,<9.0",
+    "pytest-django>=4.8.0,<5.0",
+    "ruff>=0.4.0,<1.0",
 ]
 "prod" = [
     "gunicorn>=23.0.0,<24.0",
     "uvicorn>=0.34.1,<0.35.0"
 ]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.dev"
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+exclude = [
+    "*/migrations/*",
+    "env/",
+    ".git/",
+    "__pycache__/",
+]
+
+[tool.ruff.lint]
+select = ["E", "W", "F"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"config/asgi.py" = ["E402"]
+"config/celery.py" = ["E402"]
+"config/settings/*.py" = ["F403", "F405"]  # Star imports are Django settings pattern
+"config/routing.py" = ["F401", "W191", "E101"]  # Legacy file with tabs/mixed indentation
+"main/**/__init__.py" = ["F401", "F403"]  # Re-exports and star imports in __init__ modules
+"main/users/views/profile.py" = ["E722"]  # Bare except in legacy code
+"main/users/urls.py" = ["F403", "F405"]  # Star imports from views/__init__.py
+"main/web/urls.py" = ["F405"]  # Star imports from views/__init__.py
+"main/**/*.py" = ["W293", "W191"]  # Whitespace and tabs in legacy code
+"main/api/views/*.py" = ["W293"]  # Whitespace in API view docstrings
+"main/core/smpp/*.py" = ["E741"]  # Ambiguous variable names in legacy SMPP code
+"main/core/utils/boolean.py" = ["E722"]  # Bare except in legacy utility code
 
