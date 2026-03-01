@@ -31,7 +31,7 @@ Key variables to set:
 DEBUG=False
 SECRET_KEY=your-very-secret-key-here
 ALLOWED_HOSTS=sms.yourdomain.com,localhost
-PRODB_URL=postgres://jasmin_user:strong_password@postgres:5432/jasmin_db
+PRODB_URL=postgres://jasmin_user:strong_password@db:5432/jasmin_db
 REDIS_HOST=redis
 REDIS_PORT=6379
 TELNET_HOST=jasmin
@@ -55,8 +55,8 @@ docker compose exec jasmin-web python manage.py migrate
 If you see permission errors related to PostgreSQL (e.g., `permission denied for schema public`), connect to the database and grant privileges:
 
 ```bash
-docker compose exec postgres psql -U postgres -c "GRANT ALL ON SCHEMA public TO jasmin_user;"
-docker compose exec postgres psql -U postgres -c "ALTER SCHEMA public OWNER TO jasmin_user;"
+docker compose exec db psql -U postgres -c "GRANT ALL ON SCHEMA public TO jasmin_user;"
+docker compose exec db psql -U postgres -c "ALTER SCHEMA public OWNER TO jasmin_user;"
 ```
 
 Then re-run migrations:

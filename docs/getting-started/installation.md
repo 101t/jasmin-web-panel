@@ -37,7 +37,7 @@ Or manually:
 python3.11 -m venv env/
 source env/bin/activate
 pip install --upgrade pip wheel uv
-uv pip install -r pyproject.toml --extra dev
+uv pip install -r pyproject.toml --extra=dev
 ```
 
 !!! tip "Using the correct Python version"
