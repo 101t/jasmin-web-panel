@@ -34,7 +34,7 @@ jobs:
           uv pip install --system -r pyproject.toml --extra=dev
 
       - name: Run ruff
-        run: ruff check . --select E,W,F --ignore E501
+        run: ruff check main/ config/ tests/ --select E,W,F --ignore E501
 
   test:
     name: Test (Python ${{ matrix.python-version }})

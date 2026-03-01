@@ -15,7 +15,7 @@ from main.core.models import SubmitLog
 @login_required
 def dashboard_view(request):
     ip_address = get_client_ip(request)
-    
+
     # Get submit log statistics
     submit_stats = SubmitLog.objects.aggregate(
         total=Count('id'),
@@ -23,11 +23,11 @@ def dashboard_view(request):
         failed=Count('id', filter=Q(status='ESME_RDELIVERYFAILURE')),
         unknown=Count('id', filter=~Q(status__in=['ESME_ROK', 'ESME_RINVNUMDESTS', 'ESME_RDELIVERYFAILURE']))
     )
-    
+
     # Get last 30 days data for initial timeline chart (daily)
     end_date = datetime.now()
     start_date = end_date - timedelta(days=30)
-    
+
     daily_data = SubmitLog.objects.filter(
         created_at__gte=start_date,
         created_at__lte=end_date
@@ -37,17 +37,17 @@ def dashboard_view(request):
         success=Count('id', filter=Q(status__in=['ESME_ROK', 'ESME_RINVNUMDESTS'])),
         failed=Count('id', filter=Q(status='ESME_RDELIVERYFAILURE'))
     ).order_by('date')
-    
+
     # Format data for Chart.js
     timeline_labels = []
     timeline_success = []
     timeline_failed = []
-    
+
     for entry in daily_data:
         timeline_labels.append(entry['date'].strftime('%Y-%m-%d'))
         timeline_success.append(entry['success'])
         timeline_failed.append(entry['failed'])
-    
+
     context = {
         'ip_address': ip_address,
         'submit_stats': submit_stats,
@@ -55,7 +55,7 @@ def dashboard_view(request):
         'timeline_success': json.dumps(timeline_success),
         'timeline_failed': json.dumps(timeline_failed),
     }
-    
+
     return render(request, "web/dashboard.html", context)
 
 
@@ -70,7 +70,7 @@ def global_manage(request):
     elif s == "submit_log_timeline":
         # Get timeline data based on grouping
         grouping = request.GET.get('grouping', 'daily')
-        
+
         # Determine date range based on grouping
         end_date = datetime.now()
         if grouping == 'daily':
@@ -89,7 +89,7 @@ def global_manage(request):
             start_date = end_date - timedelta(days=365*3)
             trunc_func = TruncYear
             date_format = '%Y'
-        
+
         data = SubmitLog.objects.filter(
             created_at__gte=start_date,
             created_at__lte=end_date
@@ -99,20 +99,20 @@ def global_manage(request):
             success=Count('id', filter=Q(status__in=['ESME_ROK', 'ESME_RINVNUMDESTS'])),
             failed=Count('id', filter=Q(status='ESME_RDELIVERYFAILURE'))
         ).order_by('period')
-        
+
         labels = []
         success_data = []
         failed_data = []
-        
+
         for entry in data:
             if entry['period']:
                 labels.append(entry['period'].strftime(date_format))
                 success_data.append(entry['success'])
                 failed_data.append(entry['failed'])
-        
+
         response['labels'] = labels
         response['success'] = success_data
         response['failed'] = failed_data
         response['status'] = 'success'
-    
+
     return JsonResponse(response, status=200)

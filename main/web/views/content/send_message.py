@@ -44,7 +44,7 @@ def send_message_view(request):
                                 messages.warning(request, f'User {user_uid} not found in local database. Password unavailable.')
                 except Exception as e:
                     messages.warning(request, f'Could not fetch user credentials: {e}. Using defaults.')
-            
+
             if send_type == 'smpp':
                 if username and password:
                     res_status, res_message = send_smpp(src_addr, dst_addr, text, system_id=username, password=password)

@@ -48,7 +48,7 @@ class TelnetConnectionMiddleware(MiddlewareMixin):
 
 class UserAgentMiddleware(MiddlewareMixin):
     """Middleware to process the user agent."""
-    
+
     def __init__(self, get_response=None):
         self.get_response = get_response
 
@@ -87,7 +87,7 @@ class UserAgentMiddleware(MiddlewareMixin):
             'ip': get_client_ip(request),
             'user_agent': user_agent,
         }
-        
+
         # Use threading.Thread instead of ThreadPoolExecutor for simpler lifecycle
         import threading
         thread = threading.Thread(target=self._create_activity_log_safe, args=(log_data,), daemon=True)
@@ -111,12 +111,12 @@ class UserAgentMiddleware(MiddlewareMixin):
         finally:
             # Close database connection for this thread
             connection.close()
-    
+
     @transaction.atomic
     def _create_activity_log(self, log_data):
         from django.contrib.auth import get_user_model
         User = get_user_model()
-        
+
         user = User.objects.get(id=log_data['user_id'])
         activity_log = ActivityLog(
             user=user,

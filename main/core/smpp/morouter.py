@@ -63,7 +63,7 @@ class MORouter(TelnetConnection):
             return {'morouter': next(m for m in routers if m['order'] == order)}
         except (StopIteration, IndexError):
             raise ObjectNotFoundError('No MoROuter with order: %s' % order)
-    
+
     def router_exists(self, order: str) -> bool:
         routers = self._list()
         return any(m['order'] == order for m in routers)
@@ -90,10 +90,10 @@ class MORouter(TelnetConnection):
 
         if self.router_exists(order):
             raise MultipleValuesRequiredKeyError('Order %s already exists' % order)
-        
+
         self.telnet.sendline('morouter -a')
         self.telnet.expect(r'Adding a new MO Route(.+)\n' + INTERACTIVE_PROMPT)
-        
+
         ikeys = OrderedDict({
             'type': route_type,
             'order': order if is_int(order) else str(random.randrange(1, 99)),
@@ -120,7 +120,7 @@ class MORouter(TelnetConnection):
             if len(connectors) != 1:
                 raise MissingKeyError('One and only one connector required')
             ikeys['connector'] = connectors[0]
-        
+
         set_ikeys(self.telnet, ikeys)
         self.telnet.sendline('persist')
         self.telnet.expect(r'.*' + STANDARD_PROMPT)

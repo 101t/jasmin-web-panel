@@ -42,7 +42,7 @@ def profile_view(request):
                     messages.success(request, _("Congrats!, Your profile has been updated successfully"))
                 else:
                     display_form_validations(form=form, request=request)
-            except Exception as e:
+            except Exception:
                 messages.error(request, _("Oops, An error occured while updating profile"))
         elif s == "avatar":
             form = ChangePhotoForm(request.POST, request.FILES)

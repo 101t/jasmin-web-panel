@@ -3,7 +3,6 @@ Python 2
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
 """
-from typing import List
 
 from django.template.loader import render_to_string
 

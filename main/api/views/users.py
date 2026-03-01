@@ -85,14 +85,14 @@ class UsersViewSet(ViewSet):
         for field in required_fields:
             if field not in request.data:
                 raise MissingKeyError(f'Missing {field}')
-        
+
         telnet.sendline('user -a')
         telnet.expect(r'Adding a new User(.+)\n' + INTERACTIVE_PROMPT)
-        
+
         for field in required_fields:
             telnet.sendline(f'{field} {request.data[field]}')
             telnet.expect(INTERACTIVE_PROMPT)
-        
+
         telnet.sendline('ok\n')
         matched_index = telnet.expect([
             r'.+Successfully added(.+)\[(.+)\][\n\r]+' + STANDARD_PROMPT,
