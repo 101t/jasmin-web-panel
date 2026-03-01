@@ -31,7 +31,7 @@ jobs:
       - name: Install linting tools
         run: |
           pip install --upgrade pip wheel uv
-          uv pip install -r pyproject.toml --extra=dev
+          uv pip install --system -r pyproject.toml --extra=dev
 
       - name: Run ruff
         run: ruff check . --select E,W,F --ignore E501
@@ -65,7 +65,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip wheel uv
-          uv pip install -r pyproject.toml --extra=dev
+          uv pip install --system -r pyproject.toml --extra=dev
 
       - name: Copy sample env
         run: cp sample.env .env
