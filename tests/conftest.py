@@ -2,9 +2,6 @@
 Pytest configuration and fixtures for the test suite.
 """
 import pytest
-from django.test import override_settings
-
-
 # Override settings for all tests to avoid requiring external services
 TEST_CACHES = {
     'default': {
