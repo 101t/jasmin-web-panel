@@ -62,3 +62,7 @@ exclude = [
 select = ["E", "W", "F"]
 ignore = ["E501"]
 
+[tool.ruff.lint.per-file-ignores]
+"config/asgi.py" = ["E402"]
+"config/celery.py" = ["E402"]
+
