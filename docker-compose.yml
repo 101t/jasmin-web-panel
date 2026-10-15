@@ -17,7 +17,7 @@ x-panel-env: &panel-env
 
 services:
   jasmin-web:
-    image: tarekaec/jasmin_web_panel:1.4.4
+    image: tarekaec/jasmin_web_panel:3.1.0
     ports:
       - "${JASMIN_WEB_PORT:-8999}:8000"
     env_file:
@@ -36,7 +36,7 @@ services:
     restart: unless-stopped
 
   jasmin-celery:
-    image: tarekaec/jasmin_web_panel:1.4.4
+    image: tarekaec/jasmin_web_panel:3.1.0
     entrypoint: bash ./docker-entrypoint-celery.sh
     env_file:
       - .env

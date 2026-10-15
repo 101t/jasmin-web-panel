@@ -50,7 +50,7 @@ docker run -d \
   --name jasmin-web \
   -p 8999:8000 \
   --env-file .env \
-  tarekaec/jasmin_web_panel:1.4.4
+  tarekaec/jasmin_web_panel:3.1.0
 ```
 
 See the [Installation Guide](getting-started/installation.md) for full setup options including [Docker](deployment/docker.md) and [Systemd & Nginx](deployment/systemd-nginx.md).

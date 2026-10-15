@@ -37,7 +37,7 @@ Errors always have the same shape:
 `GET /api/health_check` needs no authentication; use it for load balancer and container health checks.
 
 ```json
-{"version": "3.0.3", "status": "ok"}
+{"version": "3.1.0", "status": "ok"}
 ```
 
 ## Groups

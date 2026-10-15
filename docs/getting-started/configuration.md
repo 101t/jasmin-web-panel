@@ -25,6 +25,7 @@ Boolean values accept `True`/`False` (also `1`/`0`, `yes`/`no`).
 | `SITE_ID` | Django sites framework id | `1` |
 | `SITE_NAME` / `SITE_NAME_HTML` | Name shown in the interface | `Jasmin Panel` |
 | `DJANGO_LOG_LEVEL` | Log level of `logs/app.log` and `logs/django.log` (production settings) | `WARNING` |
+| `FIELD_ENCRYPTION_KEY` | Key encrypting the Jasmin user passwords the panel keeps for Send SMS. Set it before changing `SECRET_KEY`, otherwise re-enter those passwords on the Users page | `SECRET_KEY` |
 
 !!! warning "Production checklist"
     Set `DEBUG=False`, a long random `SECRET_KEY`, your real `ALLOWED_HOSTS`, and change the default `admin` / `secret`

@@ -70,7 +70,7 @@ spec:
     spec:
       containers:
       - name: web
-        image: tarekaec/jasmin_web_panel:1.4.4
+        image: tarekaec/jasmin_web_panel:3.1.0
         ports:
         - containerPort: 8000
         envFrom:
@@ -117,7 +117,7 @@ spec:
     spec:
       containers:
       - name: worker
-        image: tarekaec/jasmin_web_panel:1.4.4
+        image: tarekaec/jasmin_web_panel:3.1.0
         command: ["bash", "./docker-entrypoint-celery.sh"]
         envFrom:
         - configMapRef:

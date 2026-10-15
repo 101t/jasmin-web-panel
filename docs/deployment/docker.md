@@ -76,6 +76,17 @@ docker compose cp ./jasmin.cfg jasmin:/etc/jasmin/jasmin.cfg
 docker compose restart jasmin
 ```
 
+## Image tags
+
+Images are published to [Docker Hub](https://hub.docker.com/r/tarekaec/jasmin_web_panel) for amd64 and arm64:
+
+| Tag | Content |
+|-----|---------|
+| `3.1.0` | A release; pin this in production |
+| `3.1`, `3` | The latest release of that minor or major version |
+| `latest` | The latest release |
+| `edge` | The `master` branch; for testing upcoming changes |
+
 ## Panel only (existing Jasmin)
 
 If Jasmin already runs elsewhere, run just the panel and point `TELNET_HOST`/`TELNET_PORT` at its jcli port:
@@ -86,7 +97,7 @@ docker run -d \
   -p 8999:8000 \
   --env-file .env \
   -v $(pwd)/public:/app/public \
-  tarekaec/jasmin_web_panel:1.4.4
+  tarekaec/jasmin_web_panel:3.1.0
 ```
 
 ## Building a Custom Image

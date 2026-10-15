@@ -38,7 +38,7 @@ Paste logs here
 |------|-------|
 | OS | e.g., Ubuntu 22.04 |
 | Python version | e.g., 3.11.9 |
-| Jasmin Web Panel version | e.g., 3.0.3 |
+| Jasmin Web Panel version | e.g., 3.1.0 |
 | Jasmin SMS Gateway version | e.g., 0.10.8 |
 | Deployment method | Docker / Manual |
 | Database | PostgreSQL 15 / MySQL 8.0 |

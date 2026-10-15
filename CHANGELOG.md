@@ -1,6 +1,16 @@
 # Change history
 
-## Unreleased
+## 3.1.0 (2026-10-15)
+
+Docker images now follow the application version: `tarekaec/jasmin_web_panel:3.1.0` (also `3.1`, `3` and
+`latest`), built for amd64 and arm64. `edge` follows the master branch.
+
+### Upgrade notes
+- Run the migrations (the Docker image does it on start): stored Jasmin user passwords are encrypted.
+  They are encrypted with `SECRET_KEY`; set `FIELD_ENCRYPTION_KEY` before rotating `SECRET_KEY`.
+- With Docker Compose, Jasmin's configuration now lives in the `jasmin_config` volume; see
+  "Upgrading" in the Docker guide if you kept one in `./jasmin_config`.
+- API clients: gateway connection problems are now HTTP 503.
 
 ### Fixed: UI and gateway
 - MT/MO routes with several connectors or filters (RandomRoundrobin, Failover) can be created from the panel: only the last selected value used to reach Jasmin (#107).
@@ -24,14 +34,24 @@
 - The Docker image builds on arm64 without editing the Dockerfile; Gunicorn no longer runs with `--reload`.
 - Sign-in, sign-up and reset pages no longer request a missing `auth/global.js`.
 
+### Security
+- Jasmin user passwords kept for Send SMS are encrypted at rest (Fernet) instead of stored in plain text.
+- jQuery 3.4.1 → 3.7.1 (CVE-2020-11022, CVE-2020-11023), jquery-validation 1.19.1 → 1.19.5
+  (CVE-2021-21252, CVE-2022-31147), Bootstrap JS 4.3.1 → 4.6.2.
+
 ### Changed
 - Gateway connection problems are reported as HTTP 503 (were 500, or 403 for a wrong jcli password).
+- The users page loads with one jcli command instead of one per user; details load when editing.
 - `sample.env` defaults to `DEBUG=False` and a placeholder `SECRET_KEY`; production warns when a published sample key is used.
 - New `HTTPS_ONLY` setting for secure cookies and HTTPS redirects behind TLS.
 - The user "service" menu can unbind or ban a user from the SMPP server; the edit form offers the `schedule_delivery_time` and `hex_content` authorizations.
 - Clearer forms: validation matches Jasmin's id rules, uid/username are read-only when editing, loading and error states in every table, labelled status badges and accessible action buttons.
 
 ### Added
+- Search box on every list page.
+- Interface messages built by JavaScript are translatable; form validation messages in Turkish.
+- Release workflow: Docker images published to Docker Hub on every master push (`edge`) and release tag,
+  and GitHub releases created from this changelog.
 - Integration tests against a live Jasmin gateway (`make test_integration`), parser and view tests, CI jobs for them and for the documentation build, Dependabot.
 - `LICENSE` file (MIT, as stated in the README).
 - Documentation: REST API reference, gateway management guide, troubleshooting, complete configuration reference.
@@ -39,7 +59,11 @@
 ### Removed
 - Travis CI configuration (replaced by GitHub Actions).
 
-### Earlier unreleased changes
+### Fixed: documentation site
+- The documentation site was not updated by the publishing workflow (it pushed a `gh-pages` branch while
+  GitHub Pages deploys from Actions artifacts); it now deploys on every master push.
+
+### Also in this release
 
 1. **Open Source Enhancements**
    - Added `CONTRIBUTING.md` with detailed contributor guide

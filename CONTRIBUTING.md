@@ -155,6 +155,22 @@ When adding a new feature or fixing a bug:
 
 ---
 
+## Releasing
+
+1. Set the new version in `config/version.py`, `pyproject.toml` and the image tags of `docker-compose.yml`
+   (a test checks they agree), and move the CHANGELOG entries under `## X.Y.Z (date)`.
+2. Merge to `master`: the **Release** workflow publishes `tarekaec/jasmin_web_panel:edge`.
+3. Tag the merge commit and push the tag:
+
+   ```bash
+   git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z
+   ```
+
+   The workflow publishes `X.Y.Z`, `X.Y`, `X` and `latest` (amd64 and arm64) and creates the GitHub release from
+   the CHANGELOG section.
+
+---
+
 ## Commit Messages
 
 Follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:

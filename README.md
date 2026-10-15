@@ -4,7 +4,8 @@
 
 [![CI](https://github.com/101t/jasmin-web-panel/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/101t/jasmin-web-panel/actions/workflows/ci.yml)
 [![Docs](https://img.shields.io/badge/docs-online-blue.svg)](https://about.supernovasoft.com/jasmin-web-panel/)
-[![Docker Hub](https://img.shields.io/badge/docker-hub-blue.svg)](https://hub.docker.com/u/tarekaec)
+[![Docker Image](https://img.shields.io/docker/v/tarekaec/jasmin_web_panel?sort=semver&label=docker)](https://hub.docker.com/r/tarekaec/jasmin_web_panel)
+[![Docker Pulls](https://img.shields.io/docker/pulls/tarekaec/jasmin_web_panel)](https://hub.docker.com/r/tarekaec/jasmin_web_panel)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
@@ -216,7 +217,7 @@ Access the application at `http://localhost:8000`
 
 ```bash
 # Pull the latest image
-docker pull tarekaec/jasmin_web_panel:1.4.4
+docker pull tarekaec/jasmin_web_panel:3.1.0
 
 # Configure environment
 cp sample.env .env
@@ -228,7 +229,7 @@ docker run -d \
   -p 8999:8000 \
   --env-file .env \
   -v ./public:/app/public \
-  tarekaec/jasmin_web_panel:1.4.4
+  tarekaec/jasmin_web_panel:3.1.0
 ```
 
 ### Building Custom Image
