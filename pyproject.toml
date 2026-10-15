@@ -28,6 +28,7 @@ dependencies = [
     "zipp>=3.8.0,<4.0",
     "smpplib>=2.2.4,<3.0",
     "psycopg[binary]>=3.1.8,<4.0",
+    "whitenoise>=6.6.0,<7.0",
 ]
 
 [project.optional-dependencies]
@@ -40,6 +41,11 @@ dependencies = [
 "prod" = [
     "gunicorn>=23.0.0,<24.0",
     "uvicorn>=0.34.1,<0.35.0"
+]
+# MkDocs 2.0 drops the plugin and theme system Material for MkDocs relies on.
+"docs" = [
+    "mkdocs>=1.6,<2",
+    "mkdocs-material>=9.5,<10",
 ]
 
 [tool.pytest.ini_options]

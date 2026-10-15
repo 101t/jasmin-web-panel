@@ -14,7 +14,9 @@ env.read_env('.env')
 
 SECRET_KEY = os.environ.get("SECRET_KEY", default='8na#(#x@0i*3ah%&$-q)b&wqu5ct_a3))d8-sqk-ux*5lol*wl')
 
-DEBUG = bool(os.environ.get("DEBUG", ''))
+# env.bool, not bool(): bool("False") and bool("0") are both True, which used to turn
+# DEBUG on for anyone who followed the docs and set DEBUG=False (or DEBUG: 0 in compose).
+DEBUG = env.bool("DEBUG", default=False)
 
 SITE_ID = int(os.environ.get("SITE_ID", default='1'))
 
@@ -40,6 +42,8 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Serves collected static files under gunicorn, so the panel keeps its CSS/JS with DEBUG off.
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -132,6 +136,11 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (str(APPS_DIR.path('static', )),)
 
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+}
+
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
@@ -184,6 +193,7 @@ REST_FRAMEWORK = {
         'anon': os.environ.get('API_THROTTLE_ANON', '20/minute'),
         'user': os.environ.get('API_THROTTLE_USER', '120/minute'),
     },
+    'EXCEPTION_HANDLER': 'main.api.exceptions.exception_handler',
 }
 
 SWAGGER_SETTINGS = {
@@ -218,7 +228,7 @@ STANDARD_PROMPT = 'jcli : '
 # Prompt for interactive commands
 INTERACTIVE_PROMPT = '> '
 # This is used for DLR Report
-SUBMIT_LOG = bool(os.environ.get('SUBMIT_LOG', '0'))
+SUBMIT_LOG = env.bool('SUBMIT_LOG', default=False)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
