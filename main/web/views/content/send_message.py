@@ -9,6 +9,7 @@ from main.web.helpers import send_smpp, send_http
 from main.core.utils import display_form_validations
 from main.core.smpp import Users
 from main.core.models import UsersModel
+from main.core.tools import require_post_ajax
 
 
 @login_required
@@ -32,16 +33,24 @@ def send_message_view(request):
                     if user_model:
                         username = user_model.username
                         password = user_model.password
+                        if not password:
+                            messages.warning(
+                                request,
+                                f'The stored password of {user_uid} cannot be decrypted (SECRET_KEY or '
+                                'FIELD_ENCRYPTION_KEY changed); set it again from the Users page. '
+                                'The message was sent with the default credentials.')
                     else:
                         # Fallback to Jasmin telnet (won't have password)
-                        users = Users()
-                        user_list = users.list()
-                        if 'users' in user_list:
-                            user_data = next((u for u in user_list['users'] if u['uid'] == user_uid), None)
-                            if user_data:
-                                username = user_data.get('username')
-                                # Note: password won't be available from Jasmin
-                                messages.warning(request, f'User {user_uid} not found in local database. Password unavailable.')
+                        with Users() as users:
+                            user_list = users.list_summary()
+                        user_data = next((u for u in user_list['users'] if u['uid'] == user_uid), None)
+                        if user_data:
+                            username = user_data.get('username')
+                            # Note: password won't be available from Jasmin
+                            messages.warning(
+                                request,
+                                f'User {user_uid} was not created from this panel, so its password is unknown; '
+                                'the message was sent with the default credentials.')
                 except Exception as e:
                     messages.warning(request, f'Could not fetch user credentials: {e}. Using defaults.')
 
@@ -68,16 +77,15 @@ def send_message_view(request):
     return render(request, 'web/content/send_message.html', {'form': form})
 
 
-@login_required
+@require_post_ajax
 def send_message_view_manage(request):
-    if request.method == 'POST':
-        action = request.POST.get('s', '')
-        if action == 'list_users':
-            try:
-                users = Users()
-                response = users.list()
-                response['status'] = 200
-                return JsonResponse(response)
-            except Exception as e:
-                return JsonResponse({'status': 400, 'message': str(e)}, status=400)
-    return JsonResponse({'status': 200, 'message': 'OK'})
+    if request.POST.get('s', '') == 'list_users':
+        with Users() as users:
+            response = users.list_summary()
+        # Only these users can send as themselves: the panel stored their password.
+        known = set(UsersModel.objects.values_list('uid', flat=True))
+        for user in response['users']:
+            user['has_password'] = user['uid'] in known
+        response['status'] = 200
+        return JsonResponse(response)
+    return JsonResponse({'status': 400, 'message': 'Sorry, Command does not matched.'}, status=400)

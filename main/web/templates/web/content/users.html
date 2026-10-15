@@ -5,10 +5,10 @@
 {% block content %}
 <h1 class="h3 mb-2 text-gray-800">{% trans "Users" %}</h1>
 <div class="card shadow mb-4">
-    <div class="card-header py-3">
-        <h4>
-            <button class="btn btn-success btn-sm float-right" id="add_new_obj"><i class="fas fa-plus"></i> {% trans "Add New" %}</button>
-        </h4>
+    <div class="card-header py-3 d-flex flex-wrap align-items-center">
+        <input type="search" class="form-control form-control-sm mr-auto my-1" style="max-width: 280px;"
+               data-table-filter="#collectionlist" placeholder="{% trans 'Search' %}" aria-label="{% trans 'Search' %}">
+        <button class="btn btn-success btn-sm my-1" id="add_new_obj"><i class="fas fa-plus"></i> {% trans "Add New" %}</button>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -50,28 +50,28 @@
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "UID" %}</label>
                         <div class="col-sm-10">
-                            <input type="text" name="uid" class="form-control" placeholder="{% trans 'UID Name' %}">
-                            <small class="text-muted">{% trans "User ID" %}</small>
+                            <input type="text" name="uid" class="form-control" placeholder="{% trans 'UID Name' %}" required maxlength="16">
+                            <small class="text-muted">{% trans "User ID: up to 16 letters, digits, _ or -" %}</small>
                         </div>
                     </div>
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "GID" %}</label>
                         <div class="col-sm-10">
-                            <select name="gid" class="form-control"></select>
+                            <select name="gid" class="form-control" required></select>
                             <small class="text-muted">{% trans "Group ID" %}</small>
                         </div>
                     </div>
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "Username" %}</label>
                         <div class="col-sm-10">
-                            <input type="text" name="username" class="form-control" placeholder="{% trans 'Username' %}">
+                            <input type="text" name="username" class="form-control" placeholder="{% trans 'Username' %}" required maxlength="15">
                         </div>
                     </div>
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "Password" %}</label>
                         <div class="col-sm-10">
                             <div class="input-group">
-                                <input type="password" name="password" class="form-control password-input" placeholder="{% trans 'Password' %}">
+                                <input type="password" name="password" class="form-control password-input" placeholder="{% trans 'Password' %}" required maxlength="16" autocomplete="new-password">
                                 <div class="input-group-append">
                                     <button class="btn btn-outline-secondary toggle-password" type="button" title="{% trans 'Show/Hide Password' %}">
                                         <i class="fas fa-eye"></i>
@@ -96,8 +96,8 @@
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "UID" %}</label>
                         <div class="col-sm-10">
-                            <input type="text" name="uid" class="form-control" placeholder="{% trans 'UID Name' %}">
-                            <small class="text-muted">{% trans "User ID" %}</small>
+                            <input type="text" name="uid" class="form-control" readonly>
+                            <small class="text-muted">{% trans "User ID: up to 16 letters, digits, _ or -" %}</small>
                         </div>
                     </div>
                     <div class="form-group row">
@@ -110,14 +110,15 @@
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "Username" %}</label>
                         <div class="col-sm-10">
-                            <input type="text" name="username" class="form-control" placeholder="{% trans 'Username' %}">
+                            <input type="text" name="username" class="form-control" readonly>
+                            <small class="text-muted">{% trans "Jasmin does not allow renaming a user." %}</small>
                         </div>
                     </div>
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "Password" %}</label>
                         <div class="col-sm-10">
                             <div class="input-group">
-                                <input type="password" name="password" class="form-control password-input" placeholder="{% trans 'Password' %}">
+                                <input type="password" name="password" class="form-control password-input" maxlength="16" autocomplete="new-password" placeholder="{% trans 'Leave empty to keep the current password' %}">
                                 <div class="input-group-append">
                                     <button class="btn btn-outline-secondary toggle-password" type="button" title="{% trans 'Show/Hide Password' %}">
                                         <i class="fas fa-eye"></i>
@@ -127,6 +128,7 @@
                         </div>
                     </div>
                     <h3>{% trans "Quota" %}</h3>
+                    <p class="text-muted small">{% trans "Leave a quota empty or set it to ND for no limit. Only the values you change are sent to Jasmin, so traffic consumed while this form is open is not overwritten." %}</p>
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "Balance" %}</label>
                         <div class="col-sm-10">
@@ -262,6 +264,22 @@
                                     {% trans "Privilege to defined validity_period of SMS-MT (default is NOT SET)" %}
                                 </small>
                             </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" name="schedule_delivery_time"> {% trans "Schedule Delivery Time" %}
+                                </label>
+                                <small class="text-muted">
+                                    {% trans "Privilege to defined schedule_delivery_time of SMS-MT" %}
+                                </small>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" name="hex_content"> {% trans "Hex Content" %}
+                                </label>
+                                <small class="text-muted">
+                                    {% trans "Privilege to send binary content (hex-content parameter) through the HTTP API" %}
+                                </small>
+                            </div>
                         </div>
                     </div>
                     <h3>{% trans "Value Filter" %}</h3>
@@ -325,14 +343,14 @@
                         <label class="col-sm-2 col-form-label">{% trans "UID" %}</label>
                         <div class="col-sm-10">
                             <input type="text" name="uid" class="form-control" placeholder="{% trans 'UID Name' %}" readonly>
-                            <small class="text-muted">{% trans "User ID" %}</small>
+                            <small class="text-muted">{% trans "User ID: up to 16 letters, digits, _ or -" %}</small>
                         </div>
                     </div>
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "Status" %}</label>
                         <div class="col-sm-10">
                             <select name="s" class="form-control" required="required">
-                                <option value="enable">{% trans "Enable" %}</option><option value="disable">{% trans "Disable" %}</option>
+                                <option value="enable">{% trans "Enable" %}</option><option value="disable">{% trans "Disable" %}</option><option value="smpp_unbind">{% trans "Unbind from SMPP server" %}</option><option value="smpp_ban">{% trans "Unbind and ban from SMPP server" %}</option>
                             </select>
                         </div>
                     </div>
@@ -350,6 +368,12 @@
 <script>
 var main_trans = {
     url2groups: "{% url 'web:groups_view_manage' %}",
+    enabled: "{% trans 'Enabled' %}",
+    disabled: "{% trans 'Disabled' %}",
+    service: "{% trans 'Enable, disable or unbind' %}",
+    edit: "{% trans 'Edit' %}",
+    delete: "{% trans 'Delete' %}",
+    nogroups: "{% trans 'Create a group first' %}",
 };
 </script>
 <script src="{% static 'web/content/users.js' %}"></script>

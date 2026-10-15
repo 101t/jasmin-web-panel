@@ -24,5 +24,4 @@ exec "$APP_DIR"/env/bin/gunicorn config."$APP_WSGI":application \
   --workers "$APP_WORKERS" \
   --bind :"$APP_PORT" \
   --log-level "$APP_LOG_LEVEL" \
-  --worker-class="$APP_WORKER_CLASS" \
-  --reload
+  --worker-class="$APP_WORKER_CLASS"

@@ -45,6 +45,7 @@
 <script src="{% static 'assets/vendor/jquery-easing/jquery.easing.min.js' %}"></script>
 <script src="{% static 'assets/vendor/jquery-validation/jquery.validate.min.js' %}"></script>
 <script src="{% static 'assets/vendor/jquery-validation/additional-methods.min.js' %}"></script>
+{% get_current_language as CURRENT_LANGUAGE %}{% if CURRENT_LANGUAGE == 'tr' %}<script src="{% static 'assets/vendor/jquery-validation/localization/messages_tr.min.js' %}"></script>{% endif %}
 <script src="{% static 'assets/vendor/toastr/toastr.min.js' %}"></script>
 <script src="{% static 'assets/vendor/sweetalert/sweetalert.min.js' %}"></script>
 <script src="{% static 'assets/js/sb-admin-2.min.js' %}"></script>
@@ -55,6 +56,20 @@ var global_trans = {
 	no: "{% trans 'No' %}",
 	yes: "{% trans 'Yes' %}",
 	youwontabletorevertthis: "{% trans 'You wont be able to revert this!' %}",
+	loading: "{% trans 'Loading...' %}",
+	retry: "{% trans 'Retry' %}",
+	enabled: "{% trans 'Enabled' %}",
+	disabled: "{% trans 'Disabled' %}",
+	started: "{% trans 'Started' %}",
+	stopped: "{% trans 'Stopped' %}",
+	service: "{% trans 'Status' %}",
+	edit: "{% trans 'Edit' %}",
+	delete: "{% trans 'Delete' %}",
+	unreachable: "{% trans 'The panel server cannot be reached, check your connection.' %}",
+	requestFailed: "{% trans 'Request failed' %}",
+	errorDetails: "{% trans 'An error occurred, see the details window.' %}",
+	jasminId: "{% trans 'Only letters, digits, _ and - are allowed.' %}",
+	noMatch: "{% trans 'Nothing matches your search.' %}",
 };
 </script>
 {% block extrajs %}{% endblock extrajs %}

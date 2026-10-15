@@ -65,7 +65,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip wheel uv
-          uv pip install --system -r pyproject.toml --extra=dev
+          # prod too: some tests load config.settings.pro, which installs the gunicorn app.
+          uv pip install --system -r pyproject.toml --extra=dev --extra=prod
 
       - name: Copy sample env
         run: cp sample.env .env
@@ -75,6 +76,61 @@ jobs:
 
       - name: Run tests
         run: pytest tests/ -v --tb=short
+
+  integration:
+    name: Integration (live Jasmin gateway)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      SECRET_KEY: ci-test-secret-key-not-for-production
+      DEVDB_URL: sqlite:///test_db.sqlite3
+      JASMIN_INTEGRATION: "1"
+      TELNET_HOST: 127.0.0.1
+      TELNET_PORT: "18990"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y --no-install-recommends telnet
+          pip install --upgrade pip wheel uv
+          uv pip install --system -r pyproject.toml --extra=dev
+
+      - name: Start Jasmin, Redis and RabbitMQ
+        run: docker compose -f tests/integration/docker-compose.yml up -d --wait
+
+      - name: Run integration tests
+        run: pytest tests/integration -v --tb=short
+
+      - name: Gateway logs
+        if: failure()
+        run: docker compose -f tests/integration/docker-compose.yml logs jasmin
+
+  docs:
+    name: Docs build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build the documentation (warnings are errors)
+        run: |
+          pip install uv
+          uv pip install --system -r pyproject.toml --extra=docs
+          mkdocs build --strict
 
   docker-build:
     name: Docker Build

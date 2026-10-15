@@ -4,10 +4,11 @@ For traditional Linux server deployments (Ubuntu/Debian), we recommend running t
 
 ## Prerequisites
 
-- Python 3.11 (install via `apt` or `pyenv`)
+- Python 3.11 or 3.12 (install via `apt` or `pyenv`)
 - PostgreSQL 14+
 - Redis 6+
 - Nginx
+- The `telnet` client, which the panel uses to drive Jasmin's jcli console: `sudo apt install -y telnet`
 
 ### Install Python 3.11
 
@@ -67,6 +68,8 @@ uv pip install -r pyproject.toml --extra=prod
 ```bash
 cp sample.env .env
 # Edit .env and set SECRET_KEY, PRODB_URL, REDIS_HOST, TELNET_HOST, etc.
+# Keep DEBUG=False. After enabling HTTPS (step 4), also set HTTPS_ONLY=True and
+# CSRF_TRUSTED_ORIGINS=https://sms.yourdomain.com
 nano .env
 ```
 

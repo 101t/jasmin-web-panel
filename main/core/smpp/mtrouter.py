@@ -1,21 +1,15 @@
 import logging
-import random
-from collections import OrderedDict
 from typing import List
 
-from django.conf import settings
-
 from main.core.exceptions import (
-    JasminError,
-    UnknownError, MissingKeyError,
-    MultipleValuesRequiredKeyError, ObjectNotFoundError
+    DuplicateEntryError,
+    MissingKeyError,
+    MultipleValuesRequiredKeyError,
+    ObjectNotFoundError,
 )
 from main.core.utils import is_float, is_int
-from main.core.tools import set_ikeys, split_cols
+from main.core.tools import as_list, parse_route_row, table_rows
 from .conn import TelnetConnection
-
-STANDARD_PROMPT = settings.STANDARD_PROMPT
-INTERACTIVE_PROMPT = settings.INTERACTIVE_PROMPT
 
 logger = logging.getLogger(__name__)
 
@@ -32,24 +26,21 @@ class MTRouter(TelnetConnection):
         ('FailoverMTRoute', 'Failover MT Route'),
     )
 
+    @staticmethod
+    def parse_list(output) -> List[dict]:
+        """Parse ``mtrouter -l`` output as a list of dicts"""
+        routes = []
+        for row in table_rows(output):
+            route = parse_route_row(row, rated=True)
+            if route is None:
+                logger.warning('Unexpected MT route row: %r', row)
+            else:
+                routes.append(route)
+        return routes
+
     def _list(self) -> List[dict]:
         """List MT router as python dict"""
-        self.telnet.sendline('mtrouter -l')
-        self.telnet.expect([r'(.+)\n' + STANDARD_PROMPT])
-        result = str(self.telnet.match.group(0)).strip().replace("\\r", '').split("\\n")
-        if len(result) < 3:
-            return []
-        results = [s.replace(', ', ',').replace('(!)', '') for s in result[2:-2] if s]
-        routers = split_cols(results)
-        return [
-            {
-                'order': r[0].strip().lstrip('#'),
-                'type': r[1],
-                'rate': r[2],
-                'connectors': [c.strip() for c in r[3].split(',')],
-                'filters': [c.strip() for c in ' '.join(r[4:]).split(',')] if len(r) > 3 else []
-            } for r in routers
-        ]
+        return self.parse_list(self.run_command('mtrouter -l'))
 
     def list(self):
         """List MT Routers. No parameters"""
@@ -57,15 +48,13 @@ class MTRouter(TelnetConnection):
 
     def get_router(self, order):
         """Return data for one mtrouter as Python dict"""
-        routers = self._list()
         try:
-            return {'mtrouter': next(m for m in routers if m['order'] == order)}
-        except (StopIteration, IndexError):
+            return {'mtrouter': next(m for m in self._list() if m['order'] == str(order))}
+        except StopIteration:
             raise ObjectNotFoundError('No MTRouter with order: %s' % order)
 
     def router_exists(self, order: str) -> bool:
-        routers = self._list()
-        return any(m['order'] == order for m in routers)
+        return any(m['order'] == str(order) for m in self._list())
 
     def retrieve(self, order):
         """Details for one MTRouter by order (integer)"""
@@ -73,76 +62,54 @@ class MTRouter(TelnetConnection):
 
     def flush(self):
         """Flush entire routing table"""
-        self.telnet.sendline('mtrouter -f')
-        self.telnet.expect([r'(.+)\n' + STANDARD_PROMPT])
-        self.telnet.sendline('persist')
-        self.telnet.expect(r'.*' + STANDARD_PROMPT)
+        self.run_action('mtrouter -f')
+        self.persist()
         return {'mtrouters': []}
 
     def create(self, data):
-        """Add a new MTRouter"""
+        """Add a new MTRouter
+
+        ``smppconnectors`` and ``filters`` are lists of ids, or comma-separated strings.
+        MT routes deliver through SMPP client connectors only (``smppc(cid)``).
+        """
         route_type = data.get('type') or "DefaultRoute"
-        order = data.get('order') or "1"
-        filters = data.get('filters') or ""
-        rate = data.get('rate') or "0.0"
-        """ MT Router only support SMPP connectors, HTTP not allowed """
-        smppconnectors = data.get('smppconnectors') or ""
+        # Jasmin always stores the DefaultRoute at order 0.
+        order = "0" if route_type == 'DefaultRoute' else str(data.get('order') or '').strip()
+        if not is_int(order) or int(order) < 0:
+            raise MissingKeyError('Order must be a positive integer')
+        rate = str(data.get('rate') or "0").strip()
+        if not is_float(rate) or float(rate) < 0:
+            raise MissingKeyError('Rate must be a positive number')
+        filters = as_list(data.get('filters'))
+        connectors = ['smppc(%s)' % c for c in as_list(data.get('smppconnectors'))]
 
         if self.router_exists(order):
-            raise MultipleValuesRequiredKeyError('Order %s already exists' % order)
+            raise DuplicateEntryError('Order %s already exists' % order)
 
-        self.telnet.sendline('mtrouter -a')
-        self.telnet.expect(r'Adding a new MT Route(.+)\n' + INTERACTIVE_PROMPT)
-
-        ikeys = OrderedDict({
-            'type': route_type,
-            'order': order if is_int(order) else str(random.randrange(1, 99)),
-            'rate': str(float(rate)) if is_float(rate) else "0.0",
-        })
-
+        lines = ['type %s' % route_type, 'order %s' % order, 'rate %s' % float(rate)]
+        if route_type in ('RandomRoundrobinMTRoute', 'FailoverMTRoute'):
+            if len(connectors) < 2:
+                raise MultipleValuesRequiredKeyError('%s requires at least two connectors' % route_type)
+            lines.append('connectors %s' % ';'.join(connectors))
+        else:
+            if len(connectors) != 1:
+                raise MissingKeyError('%s requires exactly one connector' % route_type)
+            lines.append('connector %s' % connectors[0])
         if route_type != 'DefaultRoute':
             if not filters:
                 raise MissingKeyError('%s router requires filters' % route_type)
-            filters = filters.split(',')
-            ikeys['filters'] = ';'.join(filters)
+            lines.append('filters %s' % ';'.join(filters))
 
-        connectors = ['smppc(%s)' % c.strip() for c in smppconnectors.split(',') if c.strip()]
-        if route_type == 'RandomRoundrobinMTRoute':
-            if len(connectors) < 2:
-                raise MultipleValuesRequiredKeyError('Round Robin route requires at least two connectors')
-            ikeys['connectors'] = ';'.join(connectors)
-        elif route_type == 'FailoverMTRoute':
-            if len(connectors) < 2:
-                raise MultipleValuesRequiredKeyError('FailOver route requires at least two connectors')
-            ikeys['connectors'] = ';'.join(connectors)
-        else:
-            if len(connectors) != 1:
-                raise MissingKeyError('One and only one connector required')
-            ikeys['connector'] = connectors[0]
-
-        set_ikeys(self.telnet, ikeys)
-        self.telnet.sendline('persist')
-        self.telnet.expect(r'.*' + STANDARD_PROMPT)
-        return {'mtrouter': self.get_router(order)}
+        self.run_session('mtrouter -a', lines)
+        self.persist()
+        return self.get_router(order)
 
     def simple_mtrouter_action(self, action, order, return_mtroute=True):
-        self.telnet.sendline('mtrouter -%s %s' % (action, order))
-        matched_index = self.telnet.expect([
-            r'.+Successfully(.+)' + STANDARD_PROMPT,
-            r'.+Unknown MT Route: (.+)' + STANDARD_PROMPT,
-            r'.+(.*)' + STANDARD_PROMPT,
-        ])
-        if matched_index == 0:
-            self.telnet.sendline('persist')
-            if return_mtroute:
-                self.telnet.expect(r'.*' + STANDARD_PROMPT)
-                return {'mtrouter': self.get_router(order)}
-            else:
-                return {'order': order}
-        elif matched_index == 1:
-            raise UnknownError(detail='No router:' + order)
-        else:
-            raise JasminError(self.telnet.match.group(1))
+        self.run_action('mtrouter -%s %s' % (action, order))
+        self.persist()
+        if return_mtroute:
+            return self.get_router(order)
+        return {'order': order}
 
     def destroy(self, order):
         """Delete a mtrouter. One parameter required, the router identifier (a string)

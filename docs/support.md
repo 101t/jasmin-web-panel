@@ -16,6 +16,9 @@ We welcome contributions from the community!
 3. Commit your changes.
 4. Submit a Pull Request.
 
+Read the [contributing guide](https://github.com/101t/jasmin-web-panel/blob/master/CONTRIBUTING.md) for the
+development setup and how to run the unit and integration tests.
+
 ## License
 
-This project is open-source and licensed under the MIT License.
+This project is open-source and licensed under the [MIT License](https://github.com/101t/jasmin-web-panel/blob/master/LICENSE).

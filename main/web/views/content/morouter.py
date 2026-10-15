@@ -19,27 +19,23 @@ def morouter_view(request):
 def morouter_view_manage(request):
     response = {}
     s = request.POST.get("s")
-    morouter = MORouter()
-
-    if s == "list":
-        response = morouter.list()
-    elif s == "add":
-        try:
-            data = dict(
+    with MORouter() as morouter:
+        if s == "list":
+            response = morouter.list()
+        elif s == "add":
+            # Multi-selects post one value per selected option; .get() would keep only the last.
+            response = morouter.create(data=dict(
                 type=request.POST.get("type"),
                 order=request.POST.get("order"),
-                smppconnectors=request.POST.get("smppconnectors") or "",
-                httpconnectors=request.POST.get("httpconnectors") or "",
-                filters=request.POST.get("filters") or "",
-            )
-            morouter.create(data=data)
-            response["message"] = str(_("MO Router added successfully!"))
-        except Exception as e:
-            return JsonResponse({"message": str(e), "status": 400}, status=400)
-    elif s == "delete":
-        response = morouter.destroy(order=request.POST.get("order"))
-        response["message"] = str(_("MO Router deleted successfully!"))
-    else:
-        return JsonResponse({"message": str(_("Sorry, Command does not matched.")), "status": 400}, status=400)
+                smppconnectors=request.POST.getlist("smppconnectors"),
+                httpconnectors=request.POST.getlist("httpconnectors"),
+                filters=request.POST.getlist("filters"),
+            ))
+            response["message"] = _("MO Router added successfully!")
+        elif s == "delete":
+            response = morouter.destroy(order=request.POST.get("order"))
+            response["message"] = _("MO Router deleted successfully!")
+        else:
+            return JsonResponse({"message": _("Sorry, Command does not matched."), "status": 400}, status=400)
     response["status"] = 200
     return JsonResponse(response)

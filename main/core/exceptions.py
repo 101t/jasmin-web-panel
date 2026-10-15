@@ -1,18 +1,20 @@
 from rest_framework.exceptions import APIException
 
 
+# The gateway being unreachable or misconfigured is a 503: the panel itself is fine and the
+# request may succeed once Jasmin is back. (A 403 here read as "you are not allowed".)
 class TelnetUnexpectedResponse(APIException):
-    status_code = 500
+    status_code = 503
     default_detail = 'Unexpected response from Jasmin'
 
 
 class TelnetConnectionTimeout(APIException):
-    status_code = 500
+    status_code = 503
     default_detail = 'Connection to jcli timed out'
 
 
 class TelnetLoginFailed(APIException):
-    status_code = 403
+    status_code = 503
     default_detail = 'Jasmin login failed'
 
 
@@ -23,7 +25,7 @@ class CanNotModifyError(APIException):
 
 class JasminSyntaxError(APIException):
     status_code = 400
-    default_detail = 'Can not modify a key'
+    default_detail = 'Invalid jcli syntax'
 
 
 class JasminError(APIException):

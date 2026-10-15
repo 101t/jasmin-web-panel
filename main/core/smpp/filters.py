@@ -1,21 +1,15 @@
 import logging
-from collections import OrderedDict
+import re
 
-from django.conf import settings
-from django.utils.datastructures import MultiValueDictKeyError
-
-from main.core.exceptions import (
-    JasminError,
-    UnknownError, MissingKeyError,
-    ObjectNotFoundError
-)
-from main.core.tools import set_ikeys, split_cols
+from main.core.exceptions import DuplicateEntryError, MissingKeyError, ObjectNotFoundError
+from main.core.tools import table_rows
 from .conn import TelnetConnection
 
-STANDARD_PROMPT = settings.STANDARD_PROMPT
-INTERACTIVE_PROMPT = settings.INTERACTIVE_PROMPT
-
 logger = logging.getLogger(__name__)
+
+# fid, type, the routes the filter applies to ("MO", "MT" or "MO MT"), then its description,
+# e.g. "f1  UserFilter  MT  <U (uid=u1)>".
+FILTER_ROW_RE = re.compile(r'^(\S+)\s+(\S+)\s+((?:MO|MT)(?:\s+(?:MO|MT))?)\s*(.*)$')
 
 
 class Filters(TelnetConnection):
@@ -37,28 +31,41 @@ class Filters(TelnetConnection):
         ('evalpyfilter', 'EvalPy Filter'),
     )
     FILTER_PARAMETERS = ['cid', 'uid', 'gid', 'source_addr', 'destination_addr', 'short_message', 'dateInterval', 'timeInterval', 'tag', 'pyCode']
+    # The jcli key holding the single parameter of each filter type.
+    PARAMETER_KEYS = {
+        'connectorfilter': 'cid',
+        'userfilter': 'uid',
+        'groupfilter': 'gid',
+        'sourceaddrfilter': 'source_addr',
+        'destinationaddrfilter': 'destination_addr',
+        'shortmessagefilter': 'short_message',
+        'dateintervalfilter': 'dateInterval',
+        'timeintervalfilter': 'timeInterval',
+        'tagfilter': 'tag',
+        'evalpyfilter': 'pyCode',
+    }
+
+    @staticmethod
+    def parse_list(output):
+        "Parse ``filter -l`` output as a list of dicts"
+        filters = []
+        for row in table_rows(output):
+            match = FILTER_ROW_RE.match(row.strip())
+            if not match:
+                logger.warning('Unexpected filter row: %r', row)
+                continue
+            fid, ftype, routes, description = match.groups()
+            filters.append({
+                'fid': fid,
+                'type': ftype,
+                'routes': ' '.join(routes.split()),
+                'description': description.strip(),
+            })
+        return filters
 
     def _list(self):
         "List Filters as python dict"
-        self.telnet.sendline('filter -l')
-        self.telnet.expect([r'(.+)\n' + STANDARD_PROMPT])
-        result = str(self.telnet.match.group(0)).strip().replace("\\r", '').split("\\n")
-        if len(result) < 3:
-            return {'filters': []}
-        results = [l.replace(', ', ',').replace('(!)', '')
-                   for l in result[2:-2] if l]
-        filters = split_cols(results)
-        return {
-            'filters':
-                [
-                    {
-                        'fid': f[0].strip().lstrip('#'),
-                        'type': f[1],
-                        'routes': f[2] + ' ' + f[3],
-                        'description': ' '.join(f[4:])
-                    } for f in filters
-                ]
-        }
+        return {'filters': self.parse_list(self.run_command('filter -l'))}
 
     def list(self):
         "List Filters. No parameters"
@@ -66,17 +73,14 @@ class Filters(TelnetConnection):
 
     def get_filter(self, fid):
         "Return data for one filter as Python dict"
-        filters = self._list()['filters']
-        try:
-            return {'filter':
-                        next((m for m in filters if m['fid'] == fid), None)
-                    }
-        except StopIteration:
-            raise ObjectNotFoundError('No Filter with fid: %s' % fid)
+        for item in self._list()['filters']:
+            if item['fid'] == fid:
+                return item
+        raise ObjectNotFoundError('No Filter with fid: %s' % fid)
 
     def retrieve(self, fid):
         "Details for one Filter by fid (integer)"
-        return self.get_filter(fid)
+        return {'filter': self.get_filter(fid)}
 
     def create(self, data):
         """Create Filter.
@@ -101,62 +105,31 @@ class Filters(TelnetConnection):
           type: string
           paramType: form
         """
-        try:
-            ftype, fid = data['type'], data['fid']
-        except IndexError:
+        ftype = (data.get('type') or '').strip().lower()
+        fid = (data.get('fid') or '').strip()
+        if not ftype or not fid:
             raise MissingKeyError('Missing parameter: type or fid required')
-        ftype = ftype.lower()
-        self.telnet.sendline('filter -a')
-        self.telnet.expect(r'Adding a new Filter(.+)\n' + INTERACTIVE_PROMPT)
-        ikeys = OrderedDict({'type': ftype, 'fid': fid})
+        if ftype != 'transparentfilter' and ftype not in self.PARAMETER_KEYS:
+            raise MissingKeyError('Unknown filter type: %s' % ftype)
+        # jcli silently replaces an existing filter, even with another type.
+        if any(f['fid'] == fid for f in self._list()['filters']):
+            raise DuplicateEntryError('Filter %s already exists' % fid)
+        lines = ['type %s' % ftype, 'fid %s' % fid]
         if ftype != 'transparentfilter':
-            try:
-                parameter = data['parameter']
-            except MultiValueDictKeyError:
+            parameter = (data.get('parameter') or '').strip()
+            if not parameter:
                 raise MissingKeyError('%s filter requires parameter' % ftype)
-            if ftype == 'connectorfilter':
-                ikeys['cid'] = parameter
-            elif ftype == 'userfilter':
-                ikeys['uid'] = parameter
-            elif ftype == 'groupfilter':
-                ikeys['gid'] = parameter
-            elif ftype == 'sourceaddrfilter':
-                ikeys['source_addr'] = parameter
-            elif ftype == 'destinationaddrfilter':
-                ikeys['destination_addr'] = parameter
-            elif ftype == 'shortmessagefilter':
-                ikeys['short_message'] = parameter
-            elif ftype == 'dateintervalfilter':
-                ikeys['dateInterval'] = parameter
-            elif ftype == 'timeintervalfilter':
-                ikeys['timeInterval'] = parameter
-            elif ftype == 'tagfilter':
-                ikeys['tag'] = parameter
-            elif ftype == 'evalpyfilter':
-                ikeys['pyCode'] = parameter
-        set_ikeys(self.telnet, ikeys)
-        self.telnet.sendline('persist')
-        self.telnet.expect(r'.*' + STANDARD_PROMPT)
+            lines.append('%s %s' % (self.PARAMETER_KEYS[ftype], parameter))
+        self.run_session('filter -a', lines)
+        self.persist()
         return {'filter': self.get_filter(fid)}
 
     def simple_filter_action(self, action, fid, return_filter=True):
-        self.telnet.sendline('filter -%s %s' % (action, fid))
-        matched_index = self.telnet.expect([
-            r'.+Successfully(.+)' + STANDARD_PROMPT,
-            r'.+Unknown Filter: (.+)' + STANDARD_PROMPT,
-            r'.+(.*)' + STANDARD_PROMPT,
-        ])
-        if matched_index == 0:
-            self.telnet.sendline('persist')
-            if return_filter:
-                self.telnet.expect(r'.*' + STANDARD_PROMPT)
-                return {'filter': self.get_filter(fid)}
-            else:
-                return {'fid': fid}
-        elif matched_index == 1:
-            raise UnknownError(detail='No filter:' + fid)
-        else:
-            raise JasminError(self.telnet.match.group(1))
+        self.run_action('filter -%s %s' % (action, fid))
+        self.persist()
+        if return_filter:
+            return {'filter': self.get_filter(fid)}
+        return {'fid': fid}
 
     def destroy(self, fid):
         """Delete a filter. One parameter required, the filter identifier (a string)

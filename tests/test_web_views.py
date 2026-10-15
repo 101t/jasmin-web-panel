@@ -82,3 +82,12 @@ class TestGlobalManageView:
         assert response.status_code == 200
         data = response.json()
         assert 'status' in data
+
+
+@pytest.mark.django_db
+class TestSignIn:
+    def test_superuser_from_createsuperuser_can_sign_in(self, client):
+        """Sign-in refuses unverified emails; a CLI-created admin used to be locked out."""
+        User.objects.create_superuser(username='cliadmin', email='cli@example.com', password='cli-pass-123')
+        response = client.post(reverse('users:signin_view'), {'username': 'cliadmin', 'password': 'cli-pass-123'})
+        assert response.status_code == 302

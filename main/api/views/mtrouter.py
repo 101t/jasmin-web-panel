@@ -1,5 +1,6 @@
 from rest_framework.viewsets import ViewSet
 from rest_framework.decorators import action
+from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from rest_framework import status as http_status
 
@@ -32,41 +33,44 @@ class MTRouterViewSet(ViewSet):
         
         **Example Response:**
         ```json
-        {"routers": [{"order": "0", "type": "DefaultRoute", "connector": "smppc(smpp1)", "rate": "0.00"}]}
+        {"mtrouters": [{"order": "0", "type": "DefaultRoute", "rate": "0", "connectors": ["smppc(smpp1)"],
+                        "filters": []}]}
         ```
         """
         try:
             mtrouter = MTRouter()
             return Response(data=mtrouter.list(), status=http_status.HTTP_200_OK)
-        except Exception as e:
-            return Response(data={"error": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
+        except APIException as e:
+            return Response(data={"error": str(e.detail)}, status=e.status_code)
 
     def create(self, request):
         """
         Create a new MT route.
         
-        **Required Fields:**
-        - `type` - Router type
-        - `connector` - SMPP connector ID (e.g., "smppc(mysmpp)")
-        - `order` - Route priority (lower = higher priority, 0 for DefaultRoute)
-        
-        **Optional Fields:**
-        - `filters` - Filter ID for matching messages
-        - `rate` - Cost per message (for billing)
-        
+        **Fields:**
+        - `type` - `DefaultRoute`, `StaticMTRoute`, `RandomRoundrobinMTRoute` or `FailoverMTRoute`
+        - `order` - Route priority (higher order is evaluated first; DefaultRoute is always 0)
+        - `smppconnectors` - SMPP client connector ids, delivered as `smppc(cid)`
+        - `filters` - Filter ids (MT-compatible filters only); required except for DefaultRoute
+        - `rate` - Cost per message (for billing), defaults to 0
+
+        Lists may be JSON arrays or comma-separated strings. Static and Default routes take exactly
+        one connector, RoundRobin and Failover at least two.
+
         **Example Request (Default Route):**
         ```bash
         curl -u admin:password -X POST \\
           -H "Content-Type: application/json" \\
-          -d '{"type": "DefaultRoute", "connector": "smppc(mysmpp)", "rate": "0.00"}' \\
+          -d '{"type": "DefaultRoute", "smppconnectors": ["mysmpp"], "rate": "0"}' \\
           http://localhost:8000/api/mtrouter/
         ```
-        
-        **Example Request (Static Route with filter):**
+
+        **Example Request (Round robin over two connectors):**
         ```bash
         curl -u admin:password -X POST \\
           -H "Content-Type: application/json" \\
-          -d '{"type": "StaticMTRoute", "order": "10", "connector": "smppc(mysmpp)", "filters": "myfilter", "rate": "0.015"}' \\
+          -d '{"type": "RandomRoundrobinMTRoute", "order": "10", "smppconnectors": ["smpp1", "smpp2"],
+               "filters": ["myfilter"], "rate": "0.015"}' \\
           http://localhost:8000/api/mtrouter/
         ```
         """
@@ -76,8 +80,8 @@ class MTRouterViewSet(ViewSet):
             return Response(data=result, status=http_status.HTTP_201_CREATED)
         except MissingKeyError as e:
             return Response(data={"error": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response(data={"error": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
+        except APIException as e:
+            return Response(data={"error": str(e.detail)}, status=e.status_code)
 
     def retrieve(self, request, order):
         """
@@ -128,8 +132,8 @@ class MTRouterViewSet(ViewSet):
             mtrouter = MTRouter()
             result = mtrouter.flush()
             return Response(data=result, status=http_status.HTTP_200_OK)
-        except Exception as e:
-            return Response(data={"error": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
+        except APIException as e:
+            return Response(data={"error": str(e.detail)}, status=e.status_code)
 
 
 mtrouter_list = MTRouterViewSet.as_view({'get': 'list', 'post': 'create'})

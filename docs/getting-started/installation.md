@@ -4,14 +4,14 @@ This guide covers setting up the Jasmin Web Panel for local development or direc
 
 ## Prerequisites
 
-- **Python 3.11** (required – Python 3.12+ may have compatibility issues with some dependencies)
-- PostgreSQL 14 or higher
-- Redis 6 or higher
-- RabbitMQ 3.x (optional – can use Redis as Celery broker)
-- Jasmin SMS Gateway (running and accessible)
+- **Python 3.11 or 3.12** (both are tested in CI; the Docker image uses 3.12)
+- The **telnet** client (`sudo apt install telnet`): the panel drives Jasmin's jcli console through it
+- PostgreSQL 14 or higher (SQLite is fine for development)
+- Redis 6 or higher (cache and Celery broker)
+- Jasmin SMS Gateway, running, with its jcli port (`8990` by default) reachable from the panel
 
 !!! warning "Python Version"
-    The project requires **Python 3.11**. Using Python 3.10 or earlier is not supported. Python 3.12+ may work but is not officially tested. Always verify with `python3 --version` before proceeding.
+    Python 3.10 or earlier is not supported. Always verify with `python3 --version` before proceeding.
 
 ## Local Development Setup
 
@@ -57,7 +57,9 @@ Create a `.env` file from the sample:
 cp sample.env .env
 ```
 
-Edit the `.env` file to match your local services (Database, Redis, Jasmin Telnet ports).
+Edit the `.env` file to match your local services (Database, Redis, Jasmin Telnet ports). For local development set
+`DEBUG=True` and `DJANGO_SETTINGS_MODULE=config.settings.dev` (SQLite, no PostgreSQL needed); keep `DEBUG=False` anywhere
+else. See [Configuration](configuration.md) for every variable.
 
 ### 4. PostgreSQL Database Setup
 
@@ -120,7 +122,9 @@ python manage.py migrate --run-syncdb
 ### 6. Create Admin User
 
 ```bash
-python manage.py createsuperuser
+python manage.py samples           # creates admin / secret (change it after the first login)
+# or
+python manage.py createsuperuser   # your own account
 ```
 
 ### 7. Collect Static Files (Production)

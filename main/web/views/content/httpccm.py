@@ -15,22 +15,22 @@ def httpccm_view(request):
 @require_post_ajax
 def httpccm_view_manage(request):
     response = {}
-    httpccm = HTTPCCM()
     s = request.POST.get("s")
-    if s == "list":
-        response = httpccm.list()
-    elif s == "add":
-        httpccm.create(data=dict(
-            cid=request.POST.get("cid"),
-            url=request.POST.get("url"),
-            method=request.POST.get("method"),
-        ))
-        response["message"] = str(_("HTTPCCM added successfully!"))
-    elif s == "delete":
-        response = httpccm.destroy(cid=request.POST.get("cid"))
-        response["message"] = str(_("HTTPCCM deleted successfully!"))
-    else:
-        return JsonResponse({"message": str(_("Sorry, Command does not matched.")), "status": 400}, status=400)
+    with HTTPCCM() as httpccm:
+        if s == "list":
+            response = httpccm.list()
+        elif s == "add":
+            response = httpccm.create(data=dict(
+                cid=request.POST.get("cid"),
+                url=request.POST.get("url"),
+                method=request.POST.get("method"),
+            ))
+            response["message"] = _("HTTPCCM added successfully!")
+        elif s == "delete":
+            response = httpccm.destroy(cid=request.POST.get("cid"))
+            response["message"] = _("HTTPCCM deleted successfully!")
+        else:
+            return JsonResponse({"message": _("Sorry, Command does not matched."), "status": 400}, status=400)
 
     response["status"] = 200
     return JsonResponse(response, status=200)

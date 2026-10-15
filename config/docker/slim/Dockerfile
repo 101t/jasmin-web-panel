@@ -28,13 +28,17 @@ RUN apt-get clean autoclean && \
     apt-get autoremove -y && \
     rm -rf /var/lib/{apt,dpkg,cache,log}/
 
+# jemalloc lives in an architecture-specific directory; link it to one path so the same
+# Dockerfile builds on amd64 and arm64.
+RUN ln -s "$(find /usr/lib -name libjemalloc.so.2 | head -n 1)" /usr/lib/libjemalloc.so.2
+
 # --------------------------------------
 ENV APP_DIR=/app
 ENV APP_USER=app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONBUFFERED=1
 # Run python with jemalloc
-ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
+ENV LD_PRELOAD=/usr/lib/libjemalloc.so.2
 
 RUN useradd -m -d ${APP_DIR} -U -r -s /bin/bash ${APP_USER}
 

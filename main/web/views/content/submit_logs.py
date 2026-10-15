@@ -11,13 +11,20 @@ from main.core.utils import paginate
 from main.core.tools import require_post_ajax
 from main.core.tasks.export_submit_logs import export_submit_logs_task
 
+# The query string names the date field to filter on; only these two may reach the ORM.
+DATE_COLUMNS = ('created_at', 'status_at')
+
+
+def _date_column(value):
+    return value if value in DATE_COLUMNS else 'created_at'
+
 
 @login_required
 def submit_logs_view(request):
     # Get search and filter parameters
     search_query = request.GET.get('search', '').strip()
     status_filter = request.GET.get('status_filter', '')
-    date_column = request.GET.get('date_column', 'created_at')  # 'created_at' or 'status_at'
+    date_column = _date_column(request.GET.get('date_column', 'created_at'))
     date_from = request.GET.get('date_from', '').strip()
     date_to = request.GET.get('date_to', '').strip()
 
@@ -106,7 +113,7 @@ def submit_logs_export(request):
     filters = {
         'search': request.POST.get('search', '').strip(),
         'status_filter': request.POST.get('status_filter', ''),
-        'date_column': request.POST.get('date_column', 'created_at'),
+        'date_column': _date_column(request.POST.get('date_column', 'created_at')),
         'date_from': request.POST.get('date_from', '').strip(),
         'date_to': request.POST.get('date_to', '').strip(),
     }

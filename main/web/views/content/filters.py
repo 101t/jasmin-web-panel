@@ -17,27 +17,22 @@ def filters_view(request):
 
 @require_post_ajax
 def filters_view_manage(request):
-    filters = Filters()
     s = request.POST.get("s")
-    if s == "list":
-        response = filters.list()
-    elif s == "add":
-        filter_type = request.POST.get("type")
-        data_filter = {
-            "fid": request.POST.get("fid"),
-            "type": filter_type,
-        }
-
-        if filter_type != "transparentfilter":
-            data_filter['parameter'] = request.POST.get("parameter")
-
-        response = filters.create(data=data_filter)
-        response["message"] = str(_("Filter added successfully!"))
-    elif s == "delete":
-        response = filters.destroy(fid=request.POST.get("fid"))
-        response["message"] = str(_("Filter deleted successfully!"))
-    else:
-        return JsonResponse({"message": str(_("Sorry, Command does not matched.")), "status": 400}, status=400)
+    with Filters() as filters:
+        if s == "list":
+            response = filters.list()
+        elif s == "add":
+            response = filters.create(data={
+                "fid": request.POST.get("fid"),
+                "type": request.POST.get("type"),
+                "parameter": request.POST.get("parameter"),
+            })
+            response["message"] = _("Filter added successfully!")
+        elif s == "delete":
+            response = filters.destroy(fid=request.POST.get("fid"))
+            response["message"] = _("Filter deleted successfully!")
+        else:
+            return JsonResponse({"message": _("Sorry, Command does not matched."), "status": 400}, status=400)
 
     response["status"] = 200
     return JsonResponse(response, status=200)

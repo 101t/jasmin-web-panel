@@ -17,19 +17,28 @@ endif
 
 # Target section and Global definitions
 # -----------------------------------------------------------------------------
-.PHONY: all clean test install run deploy down
+.PHONY: all clean test test_integration docs install run deploy down
 
 all: clean test install run deploy down
 
 test:
 	PYTHONPATH=. python -m pytest tests -vv --show-capture=all
 
+# Runs the jcli tests against a disposable Jasmin gateway in Docker.
+test_integration:
+	docker compose -f tests/integration/docker-compose.yml up -d --wait
+	JASMIN_INTEGRATION=1 TELNET_PORT=18990 PYTHONPATH=. python -m pytest tests/integration -v; \
+	status=$$?; docker compose -f tests/integration/docker-compose.yml down -v; exit $$status
+
+docs:
+	mkdocs serve
+
 install:
 	@echo "Installing dependencies"
-	virtualenv -p python3.11 env/
-	source env/bin/activate
-	pip install --upgrade pip wheel uv
-	uv pip install -r pyproject.toml --extra dev
+	python3 -m venv env/
+	env/bin/pip install --upgrade pip wheel uv
+	env/bin/uv pip install --python env/bin/python -r pyproject.toml --extra dev --extra docs
+	@echo "Now run: source env/bin/activate"
 
 run:
 	PYTHONPATH=. python manage.py runserver 0.0.0.0:8000
@@ -41,12 +50,10 @@ run_celery:
 	PYTHONPATH=. celery -A config worker --max-tasks-per-child 1 -l info
 
 run_docker: generate_dot_env
-	docker-compose build
-	docker-compose up
+	docker compose up -d
 
 generate_dot_env:
 	@echo "Creating .env file"
-	@cd src/
 	@if [ ! -e .env ]; then \
 		cp sample.env .env; \
 	fi

@@ -1,5 +1,6 @@
 from rest_framework.viewsets import ViewSet
 from rest_framework.decorators import action
+from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from rest_framework import status as http_status
 
@@ -41,8 +42,8 @@ class SMPPCCMViewSet(ViewSet):
         try:
             smppccm = SMPPCCM()
             return Response(data=smppccm.list(), status=http_status.HTTP_200_OK)
-        except Exception as e:
-            return Response(data={"error": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
+        except APIException as e:
+            return Response(data={"error": str(e.detail)}, status=e.status_code)
 
     def create(self, request):
         """
@@ -72,8 +73,8 @@ class SMPPCCMViewSet(ViewSet):
             return Response(data=result, status=http_status.HTTP_201_CREATED)
         except MissingKeyError as e:
             return Response(data={"error": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response(data={"error": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
+        except APIException as e:
+            return Response(data={"error": str(e.detail)}, status=e.status_code)
 
     def retrieve(self, request, cid):
         """
@@ -110,8 +111,8 @@ class SMPPCCMViewSet(ViewSet):
             return Response(data=result, status=http_status.HTTP_200_OK)
         except ObjectNotFoundError as e:
             return Response(data={"error": str(e)}, status=http_status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            return Response(data={"error": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
+        except APIException as e:
+            return Response(data={"error": str(e.detail)}, status=e.status_code)
 
     def destroy(self, request, cid):
         """

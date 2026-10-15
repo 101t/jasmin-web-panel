@@ -2,8 +2,10 @@
 
 <div align="center">
 
-[![Build Status](https://travis-ci.org/101t/jasmin-web-panel.svg?branch=master)](https://travis-ci.org/101t/jasmin-web-panel)
-[![Docker Hub](https://img.shields.io/badge/docker-hub-blue.svg)](https://hub.docker.com/u/tarekaec)
+[![CI](https://github.com/101t/jasmin-web-panel/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/101t/jasmin-web-panel/actions/workflows/ci.yml)
+[![Docs](https://img.shields.io/badge/docs-online-blue.svg)](https://about.supernovasoft.com/jasmin-web-panel/)
+[![Docker Image](https://img.shields.io/docker/v/tarekaec/jasmin_web_panel?sort=semver&label=docker)](https://hub.docker.com/r/tarekaec/jasmin_web_panel)
+[![Docker Pulls](https://img.shields.io/docker/pulls/tarekaec/jasmin_web_panel)](https://hub.docker.com/r/tarekaec/jasmin_web_panel)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
@@ -72,10 +74,11 @@ Jasmin Web Panel is a comprehensive web-based management interface for [Jasmin S
 
 ### Required Components
 - **[Jasmin SMS Gateway](http://docs.jasminsms.com/en/latest/installation/index.html)**: v0.9+ installed and running
-- **Python**: 3.11 or higher
+- **Python**: 3.11 or 3.12 (both tested in CI; the Docker image uses 3.12)
+- **telnet client**: the panel drives Jasmin's jcli through the `telnet` command (`apt install telnet`; already in the Docker image)
 - **Database**: PostgreSQL 12+ (recommended) or MySQL 8.0+
 - **Redis**: 6.0+ (for caching and Celery)
-- **RabbitMQ**: 3.10+ (for message queuing)
+- **RabbitMQ**: 3.10+ (used by Jasmin and the submit-log consumer)
 
 ### System Requirements
 - **OS**: Linux (Ubuntu 20.04+, Debian 11+, CentOS 8+)
@@ -96,7 +99,7 @@ cd jasmin-web-panel
 
 # Copy and configure environment file
 cp sample.env .env
-# Edit .env with your settings
+# Edit .env: at least set SECRET_KEY, and change the default passwords for production
 
 # Start all services
 docker compose up -d
@@ -145,7 +148,7 @@ nano .env  # or use your preferred editor
 
 ```ini
 # Django Settings
-DEBUG=False  # Always False in production
+DEBUG=False  # Always False in production; set True for local development
 SECRET_KEY=your-very-long-random-secret-key-here
 ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
 
@@ -194,7 +197,7 @@ python manage.py samples
 # Collect static files
 python manage.py collectstatic --no-input
 
-# Create superuser (optional)
+# Create your own admin account (optional, "samples" already creates admin / secret)
 python manage.py createsuperuser
 ```
 
@@ -214,7 +217,7 @@ Access the application at `http://localhost:8000`
 
 ```bash
 # Pull the latest image
-docker pull tarekaec/jasmin_web_panel:1.4
+docker pull tarekaec/jasmin_web_panel:3.1.0
 
 # Configure environment
 cp sample.env .env
@@ -226,7 +229,7 @@ docker run -d \
   -p 8999:8000 \
   --env-file .env \
   -v ./public:/app/public \
-  tarekaec/jasmin_web_panel:1.4
+  tarekaec/jasmin_web_panel:3.1.0
 ```
 
 ### Building Custom Image
@@ -269,23 +272,17 @@ docker compose down
 - `jasmin-celery`: Background task processor
 - `db`: PostgreSQL database
 - `redis`: Redis cache
-- `rabbit-mq`: RabbitMQ message broker
+- `rabbitmq`: RabbitMQ message broker
 - `jasmin`: Jasmin SMS Gateway (ports 2775, 8990, 1401)
 - `sms_logger`: SMS submit log collector
 
 #### ARM64/AArch64 Support
 
-For ARM-based systems:
+The Dockerfile builds on both amd64 and arm64 without changes:
 
-1. Comment out line 38 in `config/docker/slim/Dockerfile`:
-   ```dockerfile
-   # ENV LD_PRELOAD /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
-   ```
-
-2. Start services:
-   ```bash
-   docker compose up -d
-   ```
+```bash
+docker build -f config/docker/slim/Dockerfile -t jasmin_web_panel:custom .
+```
 
 ---
 
@@ -306,9 +303,14 @@ For ARM-based systems:
 | `TELNET_PORT` | Jasmin telnet port | `8990` | ✅ |
 | `TELNET_USERNAME` | Jasmin admin username | `jcliadmin` | ✅ |
 | `TELNET_PW` | Jasmin admin password | `jclipwd` | ✅ |
+| `TELNET_TIMEOUT` | Seconds to wait for a jcli answer | `10` | ❌ |
+| `HTTPS_ONLY` | Secure cookies and HTTPS redirect (set when served over HTTPS) | `False` | ❌ |
+| `CSRF_TRUSTED_ORIGINS` | Origins allowed to post forms, e.g. `https://sms.example.com` | - | ❌ |
 | `SUBMIT_LOG` | Enable submit log tracking | `False` | ❌ |
 | `API_THROTTLE_ANON` | API rate limit for anonymous requests | `20/minute` | ❌ |
 | `API_THROTTLE_USER` | API rate limit for authenticated requests | `120/minute` | ❌ |
+
+The [configuration guide](https://about.supernovasoft.com/jasmin-web-panel/getting-started/configuration/) lists every variable, including the Send SMS (`HTTP_*`, `SMPP_*`) settings.
 
 ### Jasmin Gateway Configuration
 
@@ -554,11 +556,15 @@ For new Docker deployments this is handled automatically by `config/docker/postg
 
 ### Cannot connect to Jasmin Gateway
 
+The pages show the reason in the table, for example *"Could not connect to Jasmin jcli at 127.0.0.1:8990"*
+or *"Jasmin jcli login failed, check TELNET_USERNAME and TELNET_PW"*.
+
 **Solutions**:
 - Verify Jasmin is running: `systemctl status jasmin`
 - Check telnet connectivity: `telnet localhost 8990`
 - Confirm `TELNET_*` settings match Jasmin configuration
 - Ensure firewall allows port 8990
+- For manual installs, make sure the `telnet` client is installed (`apt install telnet`)
 
 ### Submit logs not appearing
 
@@ -570,11 +576,21 @@ For new Docker deployments this is handled automatically by `config/docker/postg
 
 ### Static files not loading
 
+The panel serves its static files itself (WhiteNoise) once they are collected; the Docker image does this on start.
+
 **Solutions**:
 ```bash
 python manage.py collectstatic --no-input --clear
 sudo chown -R www-data:www-data /opt/jasmin-web-panel/public/
 sudo nginx -t && sudo systemctl reload nginx
+```
+
+### Cannot sign in with an account made by `createsuperuser`
+
+Accounts created before this fix were saved with an unverified email, which the sign-in page refuses. Mark them verified:
+
+```bash
+python manage.py shell -c "from main.users.models import User; User.objects.filter(is_superuser=True).update(is_email=True, is_verified=True)"
 ```
 
 ### View Application Logs

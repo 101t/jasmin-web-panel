@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.utils.deprecation import MiddlewareMixin
 from django.core.cache import cache
 from django.db import transaction, connection
@@ -6,45 +5,10 @@ from .utils import get_user_agent, get_client_ip, LazyEncoder
 from .models import ActivityLog
 
 import logging
-import pexpect
 import json
 
 logger = logging.getLogger(__name__)
 
-
-class TelnetConnectionMiddleware(MiddlewareMixin):
-    """Middleware to manage a Telnet connection."""
-
-    def add_telnet_connection(self, request):
-        """Attempt to establish a telnet connection."""
-        telnet = pexpect.spawn('telnet', [settings.TELNET_HOST, str(settings.TELNET_PORT)], timeout=settings.TELNET_TIMEOUT)
-        try:
-            telnet.expect(':')
-            telnet.sendline(settings.TELNET_USERNAME)
-            telnet.expect(':')
-            telnet.sendline(settings.TELNET_PW)
-            telnet.expect_exact(settings.STANDARD_PROMPT)
-        except (pexpect.EOF, pexpect.TIMEOUT, AttributeError) as e:
-            logger.error(f"Telnet connection error: {str(e)}")
-            telnet = None
-        return telnet
-
-    def process_request(self, request):
-        if request.path.startswith('/api/') and not request.path.endswith('/manage/'):
-            request.telnet = self.add_telnet_connection(request)
-        else:
-            request.telnet = None
-
-    def process_response(self, request, response):
-        if hasattr(request, 'telnet') and request.telnet:
-            try:
-                request.telnet.sendline('quit')
-                request.telnet.expect_exact(settings.STANDARD_PROMPT)
-            except pexpect.ExceptionPexpect:
-                request.telnet.kill(9)
-            finally:
-                request.telnet.close()
-        return response
 
 class UserAgentMiddleware(MiddlewareMixin):
     """Middleware to process the user agent."""
