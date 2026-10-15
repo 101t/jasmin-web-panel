@@ -33,7 +33,9 @@ jobs:
             mkdocs-material-
 
       - name: Install dependencies
-        run: pip install mkdocs-material
+        run: |
+          pip install uv
+          uv pip install --system -r pyproject.toml --extra=docs
 
       - name: Deploy to GitHub Pages
         run: mkdocs gh-deploy --force
