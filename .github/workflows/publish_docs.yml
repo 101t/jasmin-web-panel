@@ -37,7 +37,7 @@ jobs:
       - name: Build the documentation
         run: mkdocs build --strict --site-dir site
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
