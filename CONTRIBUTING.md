@@ -163,7 +163,7 @@ When adding a new feature or fixing a bug:
 3. Tag the merge commit and push the tag:
 
    ```bash
-   git tag -a vX.Y.Z -m "vX.Y.Z" && git push origin vX.Y.Z
+   git tag -a X.Y.Z -m "X.Y.Z" && git push origin X.Y.Z
    ```
 
    The workflow publishes `X.Y.Z`, `X.Y`, `X` and `latest` (amd64 and arm64) and creates the GitHub release from

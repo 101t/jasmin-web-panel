@@ -1,7 +1,8 @@
 name: Release
 
 # master            -> tarekaec/jasmin_web_panel:edge (and sha-<commit>)
-# tag vX.Y.Z        -> tarekaec/jasmin_web_panel:X.Y.Z, X.Y, X and latest, plus a GitHub release
+# tag X.Y.Z         -> tarekaec/jasmin_web_panel:X.Y.Z, X.Y, X and latest, plus a GitHub release
+#                      (releases are tagged "3.1.0"; "v3.1.0" is accepted too)
 #
 # Requires the DOCKERHUB_USERNAME and DOCKERHUB_TOKEN repository secrets (a Docker Hub access
 # token with Read & Write scope).
@@ -9,7 +10,7 @@ name: Release
 on:
   push:
     branches: [master]
-    tags: ["v*.*.*"]
+    tags: ["[0-9]+.[0-9]+.[0-9]+", "v[0-9]+.[0-9]+.[0-9]+"]
   workflow_dispatch:
 
 permissions:
@@ -32,10 +33,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Check the tag matches the application version
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
           version=$(sed -n 's/^VERSION = "\(.*\)"/\1/p' config/version.py)
-          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+          if [ "$version" != "${GITHUB_REF_NAME#v}" ]; then
             echo "::error::Tag $GITHUB_REF_NAME does not match config/version.py ($version)"
             exit 1
           fi
@@ -75,7 +76,7 @@ jobs:
 
   github-release:
     name: GitHub release
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/')
     needs: docker
     runs-on: ubuntu-latest
     permissions:
