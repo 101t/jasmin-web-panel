@@ -1,4 +1,5 @@
 from rest_framework.viewsets import ViewSet
+from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from rest_framework import status as http_status
 
@@ -32,8 +33,8 @@ class HTTPCCMViewSet(ViewSet):
         try:
             httpccm = HTTPCCM()
             return Response(data=httpccm.list(), status=http_status.HTTP_200_OK)
-        except Exception as e:
-            return Response(data={"error": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
+        except APIException as e:
+            return Response(data={"error": str(e.detail)}, status=e.status_code)
 
     def create(self, request):
         """
@@ -63,8 +64,8 @@ class HTTPCCMViewSet(ViewSet):
             return Response(data=result, status=http_status.HTTP_201_CREATED)
         except MissingKeyError as e:
             return Response(data={"error": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response(data={"error": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
+        except APIException as e:
+            return Response(data={"error": str(e.detail)}, status=e.status_code)
 
     def retrieve(self, request, cid):
         """

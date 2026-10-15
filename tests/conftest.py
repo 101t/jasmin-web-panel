@@ -26,6 +26,7 @@ TEST_REST_FRAMEWORK = {
     # Throttling disabled in tests
     'DEFAULT_THROTTLE_CLASSES': [],
     'DEFAULT_THROTTLE_RATES': {},
+    'EXCEPTION_HANDLER': 'main.api.exceptions.exception_handler',
 }
 
 

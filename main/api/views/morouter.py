@@ -1,5 +1,6 @@
 from rest_framework.viewsets import ViewSet
 from rest_framework.decorators import action
+from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from rest_framework import status as http_status
 
@@ -11,8 +12,9 @@ class MORouterViewSet(ViewSet):
     """
     MORouterViewSet to manage MO (Mobile Originated) Routes.
     
-    MO Routes determine how incoming messages are routed to HTTP connectors.
-    
+    MO Routes determine how incoming messages are delivered: to HTTP connectors, or to users
+    bound to Jasmin's SMPP server.
+
     **Router Types:**
     - `DefaultRoute` - Catch-all route (order=0)
     - `StaticMORoute` - Static route with filters
@@ -32,40 +34,42 @@ class MORouterViewSet(ViewSet):
         
         **Example Response:**
         ```json
-        {"routers": [{"order": "0", "type": "DefaultRoute", "connector": "http1"}]}
+        {"morouters": [{"order": "0", "type": "DefaultRoute", "connectors": ["http(http1)"], "filters": []}]}
         ```
         """
         try:
             morouter = MORouter()
             return Response(data=morouter.list(), status=http_status.HTTP_200_OK)
-        except Exception as e:
-            return Response(data={"error": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
+        except APIException as e:
+            return Response(data={"error": str(e.detail)}, status=e.status_code)
 
     def create(self, request):
         """
         Create a new MO route.
         
-        **Required Fields:**
-        - `type` - Router type
-        - `connector` - HTTP connector ID (e.g., "http(myhttp)")
-        - `order` - Route priority (lower = higher priority, 0 for DefaultRoute)
-        
-        **Optional Fields:**
-        - `filters` - Filter ID for matching messages
-        
+        **Fields:**
+        - `type` - `DefaultRoute`, `StaticMORoute`, `RandomRoundrobinMORoute` or `FailoverMORoute`
+        - `order` - Route priority (higher order is evaluated first; DefaultRoute is always 0)
+        - `httpconnectors` - HTTP connector ids, delivered as `http(cid)`
+        - `smppconnectors` - usernames of users bound to Jasmin's SMPP server, delivered as `smpps(username)`
+        - `filters` - Filter ids (MO-compatible filters only); required except for DefaultRoute
+
+        Lists may be JSON arrays or comma-separated strings. Static and Default routes take exactly
+        one connector, RoundRobin and Failover at least two (Failover cannot mix HTTP and SMPP).
+
         **Example Request (Default Route):**
         ```bash
         curl -u admin:password -X POST \\
           -H "Content-Type: application/json" \\
-          -d '{"type": "DefaultRoute", "connector": "http(myhttp)"}' \\
+          -d '{"type": "DefaultRoute", "httpconnectors": ["myhttp"]}' \\
           http://localhost:8000/api/morouter/
         ```
-        
+
         **Example Request (Static Route with filter):**
         ```bash
         curl -u admin:password -X POST \\
           -H "Content-Type: application/json" \\
-          -d '{"type": "StaticMORoute", "order": "10", "connector": "http(myhttp)", "filters": "myfilter"}' \\
+          -d '{"type": "StaticMORoute", "order": "10", "smppconnectors": ["bob"], "filters": ["myfilter"]}' \\
           http://localhost:8000/api/morouter/
         ```
         """
@@ -75,8 +79,8 @@ class MORouterViewSet(ViewSet):
             return Response(data=result, status=http_status.HTTP_201_CREATED)
         except MissingKeyError as e:
             return Response(data={"error": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response(data={"error": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
+        except APIException as e:
+            return Response(data={"error": str(e.detail)}, status=e.status_code)
 
     def retrieve(self, request, order):
         """
@@ -127,8 +131,8 @@ class MORouterViewSet(ViewSet):
             morouter = MORouter()
             result = morouter.flush()
             return Response(data=result, status=http_status.HTTP_200_OK)
-        except Exception as e:
-            return Response(data={"error": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
+        except APIException as e:
+            return Response(data={"error": str(e.detail)}, status=e.status_code)
 
 
 morouter_list = MORouterViewSet.as_view({'get': 'list', 'post': 'create'})
