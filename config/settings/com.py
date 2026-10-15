@@ -229,6 +229,9 @@ STANDARD_PROMPT = 'jcli : '
 INTERACTIVE_PROMPT = '> '
 # This is used for DLR Report
 SUBMIT_LOG = env.bool('SUBMIT_LOG', default=False)
+# Key for secrets stored encrypted in the database (Jasmin user passwords for Send SMS).
+# Defaults to SECRET_KEY; set it to keep those secrets readable when SECRET_KEY is rotated.
+FIELD_ENCRYPTION_KEY = os.environ.get('FIELD_ENCRYPTION_KEY', '')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 

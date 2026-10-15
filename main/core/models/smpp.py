@@ -5,6 +5,7 @@ from django.db import models
 from django.conf import settings
 # from main.users.models import User
 
+from .fields import EncryptedCharField
 from .timestamped import TimeStampedModel
 
 filter_types = (
@@ -58,7 +59,8 @@ class UsersModel(TimeStampedModel):
     uid = models.CharField('User ID', max_length=24, unique=True)
     gid = models.ForeignKey(GroupsModel, on_delete=models.CASCADE, verbose_name=u'Group ID')
     username = models.CharField('Username', max_length=24)
-    password = models.CharField('Password', max_length=24)
+    # Encrypted at rest: Send SMS needs the password back to bind as this user.
+    password = EncryptedCharField('Password', max_length=255)
     parameters = models.TextField('Parameters')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name=u"Related User")
 

@@ -33,6 +33,12 @@ def send_message_view(request):
                     if user_model:
                         username = user_model.username
                         password = user_model.password
+                        if not password:
+                            messages.warning(
+                                request,
+                                f'The stored password of {user_uid} cannot be decrypted (SECRET_KEY or '
+                                'FIELD_ENCRYPTION_KEY changed); set it again from the Users page. '
+                                'The message was sent with the default credentials.')
                     else:
                         # Fallback to Jasmin telnet (won't have password)
                         with Users() as users:
