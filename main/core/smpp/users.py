@@ -1,53 +1,72 @@
-from django.conf import settings
-
-from main.core.tools import set_ikeys
-from main.core.exceptions import (JasminSyntaxError, JasminError,
-                        UnknownError, MissingKeyError,
-                        ObjectNotFoundError)
+from main.core.tools import table_rows
+from main.core.exceptions import DuplicateEntryError, JasminSyntaxError, MissingKeyError, ObjectNotFoundError
 from .conn import TelnetConnection
 
 import logging
 
-STANDARD_PROMPT = settings.STANDARD_PROMPT
-INTERACTIVE_PROMPT = settings.INTERACTIVE_PROMPT
-
 logger = logging.getLogger(__name__)
+
+CREDENTIAL_KEYS = ('mt_messaging_cred', 'smpps_cred')
+
 
 class Users(TelnetConnection):
     "Users for managing *Jasmin* users (*not* Django auth users)"
     lookup_field = 'uid'
 
+    @staticmethod
+    def parse_user(output):
+        """Parse ``user -s`` output into a dict.
+
+        Plain keys are ``key value`` lines; credentials are ``cred section key value`` lines, and
+        their value may contain spaces (regex filters, "Unknown (object is from an old ...)").
+        """
+        user = {}
+        for line in output.split('\n'):
+            fields = line.split(None, 1)
+            if not fields:
+                continue
+            if fields[0] in CREDENTIAL_KEYS:
+                cred = line.split(None, 3)
+                if len(cred) < 3:
+                    continue
+                user.setdefault(cred[0], {}).setdefault(cred[1], {})[cred[2]] = cred[3] if len(cred) == 4 else ''
+            else:
+                user[fields[0]] = fields[1] if len(fields) == 2 else ''
+        return user
+
+    @staticmethod
+    def parse_list(output):
+        """Parse ``user -l`` output into ``(uid, enabled)`` pairs; ``!`` marks a disabled user."""
+        return [(row.split()[0].lstrip('!'), not row.startswith('!')) for row in table_rows(output)]
+
+    @staticmethod
+    def parse_summary(output):
+        """Parse ``user -l`` rows into uid, gid, username and status, without per-user lookups."""
+        users = []
+        for row in table_rows(output):
+            fields = row.split()
+            if len(fields) >= 3:
+                users.append({
+                    'uid': fields[0].lstrip('!'),
+                    'gid': fields[1].lstrip('!'),
+                    'username': fields[2],
+                    'status': 'disabled' if fields[0].startswith('!') else 'enabled',
+                })
+        return users
+
+    def list_summary(self):
+        "List users with one jcli command (no credentials), for pickers and dropdowns"
+        return {'users': self.parse_summary(self.run_command('user -l'))}
+
     def get_user(self, uid, silent=False):
         """Gets a single users data
         silent supresses Http404 exception if user not found"""
-        self.telnet.sendline('user -s %s' % uid)
-        matched_index = self.telnet.expect([
-                r'.+Unknown User:.*' + STANDARD_PROMPT,
-                r'.+Usage: user.*' + STANDARD_PROMPT,
-                r'(.+)\n' + STANDARD_PROMPT,
-        ])
-        if matched_index != 2:
+        output = self.run_command('user -s %s' % uid)
+        if output.startswith('Unknown User') or output.startswith('Usage'):
             if silent:
-                return
-            else:
-                raise ObjectNotFoundError('Unknown user: %s' % uid)
-        result = self.telnet.match.group(1)
-        user = {}
-        for line in [l for l in result.splitlines() if l][1:]:
-            d = [str(x, 'utf-8') for x in line.split() if x]
-            if len(d) == 2:
-                user[d[0]] = d[1]
-            elif len(d) == 4:
-                #Not DRY, could be more elegant
-                if d[0] not in user:
-                    user[d[0]] = {}
-                if d[1] not in user[d[0]]:
-                    user[d[0]][d[1]] = {}
-                if d[2] not in user[d[0]][d[1]]:
-                    user[d[0]][d[1]][d[2]] = {}
-                user[d[0]][d[1]][d[2]] = d[3]
-            #each line has two or four lines so above exhaustive
-        return user
+                return None
+            raise ObjectNotFoundError('Unknown user: %s' % uid)
+        return self.parse_user(output)
 
     def retrieve(self, uid):
         "Retrieve data for one user"
@@ -55,27 +74,13 @@ class Users(TelnetConnection):
 
     def list(self):
         "List users. No parameters"
-        self.telnet.sendline('user -l')
-        self.telnet.expect([r'(.+)\n' + STANDARD_PROMPT])
-        result = self.telnet.match.group(0).strip()
-        if len(result) < 3:
-            return {'users': []}
-
-        results = [l for l in result.splitlines() if l]
-        annotated_uids = [str(u.split(None, 1)[0][1:], 'utf-8') for u in results[2:-2]]
         users = []
-        for auid in annotated_uids:
-            if auid[0] == '!':
-                udata = self.get_user(auid[1:], True)
-                udata['status'] = 'disabled'
-            else:
-                udata = self.get_user(auid, True)
-                udata['status'] = 'enabled'
-            users.append(udata)
-        return {
-                #return users skipping None (== nonexistent user)
-                'users': [u for u in users if u]
-            }
+        for uid, enabled in self.parse_list(self.run_command('user -l')):
+            user = self.get_user(uid, silent=True)
+            if user:
+                user['status'] = 'enabled' if enabled else 'disabled'
+                users.append(user)
+        return {'users': users}
 
     def create(self, data):
         """Create a User.
@@ -105,23 +110,17 @@ class Users(TelnetConnection):
           type: string
           paramType: form
         """
-        try:
-            uid, gid, username, password = \
-                data['uid'], data['gid'], data['username'], data['password']
-        except Exception:
-            raise MissingKeyError('Missing parameter: uid, gid, username and/or password required')
-        self.telnet.sendline('user -a')
-        self.telnet.expect(r'Adding a new User(.+)\n' + INTERACTIVE_PROMPT)
-        set_ikeys(
-            self.telnet,
-            {
-                'uid': uid, 'gid': gid, 'username': username,
-                'password': password
-            }
-        )
-        self.telnet.sendline('persist\n')
-        self.telnet.expect(r'.*' + STANDARD_PROMPT)
-        return {'user': self.get_user(uid)}
+        keys = ('uid', 'gid', 'username', 'password')
+        values = {key: (data.get(key) or '').strip() for key in keys}
+        missing = [key for key in keys if not values[key]]
+        if missing:
+            raise MissingKeyError('Missing parameter: %s' % ', '.join(missing))
+        # jcli silently replaces an existing user, resetting its quotas and authorizations.
+        if self.get_user(values['uid'], silent=True) is not None:
+            raise DuplicateEntryError('User %s already exists' % values['uid'])
+        self.run_session('user -a', ['%s %s' % (key, values[key]) for key in keys])
+        self.persist()
+        return {'user': self.get_user(values['uid'])}
 
     def partial_update(self, data, uid):
         """Update some user attributes
@@ -142,63 +141,24 @@ class Users(TelnetConnection):
           type: array
           paramType: body
         """
-        self.telnet.sendline('user -u ' + uid)
-        matched_index = self.telnet.expect([
-            r'.*Updating User(.*)' + INTERACTIVE_PROMPT,
-            r'.*Unknown User: (.*)' + STANDARD_PROMPT,
-            r'.+(.*)(' + INTERACTIVE_PROMPT + '|' + STANDARD_PROMPT + ')',
-        ])
-        if matched_index == 1:
-            raise UnknownError(detail='Unknown user:' + uid)
-        if matched_index != 0:
-            raise JasminError(detail=" ".join(self.telnet.match.group(0).split()))
         updates = data
-        if not ((type(updates) is list) and (len(updates) >= 1)):
+        if not (isinstance(updates, (list, tuple)) and updates):
             raise JasminSyntaxError('updates should be a list')
+        lines = []
         for update in updates:
-            if not ((type(update) is list) and (len(update) >= 1)):
-                raise JasminSyntaxError("Not a list: %s" % update)
-            self.telnet.sendline(" ".join([x for x in update]))
-            matched_index = self.telnet.expect([
-                r'.*(Unknown User key:.*)' + INTERACTIVE_PROMPT,
-                r'.*(Error:.*)' + STANDARD_PROMPT,
-                r'.*' + INTERACTIVE_PROMPT,
-                r'.+(.*)(' + INTERACTIVE_PROMPT + '|' + STANDARD_PROMPT + ')',
-            ])
-            if matched_index != 2:
-                raise JasminSyntaxError(
-                    detail=" ".join(self.telnet.match.group(1).split()))
-        self.telnet.sendline('ok')
-        ok_index = self.telnet.expect([
-            r'(.*)' + INTERACTIVE_PROMPT,
-            r'.*' + STANDARD_PROMPT,
-        ])
-        if ok_index == 0:
-            raise JasminSyntaxError(
-                detail=" ".join(self.telnet.match.group(1).split()))
-        self.telnet.sendline('persist\n')
-        #Not sure why this needs to be repeated
-        self.telnet.expect(r'.*' + STANDARD_PROMPT)
+            if not (isinstance(update, (list, tuple)) and update):
+                raise JasminSyntaxError("Not a list: %s" % (update,))
+            lines.append(" ".join(str(x) for x in update))
+        self.run_session('user -u %s' % uid, lines)
+        self.persist()
         return {'user': self.get_user(uid)}
 
     def simple_user_action(self, action, uid, return_user=True):
-        self.telnet.sendline('user -%s %s' % (action, uid))
-        matched_index = self.telnet.expect([
-            r'.+Successfully(.+)' + STANDARD_PROMPT,
-            r'.+Unknown User: (.+)' + STANDARD_PROMPT,
-            r'.+(.*)' + STANDARD_PROMPT,
-        ])
-        if matched_index == 0:
-            self.telnet.sendline('persist\n')
-            if return_user:
-                self.telnet.expect(r'.*' + STANDARD_PROMPT)
-                return {'user': self.get_user(uid)}
-            else:
-                return {'uid': uid}
-        elif matched_index == 1:
-            raise UnknownError(detail='No user:' +  uid)
-        else:
-            raise JasminError(self.telnet.match.group(1))
+        self.run_action('user -%s %s' % (action, uid))
+        self.persist()
+        if return_user:
+            return {'user': self.get_user(uid)}
+        return {'uid': uid}
 
     def destroy(self, uid):
         """Delete a user. One parameter required, the user identifier (a string)

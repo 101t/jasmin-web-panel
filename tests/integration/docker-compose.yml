@@ -1,0 +1,32 @@
+# Disposable Jasmin gateway for the integration tests (tests/integration).
+#
+#   docker compose -f tests/integration/docker-compose.yml up -d --wait
+#   JASMIN_INTEGRATION=1 TELNET_PORT=18990 pytest tests/integration -v
+#   docker compose -f tests/integration/docker-compose.yml down -v
+name: jwp-integration
+services:
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: redis-cli ping | grep PONG
+      interval: 3s
+  rabbit-mq:
+    image: rabbitmq:3.13-alpine
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 5s
+  jasmin:
+    image: jookies/jasmin:0.11.0
+    depends_on:
+      redis: {condition: service_healthy}
+      rabbit-mq: {condition: service_healthy}
+    environment:
+      REDIS_CLIENT_HOST: redis
+      AMQP_BROKER_HOST: rabbit-mq
+    ports:
+      - "127.0.0.1:18990:8990"
+    healthcheck:
+      # Healthy once jcli accepts connections.
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 8990), 2)"]
+      interval: 3s
+      retries: 40

@@ -1,108 +1,66 @@
-from django.conf import settings
-
-from main.core.tools import split_cols
-from main.core.exceptions import (
-    JasminSyntaxError, ActionFailed,
-    ObjectNotFoundError,
-)
+from main.core.tools import table_rows
+from main.core.exceptions import DuplicateEntryError, MissingKeyError, ObjectNotFoundError
 from .conn import TelnetConnection
 
 import logging
 
-STANDARD_PROMPT = settings.STANDARD_PROMPT
-INTERACTIVE_PROMPT = settings.INTERACTIVE_PROMPT
-
 logger = logging.getLogger(__name__)
+
 
 class HTTPCCM(TelnetConnection):
     "HTTPCCM for managing HTTP Client Connectors"
     lookup_field = 'cid'
     available_actions = ['list', 'add', 'delete', 'enable', 'disable']
 
-    def get_httpccm(self, cid, silent=False):
-        #Some of this could be abstracted out - similar pattern in users.py
-        self.telnet.sendline('httpccm -s ' + cid)
-        matched_index = self.telnet.expect([
-                r'.+Unknown connector:.*' + STANDARD_PROMPT,
-                r'.+Usage:.*' + STANDARD_PROMPT,
-                r'(.+)\n' + STANDARD_PROMPT,
-        ])
-        if matched_index != 2:
-            if silent:
-                return
-            else:
-                raise ObjectNotFoundError('Unknown connector: %s' % cid)
-        result = self.telnet.match.group(1)
+    @staticmethod
+    def parse_list(output):
+        """Parse ``httpccm -l`` rows: cid, type, method, url."""
+        connectors = []
+        for row in table_rows(output):
+            fields = row.split(None, 3)
+            if len(fields) == 4:
+                cid, ctype, method, url = fields
+                connectors.append({'cid': cid, 'type': ctype, 'method': method, 'url': url.strip()})
+        return connectors
+
+    @staticmethod
+    def parse_show(output):
+        """Parse ``httpccm -s`` output, made of ``key = value`` lines."""
         httpccm = {}
-        for line in result.splitlines():
-            d = [x for x in line.split() if x]
-            if len(d) == 2:
-                httpccm[d[0]] = d[1]
+        for line in output.split('\n'):
+            key, sep, value = line.partition(' = ')
+            if sep:
+                httpccm[key.strip()] = value.strip()
         return httpccm
 
+    def get_httpccm(self, cid, silent=False):
+        output = self.run_command('httpccm -s %s' % cid)
+        if output.startswith('Unknown') or output.startswith('Usage'):
+            if silent:
+                return
+            raise ObjectNotFoundError('Unknown connector: %s' % cid)
+        return self.parse_show(output)
+
     def get_connector_list(self):
-        self.telnet.sendline('httpccm -l')
-        self.telnet.expect([r'(.+)\n' + STANDARD_PROMPT])
-        result = str(self.telnet.match.group(0)).strip().replace("\\r", '').split("\\n")
-        if len(result) < 3:
-            return []
-        return split_cols(result[2:-2])
+        return self.parse_list(self.run_command('httpccm -l'))
 
     def simple_httpccm_action(self, action, cid):
-        self.telnet.sendline('httpccm -%s %s' % (action, cid))
-        matched_index = self.telnet.expect([
-            r'.+Successfully(.+)' + STANDARD_PROMPT,
-            r'.+Unknown connector: (.+)' + STANDARD_PROMPT,
-            r'(.*)' + STANDARD_PROMPT,
-        ])
-        if matched_index == 0:
-            self.telnet.sendline('persist')
-            return {'name': cid}
-        elif matched_index == 1:
-            raise ObjectNotFoundError('Unknown HTTP Connector: %s' % cid)
-        else:
-            raise ActionFailed(self.telnet.match.group(1))
+        self.run_action('httpccm -%s %s' % (action, cid))
+        self.persist()
+        return {'name': cid}
 
     def list(self):
-        """List HTTP Client Connectors. No parameters
-        Differs from slightly from telent CLI names and values:
-
-        1. the "service" column is called "status"
-        2. the cid is the full connector id of the form https(cid)
-        """
-        connector_list = self.get_connector_list()
-        connectors = []
-        for raw_data in connector_list:
-            if raw_data[0][0] == '#':
-                cid = raw_data[0][1:]
-                connector = self.get_httpccm(cid, True)
-                connector.update(
-                    cid=cid,
-                    type=raw_data[1],
-                    method=raw_data[2],
-                    url=raw_data[3]
-                )
-                connectors.append(connector)
-        return {'connectors': connectors}
+        """List HTTP Client Connectors. No parameters"""
+        return {'connectors': self.get_connector_list()}
 
     def retrieve(self, cid):
         """Retreive data for one connector
         Required parameter: cid (connector id)"""
         connector = self.get_httpccm(cid, silent=False)
-        connector_list = self.get_connector_list()
-        list_data = next(
-            (raw_data for raw_data in connector_list if
-                raw_data[0] == '#' + cid),
-            None
-        )
+        list_data = next((c for c in self.get_connector_list() if c['cid'] == cid), None)
         if not list_data:
             raise ObjectNotFoundError('Unknown connector: %s' % cid)
-        connector.update(
-                    cid=cid,
-                    type=list_data[1],
-                    method=list_data[2],
-                    url=list_data[3]
-                )
+        connector.update(list_data)
         return {'connector': connector}
 
     def create(self, data):
@@ -128,23 +86,16 @@ class HTTPCCM(TelnetConnection):
           type: string
           paramType: form
         """
-        self.telnet.sendline('httpccm -a')
-
-        for k, v in data.items():
-            self.telnet.sendline("%s %s" % (k, v))
-        self.telnet.sendline('ok')
-        matched_index = self.telnet.expect([
-            r'.*(HttpConnector url syntax is invalid.*)' + INTERACTIVE_PROMPT,
-            r'.*(HttpConnector method syntax is invalid, must be GET or POST.*)' + INTERACTIVE_PROMPT,
-            r'.*' + INTERACTIVE_PROMPT,
-            r'.+(.*)(' + INTERACTIVE_PROMPT + '|' + STANDARD_PROMPT + ')',
-        ])
-        if matched_index != 2:
-            raise JasminSyntaxError(
-                detail=" ".join(self.telnet.match.group(1).split()))
-        self.telnet.sendline('persist\n')
-        self.telnet.expect(r'.*' + STANDARD_PROMPT)
-        return {'cid': data['cid']}
+        keys = ('cid', 'url', 'method')
+        values = {key: (data.get(key) or '').strip() for key in keys}
+        missing = [key for key in keys if not values[key]]
+        if missing:
+            raise MissingKeyError('Missing parameter: %s' % ', '.join(missing))
+        if any(c['cid'] == values['cid'] for c in self.get_connector_list()):
+            raise DuplicateEntryError('HTTP connector %s already exists' % values['cid'])
+        self.run_session('httpccm -a', ['%s %s' % (key, values[key]) for key in keys])
+        self.persist()
+        return {'cid': values['cid']}
 
     def destroy(self, cid):
         """Delete an http connector.
@@ -157,4 +108,3 @@ class HTTPCCM(TelnetConnection):
         - 400: other error
         """
         return self.simple_httpccm_action('r', cid)
-

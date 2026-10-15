@@ -1,38 +1,29 @@
-from django.conf import settings
-
-from ..exceptions import MissingKeyError, ActionFailed, ObjectNotFoundError
-
+from ..exceptions import DuplicateEntryError, MissingKeyError
+from ..tools import table_rows
 from .conn import TelnetConnection
+
 import logging
 
-STANDARD_PROMPT = settings.STANDARD_PROMPT
-INTERACTIVE_PROMPT = settings.INTERACTIVE_PROMPT
-
 logger = logging.getLogger(__name__)
+
 
 class Groups(TelnetConnection):
     "Groups for managing *Jasmin* user groups (*not* Django auth groups)"
     lookup_field = 'gid'
     available_actions = ['list', 'add', 'delete', 'enable', 'disable']
 
+    @staticmethod
+    def parse_list(output):
+        """Parse ``group -l`` output; a ``!`` prefix marks a disabled group."""
+        groups = []
+        for row in table_rows(output):
+            gid = row.split()[0]
+            groups.append({'name': gid.lstrip('!'), 'status': 'disabled' if gid.startswith('!') else 'enabled'})
+        return groups
+
     def list(self):
         "List groups. No data parameters provided or required."
-        self.telnet.sendline('group -l')
-        self.telnet.expect([r'(.+)\n' + STANDARD_PROMPT])
-        result = str(self.telnet.match.group(0)).strip().replace("\\r", '').split("\\n")
-        if len(result) < 3:
-            return {'groups': []}
-        groups = result[2:-2]
-        return {
-            'groups':
-            [
-                {
-                    'name': g.strip().lstrip('!#'), 'status': (
-                        'disabled' if g[1] == '!' else 'enabled'
-                    )
-                } for g in groups
-            ]
-        }
+        return {'groups': self.parse_list(self.run_command('group -l'))}
 
     def create(self, data):
         """Create a group.
@@ -47,44 +38,20 @@ class Groups(TelnetConnection):
           type: string
           paramType: form
         """
-        self.telnet.sendline('group -a')
-        self.telnet.expect(r'Adding a new Group(.+)\n' + INTERACTIVE_PROMPT)
-        if 'gid' not in data:
-            logger.error("MissingKeyError: {}".format(MissingKeyError('Missing gid (group identifier)')))
-            #raise MissingKeyError('Missing gid (group identifier)')
-        self.telnet.sendline('gid ' + data['gid'] + '\n')
-        self.telnet.expect(INTERACTIVE_PROMPT)
-        self.telnet.sendline('ok\n')
-
-        matched_index = self.telnet.expect([
-            r'.+Successfully added(.+)\[(.+)\][\n\r]+' + STANDARD_PROMPT,
-            r'.+Error: (.+)[\n\r]+' + INTERACTIVE_PROMPT,
-            r'.+(.*)(' + INTERACTIVE_PROMPT + '|' + STANDARD_PROMPT + ')',
-        ])
-        if matched_index == 0:
-            gid = self.telnet.match.group(2).strip()
-            self.telnet.sendline('persist')
-            return {'name': gid}
-        else:
-            logger.error("ActionFailed: {}".format(ActionFailed(self.telnet.match.group(1))))
-            #raise ActionFailed(self.telnet.match.group(1))
+        gid = (data.get('gid') or '').strip()
+        if not gid:
+            raise MissingKeyError('Missing gid (group identifier)')
+        # jcli silently replaces an existing group instead of refusing the duplicate.
+        if any(g['name'] == gid for g in self.list()['groups']):
+            raise DuplicateEntryError('Group %s already exists' % gid)
+        self.run_session('group -a', ['gid %s' % gid])
+        self.persist()
+        return {'name': gid}
 
     def simple_group_action(self, action, gid):
-        self.telnet.sendline('group -%s %s' % (action, gid))
-        matched_index = self.telnet.expect([
-            r'.+Successfully(.+)' + STANDARD_PROMPT,
-            r'.+Unknown Group: (.+)' + STANDARD_PROMPT,
-            r'.+(.*)' + STANDARD_PROMPT,
-        ])
-        if matched_index == 0:
-            self.telnet.sendline('persist')
-            return {'name': gid}
-        elif matched_index == 1:
-            logger.error("ObjectNotFoundError: {}".format(ObjectNotFoundError('Unknown group: %s' % gid)))
-            #raise ObjectNotFoundError('Unknown group: %s' % gid)
-        else:
-            logger.error("ActionFailed: {}".format(ActionFailed(self.telnet.match.group(1))))
-            #raise ActionFailed(self.telnet.match.group(1))
+        self.run_action('group -%s %s' % (action, gid))
+        self.persist()
+        return {'name': gid}
 
     def destroy(self, gid):
         """Delete a group. One parameter required, the group identifier (a string)
@@ -107,7 +74,6 @@ class Groups(TelnetConnection):
         - 400: other error
         """
         return self.simple_group_action('e', gid)
-
 
     def disable(self, gid):
         """Disable a group.
