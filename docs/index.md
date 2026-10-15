@@ -57,8 +57,35 @@ See the [Installation Guide](getting-started/installation.md) for full setup opt
 
 ## Architecture
 
-The panel manages the gateway through Jasmin's **jcli** management console (telnet, port `8990`), exactly as an
-administrator would: every change made in the panel is a jcli command, and is persisted so it survives a Jasmin restart.
+```mermaid
+flowchart LR
+    user(["You<br/>browser or API client"])
+    panel["<b>Jasmin Web Panel</b><br/>pages + REST API"]
+    jcli["<b>Jasmin gateway</b><br/>jcli console :8990"]
+    smsc(["SMSC providers<br/>and your apps"])
+    mq{{"RabbitMQ"}}
+    db[("Panel database")]
+
+    user -- "(1) use the panel" --> panel
+    panel -- "(2) jcli commands over telnet<br/>(add user, create route, ...)" --> jcli
+    jcli -- "(3) answer: OK or error message" --> panel
+    jcli -. "SMS traffic never passes<br/>through the panel" .- smsc
+    jcli -- "delivery results" --> mq
+    mq -- "sms_logger" --> db
+    panel -- "Submit Log page reads" --> db
+```
+
+**How the panel and the gateway talk:**
+
+1. You use the panel in the browser (or call its REST API).
+2. For every action (add a user, create a route, start a connector) the panel opens a telnet session to Jasmin's
+   **jcli** console on port `8990` and types the same commands an administrator would, then runs `persist` so the
+   change survives a restart.
+3. Jasmin answers; the panel shows the result, or Jasmin's own error message if the command was refused.
+
+The panel only *manages* the gateway. Your SMS traffic flows through Jasmin's SMPP server and HTTP API and never
+passes through the panel. For the Submit Log, Jasmin publishes delivery results to RabbitMQ and the `sms_logger`
+service stores them in the panel's database, which the **[Submit Log](features/submit-log.md)** page reads.
 
 - **Frontend**: Server-rendered Django templates with Bootstrap and jQuery
 - **Backend**: Django (Python 3.11+) talking to jcli; the REST API uses the same code path
