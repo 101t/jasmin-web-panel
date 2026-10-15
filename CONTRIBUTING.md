@@ -64,9 +64,10 @@ This project follows our [Code of Conduct](CODE_OF_CONDUCT.md). By participating
 
 ### Prerequisites
 
-- Python 3.11+
+- Python 3.11 or 3.12
 - Git
-- Docker & Docker Compose (recommended)
+- The `telnet` client (`sudo apt install telnet`): the panel drives Jasmin's jcli console through it
+- Docker & Docker Compose (recommended; also used by the integration tests)
 
 ### Local Setup
 
@@ -85,7 +86,10 @@ uv pip install -r pyproject.toml --extra=dev
 
 # Configure environment
 cp sample.env .env
-# Edit .env with your local settings (SQLite works fine for development)
+# For development, set in .env:
+#   DEBUG=True
+#   DJANGO_SETTINGS_MODULE=config.settings.dev   (SQLite, no PostgreSQL needed)
+#   TELNET_HOST / TELNET_PORT pointing at a Jasmin gateway (see "Testing" for a disposable one)
 
 # Run database migrations
 python manage.py migrate
@@ -119,20 +123,35 @@ docker compose up -d
 
 ## Testing
 
-The project uses **pytest** with **pytest-django**. Run the test suite with:
+The project uses **pytest** with **pytest-django**. There are three layers:
+
+| Layer | Where | Needs a gateway |
+|-------|-------|-----------------|
+| Unit and view tests | `tests/test_*.py` | No: jcli is replaced by recorded transcripts and fakes |
+| Integration tests | `tests/integration/` | Yes: a disposable Jasmin started with Docker |
+| Documentation build | `mkdocs build --strict` | No |
 
 ```bash
-# Run all tests
+# Unit and view tests (what most changes need)
 make test
+# or: DJANGO_SETTINGS_MODULE=config.settings.dev pytest tests/ -v
 
-# Or directly
-DJANGO_SETTINGS_MODULE=config.settings.dev pytest tests/ -v
+# Integration tests: starts Jasmin, Redis and RabbitMQ in Docker, runs the tests, removes the containers
+make test_integration
+
+# Documentation: preview with live reload, or check like CI does
+make docs
+mkdocs build --strict
 ```
 
+CI runs all three, plus `ruff` and a Docker build, on every pull request.
+
 When adding a new feature or fixing a bug:
-- Add tests in the `tests/` directory.
-- Aim for meaningful test coverage of the new/changed code.
-- Tests should be isolated and not require a live Jasmin gateway.
+- Add tests in the `tests/` directory; a bug fix should come with a test that fails without it.
+- Anything that talks to jcli (`main/core/smpp/`) should have a parser or session test in
+  `tests/test_jcli_parsing.py`, using output copied from a real jcli session, and an integration test when it changes
+  what is sent to Jasmin.
+- Changes to what a page sends or receives belong in `tests/test_manage_views.py`.
 
 ---
 

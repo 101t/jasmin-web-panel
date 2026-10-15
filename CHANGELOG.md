@@ -2,7 +2,44 @@
 
 ## Unreleased
 
-Changes
+### Fixed: UI and gateway
+- MT/MO routes with several connectors or filters (RandomRoundrobin, Failover) can be created from the panel: only the last selected value used to reach Jasmin (#107).
+- Unchecking a user authorization (HTTP send, SMPP send, …) now revokes it; it used to be saved as allowed.
+- Editing a user no longer copies the password typed for the previously edited user, no longer resends unchanged values (a stale balance or SMS count overwrote what was consumed meanwhile), and saves the `ND` / empty quota as unlimited.
+- Errors returned by jcli are shown with Jasmin's message instead of being ignored, reported as success, or ending in a 10 second timeout and an HTML error page. A rejected line aborts the jcli session, so the next command is not misread.
+- jcli output containing `> ` (route type descriptions, filters such as `<U (uid=u1)>`) no longer desynchronises the connection.
+- Adding a group, user, filter or connector with an existing id is refused: jcli silently replaced the object, resetting a user's quotas and authorizations.
+- The MO router offers Jasmin users (delivered as `smpps(username)`) instead of SMPP client connectors, and both routers only offer filters that Jasmin accepts for that direction.
+- Filter, route, HTTP connector and SMPP connector listings are parsed correctly (routes/description columns, regex filters containing commas, empty values).
+- The `/api/users/` and `/api/groups/` endpoints work (they relied on a middleware that was never enabled); every API error now has the `{"error": ...}` shape and its proper status code.
+- Values containing line breaks are rejected instead of being sent to jcli as extra commands.
+- The submit log date filter only accepts its two date columns.
+- An expired session during an AJAX action sends the user to the sign-in page instead of failing silently.
+- Accounts created with `manage.py createsuperuser` can sign in (they were refused as "email not verified").
+- `DEBUG=False` (and `DEBUG: 0` in docker-compose) actually disables debug mode; `bool("False")` used to enable it. Same for `SUBMIT_LOG`.
+
+### Fixed: deployment
+- Static files are served by the panel (WhiteNoise), so the Docker image keeps its styling with `DEBUG=False`.
+- `docker compose up` with the shipped `sample.env` works: database credentials match, Jasmin starts (its configuration now lives in the `jasmin_config` named volume instead of an empty bind mount), and Send SMS reaches the `jasmin` service.
+- The Docker image builds on arm64 without editing the Dockerfile; Gunicorn no longer runs with `--reload`.
+- Sign-in, sign-up and reset pages no longer request a missing `auth/global.js`.
+
+### Changed
+- Gateway connection problems are reported as HTTP 503 (were 500, or 403 for a wrong jcli password).
+- `sample.env` defaults to `DEBUG=False` and a placeholder `SECRET_KEY`; production warns when a published sample key is used.
+- New `HTTPS_ONLY` setting for secure cookies and HTTPS redirects behind TLS.
+- The user "service" menu can unbind or ban a user from the SMPP server; the edit form offers the `schedule_delivery_time` and `hex_content` authorizations.
+- Clearer forms: validation matches Jasmin's id rules, uid/username are read-only when editing, loading and error states in every table, labelled status badges and accessible action buttons.
+
+### Added
+- Integration tests against a live Jasmin gateway (`make test_integration`), parser and view tests, CI jobs for them and for the documentation build, Dependabot.
+- `LICENSE` file (MIT, as stated in the README).
+- Documentation: REST API reference, gateway management guide, troubleshooting, complete configuration reference.
+
+### Removed
+- Travis CI configuration (replaced by GitHub Actions).
+
+### Earlier unreleased changes
 
 1. **Open Source Enhancements**
    - Added `CONTRIBUTING.md` with detailed contributor guide

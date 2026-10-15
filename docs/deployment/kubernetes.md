@@ -5,7 +5,7 @@ Deploying Jasmin Web Panel on Kubernetes allows for high availability and easy s
 ## Architecture
 
 The deployment consists of:
-- **Deployment**: Runs the Django application (Gunicorn/Uvicorn).
+- **Deployment**: Runs the Django application (Gunicorn).
 - **Service**: Exposes the application internally.
 - **ConfigMap/Secret**: Manages environment variables.
 - **Ingress** (Optional): Exposes the app to the internet.
@@ -23,8 +23,11 @@ kind: ConfigMap
 metadata:
   name: jasmin-web-config
 data:
+  DJANGO_SETTINGS_MODULE: "config.settings.pro"
   DEBUG: "False"
-  ALLOWED_HOSTS: "*"
+  ALLOWED_HOSTS: "sms.example.com"
+  CSRF_TRUSTED_ORIGINS: "https://sms.example.com"
+  HTTPS_ONLY: "True"            # TLS terminated by the Ingress
   TIME_ZONE: "UTC"
   TELNET_HOST: "jasmin-service" # Service name of your Jasmin Gateway
   TELNET_PORT: "8990"
@@ -36,11 +39,12 @@ kind: Secret
 metadata:
   name: jasmin-web-secret
 type: Opaque
-data:
-  # Base64 encoded values
-  SECRET_KEY: "CHANGE_ME_TO_BASE64_ENCODED_KEY"
-  PRODB_URL: "cG9zdGdyZXM6Ly91c2VyOnBhc3NAcG9zdGdyZXM6NTQzMi9qYXNtaW4=" # postgres://...
-  TELNET_PW: "amRsaXB3ZA==" # jclipwd
+# stringData takes plain values; Kubernetes encodes them for you.
+stringData:
+  SECRET_KEY: "change-me-to-a-long-random-value"
+  PRODB_URL: "postgres://user:pass@postgres:5432/jasmin"
+  TELNET_USERNAME: "jcliadmin"
+  TELNET_PW: "jclipwd"
 ```
 
 ## 2. Deployment
@@ -66,7 +70,7 @@ spec:
     spec:
       containers:
       - name: web
-        image: tarekaec/jasmin_web_panel:1.4
+        image: tarekaec/jasmin_web_panel:1.4.4
         ports:
         - containerPort: 8000
         envFrom:
@@ -74,23 +78,27 @@ spec:
             name: jasmin-web-config
         - secretRef:
             name: jasmin-web-secret
+        # /api/health_check needs no login (other pages redirect to the sign-in page).
         livenessProbe:
           httpGet:
-            path: /
+            path: /api/health_check
             port: 8000
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
           httpGet:
-            path: /
+            path: /api/health_check
             port: 8000
           initialDelaySeconds: 5
           periodSeconds: 5
 ```
 
+!!! note "Health checks and HTTPS_ONLY"
+    `/api/health_check` is exempt from the HTTPS redirect, so plain-HTTP probes keep working with `HTTPS_ONLY=True`.
+
 ## 3. Celery Worker
 
-You also need a worker deployment for background tasks.
+You also need a worker deployment for background tasks (submit log exports).
 
 ```yaml
 apiVersion: apps/v1
@@ -109,8 +117,8 @@ spec:
     spec:
       containers:
       - name: worker
-        image: tarekaec/jasmin_web_panel:1.4
-        command: ["celery", "-A", "config", "worker", "-l", "info"]
+        image: tarekaec/jasmin_web_panel:1.4.4
+        command: ["bash", "./docker-entrypoint-celery.sh"]
         envFrom:
         - configMapRef:
             name: jasmin-web-config

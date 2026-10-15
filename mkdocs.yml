@@ -2,7 +2,7 @@ site_name: Jasmin Web Panel
 site_url: https://about.supernovasoft.com/jasmin-web-panel/
 site_description: Advanced Web Panel for Jasmin SMS Gateway
 repo_url: https://github.com/101t/jasmin-web-panel
-edit_uri: edit/main/docs/
+edit_uri: edit/master/docs/
 
 theme:
   name: material
@@ -54,6 +54,8 @@ nav:
     - Systemd & Nginx: deployment/systemd-nginx.md
     - Kubernetes: deployment/kubernetes.md
   - Features:
+    - Gateway Management: features/gateway-management.md
     - Submit Log: features/submit-log.md
     - REST API: features/rest-api.md
+  - Troubleshooting: troubleshooting.md
   - Support: support.md

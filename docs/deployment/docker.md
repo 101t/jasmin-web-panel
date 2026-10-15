@@ -2,7 +2,83 @@
 
 Docker is the easiest way to deploy Jasmin Web Panel. We provide a pre-built image and a Docker Compose setup.
 
-## Quick Run
+On every start the image runs the database migrations, creates the default `admin` / `secret` account if it does not
+exist, collects static files and starts Gunicorn. The panel serves its own static files, so no extra web server is needed
+(put one in front for HTTPS).
+
+## Docker Compose (Recommended)
+
+`docker-compose.yml` runs the full stack: the panel, a Celery worker, PostgreSQL, Redis, RabbitMQ, Jasmin itself and the
+submit-log consumer.
+
+### 1. Prepare Environment
+
+```bash
+cp sample.env .env
+nano .env
+```
+
+Set at least:
+
+```dotenv
+SECRET_KEY=a-long-random-value           # python -c "import secrets; print(secrets.token_urlsafe(50))"
+ALLOWED_HOSTS=sms.yourdomain.com,localhost
+POSTGRES_PASSWORD=strong_password
+PRODB_URL=postgres://jasmin:strong_password@db:5432/jasmin
+```
+
+`POSTGRES_*` create the database container; `PRODB_URL` is how the panel connects to it, so keep the two in sync.
+Inside the compose network the panel reaches Jasmin as `jasmin` (jcli, SMPP and HTTP API); `docker-compose.yml`
+sets those hosts for you.
+
+### 2. Start Services
+
+```bash
+docker compose up -d
+docker compose ps
+```
+
+Open <http://localhost:8999> (or `JASMIN_WEB_PORT`) and sign in with `admin` / `secret`, then change the password.
+
+### 3. Optional: your own admin account
+
+```bash
+docker compose exec jasmin-web python manage.py createsuperuser
+```
+
+### 4. Logs
+
+```bash
+docker compose logs -f jasmin-web
+docker compose logs -f jasmin
+```
+
+### Ports
+
+| Variable | Service | Default |
+|----------|---------|---------|
+| `JASMIN_WEB_PORT` | Web panel | `8999` |
+| `JASMIN_SMS_PORT` | Jasmin SMPP server | `2775` |
+| `JASMIN_DASHBOARD_PORT` | Jasmin jcli | `8990` |
+| `JASMIN_HTTP_API_PORT` | Jasmin HTTP API | `1401` |
+
+!!! warning "jcli access"
+    The jcli port gives full control of the gateway. Do not expose `8990` to the internet: remove that port mapping
+    if you do not need jcli from outside the compose network.
+
+### Jasmin configuration
+
+Jasmin's configuration lives in the `jasmin_config` named volume: it starts from the image's defaults and keeps what
+jcli persists (users, connectors, routes) across restarts. To use your own `jasmin.cfg`, copy it in and restart:
+
+```bash
+docker compose cp ./jasmin.cfg jasmin:/etc/jasmin/jasmin.cfg
+docker compose restart jasmin
+```
+
+## Panel only (existing Jasmin)
+
+If Jasmin already runs elsewhere, run just the panel and point `TELNET_HOST`/`TELNET_PORT` at its jcli port:
 
 ```bash
 docker run -d \
@@ -10,78 +86,7 @@ docker run -d \
   -p 8999:8000 \
   --env-file .env \
   -v $(pwd)/public:/app/public \
-  tarekaec/jasmin_web_panel:1.4
-```
-
-## Docker Compose (Recommended)
-
-To deploy the full stack (Web Panel, Database, Redis, Background Worker), use `docker compose`.
-
-### 1. Prepare Environment
-
-```bash
-cp sample.env .env
-# Edit .env and set secure passwords, SECRET_KEY, and PRODB_URL
-nano .env
-```
-
-Key variables to set:
-
-```dotenv
-DEBUG=False
-SECRET_KEY=your-very-secret-key-here
-ALLOWED_HOSTS=sms.yourdomain.com,localhost
-PRODB_URL=postgres://jasmin_user:strong_password@db:5432/jasmin_db
-REDIS_HOST=redis
-REDIS_PORT=6379
-TELNET_HOST=jasmin
-TELNET_PORT=8990
-```
-
-### 2. Start Services
-
-```bash
-docker compose up -d
-```
-
-### 3. Run Database Migrations
-
-After the containers start, run the database migrations:
-
-```bash
-docker compose exec jasmin-web python manage.py migrate
-```
-
-If you see permission errors related to PostgreSQL (e.g., `permission denied for schema public`), connect to the database and grant privileges:
-
-```bash
-docker compose exec db psql -U postgres -c "GRANT ALL ON SCHEMA public TO jasmin_user;"
-docker compose exec db psql -U postgres -c "ALTER SCHEMA public OWNER TO jasmin_user;"
-```
-
-Then re-run migrations:
-
-```bash
-docker compose exec jasmin-web python manage.py migrate
-```
-
-### 4. Create an Admin User
-
-```bash
-docker compose exec jasmin-web python manage.py createsuperuser
-```
-
-### 5. Collect Static Files
-
-```bash
-docker compose exec jasmin-web python manage.py collectstatic --noinput
-```
-
-### 6. Check Status
-
-```bash
-docker compose ps
-docker compose logs -f jasmin-web
+  tarekaec/jasmin_web_panel:1.4.4
 ```
 
 ## Building a Custom Image
@@ -89,34 +94,32 @@ docker compose logs -f jasmin-web
 If you need to modify the code or dependencies:
 
 ```bash
-# Build the image
 docker build -f config/docker/slim/Dockerfile -t my-jasmin-panel .
-
-# Run it
-docker run -d \
-  --name jasmin-web \
-  -p 8999:8000 \
-  --env-file .env \
-  my-jasmin-panel
 ```
 
-## ARM64 / AArch64 Support
-
-If you are deploying on ARM architecture (e.g., AWS Graviton, Raspberry Pi):
-
-1. Edit `config/docker/slim/Dockerfile`
-2. Comment out or remove the x86 specific preload:
-   ```dockerfile
-   # ENV LD_PRELOAD /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
-   ```
-3. Rebuild or run `docker compose up -d` (if building locally).
+The Dockerfile builds on both amd64 and arm64 (AWS Graviton, Raspberry Pi) without changes.
 
 ## Upgrading
-
-When upgrading to a newer version, always run migrations after pulling the new image:
 
 ```bash
 docker compose pull
 docker compose up -d
-docker compose exec jasmin-web python manage.py migrate
 ```
+
+Migrations run automatically when the container starts.
+
+!!! note "Upgrading from a release that used `./jasmin_config`"
+    Older compose files bind-mounted `./jasmin_config` over `/etc/jasmin`. If you kept a real Jasmin configuration
+    there, copy it into the new volume once (`docker compose cp ./jasmin_config/. jasmin:/etc/jasmin/`) and restart
+    Jasmin. If that directory was empty, Jasmin could not start before; nothing needs to be migrated.
+
+## Troubleshooting
+
+If you see PostgreSQL permission errors (e.g., `permission denied for schema public`) on an existing volume:
+
+```bash
+docker compose exec db psql -U jasmin -d jasmin -c "GRANT ALL ON SCHEMA public TO jasmin;"
+docker compose restart jasmin-web
+```
+
+More in [Troubleshooting](../troubleshooting.md).
