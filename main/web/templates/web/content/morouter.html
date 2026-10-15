@@ -60,7 +60,7 @@
                             <small class="text-muted">{% trans "One of the supported MO Routes: DefaultRoute, StaticMORoute, RandomRoundrobinMORoute and FailoverMORoute" %}</small>
                         </div>
                     </div>
-                    <div class="form-group row">
+                    <div class="form-group row route-order">
                         <label class="col-sm-2 col-form-label">{% trans "Order" %}</label>
                         <div class="col-sm-10">
                             <input type="number" name="order" class="form-control" placeholder="{% trans 'Order' %}" required>
@@ -68,9 +68,11 @@
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label class="col-sm-2 col-form-label">{% trans "SMPP Connectors" %}</label>
+                        <label class="col-sm-2 col-form-label">{% trans "SMPP Users" %}</label>
                         <div class="col-sm-10">
                             <select name="smppconnectors" class="form-control" multiple></select>
+                            <small class="text-muted d-block">{% trans "Users bound to the Jasmin SMPP server receive the message as smpps(username)." %}</small>
+                            <small class="text-muted" id="connectors_hint"></small>
                         </div>
                     </div>
                     <div class="form-group row">
@@ -79,7 +81,7 @@
                             <select name="httpconnectors" class="form-control" multiple></select>
                         </div>
                     </div>
-                    <div class="form-group row">
+                    <div class="form-group row route-filters">
                         <label class="col-sm-2 col-form-label">{% trans "Filters" %}</label>
                         <div class="col-sm-10">
                             <select name="filters" class="form-control" multiple></select>
@@ -99,11 +101,9 @@
 {% endblock content %}
 {% block extrajs %}
 <script>
-var main_trans = {
-    url2smppccm: "{% url 'web:smppccm_view_manage' %}",
+var main_trans = Object.assign({}, global_trans, {url2smppccm: "{% url 'web:smppccm_view_manage' %}",
     url2httpccm: "{% url 'web:httpccm_view_manage' %}",
-    url2filters: "{% url 'web:filters_view_manage' %}",
-};
+    url2filters: "{% url 'web:filters_view_manage' %}", oneConnector: "{% trans 'Select exactly one connector.' %}", manyConnectors: "{% trans 'Select at least two connectors (Ctrl/Cmd-click to select several).' %}", noConnectors: "{% trans 'No connector defined yet' %}", noFilters: "{% trans 'No compatible filter defined yet' %}", url2users: "{% url 'web:users_view_manage' %}", noUsers: "{% trans 'No user defined yet' %}", failoverConnectors: "{% trans 'Select at least two connectors of the same kind (all SMPP users or all HTTP).' %}"});
 </script>
 <script src="{% static 'web/content/morouter.js' %}"></script>
 {% endblock extrajs %}

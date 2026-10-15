@@ -61,7 +61,7 @@
                             <small class="text-muted">{% trans "One of the supported MT Routes: DefaultRoute, StaticMTRoute, RandomRoundrobinMTRoute and FailoverMTRoute" %}</small>
                         </div>
                     </div>
-                    <div class="form-group row">
+                    <div class="form-group row route-order">
                         <label class="col-sm-2 col-form-label">{% trans "Order" %}</label>
                         <div class="col-sm-10">
                             <input type="number" name="order" class="form-control" placeholder="{% trans 'Order' %}" required>
@@ -79,6 +79,7 @@
                         <label class="col-sm-2 col-form-label">{% trans "SMPP Connectors" %}</label>
                         <div class="col-sm-10">
                             <select name="smppconnectors" class="form-control" multiple></select>
+                            <small class="text-muted" id="connectors_hint"></small>
                             <small class="text-muted">{% trans "Only SMPP Connector allowed" %}</small>
                         </div>
                     </div>
@@ -88,7 +89,7 @@
                             <select name="httpconnectors" class="form-control" multiple></select>
                         </div>
                     </div> -->
-                    <div class="form-group row">
+                    <div class="form-group row route-filters">
                         <label class="col-sm-2 col-form-label">{% trans "Filters" %}</label>
                         <div class="col-sm-10">
                             <select name="filters" class="form-control" multiple></select>
@@ -108,11 +109,9 @@
 {% endblock content %}
 {% block extrajs %}
 <script>
-var main_trans = {
-    url2smppccm: "{% url 'web:smppccm_view_manage' %}",
+var main_trans = Object.assign({}, global_trans, {url2smppccm: "{% url 'web:smppccm_view_manage' %}",
     url2httpccm: "{% url 'web:httpccm_view_manage' %}",
-    url2filters: "{% url 'web:filters_view_manage' %}",
-};
+    url2filters: "{% url 'web:filters_view_manage' %}", oneConnector: "{% trans 'Select exactly one connector.' %}", manyConnectors: "{% trans 'Select at least two connectors (Ctrl/Cmd-click to select several).' %}", noConnectors: "{% trans 'No connector defined yet' %}", noFilters: "{% trans 'No compatible filter defined yet' %}"});
 </script>
 <script src="{% static 'web/content/mtrouter.js' %}"></script>
 {% endblock extrajs %}

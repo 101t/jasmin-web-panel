@@ -24,7 +24,7 @@
 						<div class="row">
 							<div class="col-lg-6 d-none d-lg-block auth-box">
 								<div class="auth-child">
-									<img src="/static/assets/img/jasmin.png" style="width:50%;" alt="Login">
+									<img src="{% static 'assets/img/jasmin.png' %}" style="width:50%;" alt="Login">
 									<p class="text-muted">v{{ VERSION }}</p>
 								</div>
 							</div>
@@ -41,7 +41,6 @@
 <script src="{% static 'assets/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'assets/vendor/jquery-easing/jquery.easing.min.js' %}"></script>
 <script src="{% static 'assets/js/sb-admin-2.min.js' %}"></script>
-<script type="text/javascript" src="{% static 'auth/global.js' %}"></script>
 {% block extrajs %}{% endblock extrajs %}
 </body>
 </html>

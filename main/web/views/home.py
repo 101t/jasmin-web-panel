@@ -4,7 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.db.models import Count, Q
 from django.db.models.functions import TruncDate, TruncWeek, TruncMonth, TruncYear
-from datetime import datetime, timedelta
+from datetime import timedelta
+from django.utils import timezone
 import json
 
 from main.core.utils import get_client_ip, is_online
@@ -25,7 +26,7 @@ def dashboard_view(request):
     )
 
     # Get last 30 days data for initial timeline chart (daily)
-    end_date = datetime.now()
+    end_date = timezone.now()
     start_date = end_date - timedelta(days=30)
 
     daily_data = SubmitLog.objects.filter(
@@ -72,7 +73,7 @@ def global_manage(request):
         grouping = request.GET.get('grouping', 'daily')
 
         # Determine date range based on grouping
-        end_date = datetime.now()
+        end_date = timezone.now()
         if grouping == 'daily':
             start_date = end_date - timedelta(days=30)
             trunc_func = TruncDate

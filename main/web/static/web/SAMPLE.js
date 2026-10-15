@@ -27,7 +27,7 @@
 			data: serializeform,
 			beforeSend: function(){},
 			success: function(data){
-				toastr.success(data["message"], {closeButton: true, progressBar: true,});
+				showAjaxSuccess(data);
 				inputs.prop("disabled", false);
 				$(".modal").modal("hide");
 				collection_check(tbody_html);
@@ -35,7 +35,7 @@
 			},
 			error: function(jqXHR, textStatus, errorThrown){
 				inputs.prop("disabled", false);
-				toastr.error(JSON.parse(jqXHR.responseText)["message"], {closeButton: true, progressBar: true,});
+				showAjaxError(jqXHR);
 			}
 		});
     })

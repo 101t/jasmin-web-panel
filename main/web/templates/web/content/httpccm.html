@@ -44,14 +44,14 @@
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "CID" %}</label>
                         <div class="col-sm-10">
-                            <input type="text" name="cid" class="form-control" placeholder="{% trans 'CID Name' %}">
+                            <input type="text" name="cid" class="form-control" placeholder="{% trans 'CID Name' %}" required minlength="3" maxlength="25">
                             <small class="text-muted">{% trans "Connector ID" %}</small>
                         </div>
                     </div>
                     <div class="form-group row">
                         <label class="col-sm-2 col-form-label">{% trans "URL" %}</label>
                         <div class="col-sm-10">
-                            <input type="text" name="url" class="form-control" placeholder="{% trans 'URL' %}">
+                            <input type="url" name="url" class="form-control" placeholder="https://example.com/receive-mo" required>
                             <small class="text-muted">{% trans "URL to be called with message parameters" %}</small>
                         </div>
                     </div>
@@ -59,7 +59,7 @@
                         <label class="col-sm-2 col-form-label">{% trans "HTTP Method" %}</label>
                         <div class="col-sm-10">
                             <select name="method" class="form-control">
-                                <option>get</option><option>post</option>
+                                <option value="GET">GET</option><option value="POST">POST</option>
                             </select>
                             <small class="text-muted">{% trans "Calling method (GET or POST)" %}</small>
                         </div>
@@ -77,7 +77,7 @@
 {% endblock content %}
 {% block extrajs %}
 <script>
-var main_trans = {};
+var main_trans = Object.assign({}, global_trans, {});
 </script>
 <script src="{% static 'web/content/httpccm.js' %}"></script>
 {% endblock extrajs %}

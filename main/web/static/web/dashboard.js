@@ -9,16 +9,15 @@
 			data: {s: 'gw_state'},
 			beforeSend: function(){},
 			success: function(data){
-			    if (data.status) {
-			        toastr.success(data["message"], {closeButton: true, progressBar: true,});
-			    } else {
-			        toastr.warning(data["message"], {closeButton: true, progressBar: true,});
+			    // The badge below shows the state; only interrupt the user when something is wrong.
+			    if (!data.status) {
+			        toastr.warning(data["message"]);
 			    }
                 $("#binding_status").removeClass("bg-secondary").addClass(data.status? 'bg-success' : 'bg-warning');
                 $("#binding_status_text").text(data.message);
 			},
 			error: function(jqXHR, textStatus, errorThrown){
-				toastr.error(JSON.parse(jqXHR.responseText)["message"], {closeButton: true, progressBar: true,});
+				showAjaxError(jqXHR);
 			}
 		});
     }

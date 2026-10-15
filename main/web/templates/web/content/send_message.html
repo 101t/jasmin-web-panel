@@ -45,7 +45,7 @@
 {% endblock content %}
 {% block extrajs %}
 <script>
-var main_trans = {};
+var main_trans = Object.assign({}, global_trans, {defaultCredentials: "{% trans 'Default (environment credentials)' %}", noPassword: "{% trans 'created outside the panel, password unknown' %}"});
 </script>
 <script src="{% static 'web/content/send_message.js' %}"></script>
 {% endblock extrajs %}

@@ -1,6 +1,7 @@
 (function($){
     var csrfmiddlewaretoken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
-    
+    var defaultOption = '<option value="">' + escapeHtml(main_trans.defaultCredentials) + '</option>';
+
     // Fetch users from gateway
     function loadGatewayUsers() {
         $.ajax({
@@ -12,29 +13,27 @@
             },
             dataType: "json",
             success: function(data){
-                if (data.users && data.users.length > 0) {
-                    var options = '<option value="">Default (Environment Credentials)</option>';
-                    data.users.forEach(function(user){
-                        // Only show enabled users
-                        if (user.status === 'enabled') {
-                            options += '<option value="' + user.uid + '">' + 
-                                      user.uid + ' (' + user.username + ')</option>';
-                        }
-                    });
-                    $('#user_uid').html(options);
-                } else {
-                    $('#user_uid').html('<option value="">Default (Environment Credentials)</option>');
-                }
+                var options = defaultOption;
+                $.each(data.users || [], function(_, user){
+                    // Only show enabled users
+                    if (user.status !== 'enabled') return;
+                    // The panel only knows the password of users it created; others fall back to
+                    // the default credentials, so say so instead of silently sending as someone else.
+                    var label = user.uid + ' (' + user.username + ')' + (user.has_password ? '' : ' — ' + main_trans.noPassword);
+                    options += '<option value="' + escapeHtml(user.uid) + '"' + (user.has_password ? '' : ' disabled') + '>' +
+                        escapeHtml(label) + '</option>';
+                });
+                $('#user_uid').html(options);
             },
-            error: function(jqXHR, textStatus, errorThrown){
-                console.error('Failed to load gateway users:', textStatus);
-                $('#user_uid').html('<option value="">Default (Environment Credentials)</option>');
+            error: function(jqXHR){
+                $('#user_uid').html(defaultOption);
+                showAjaxError(jqXHR);
             }
         });
     }
-    
+
     // Load users on page load
     loadGatewayUsers();
-    
+
     $("li.nav-item.send-sms-menu").addClass("active");
 })(jQuery);

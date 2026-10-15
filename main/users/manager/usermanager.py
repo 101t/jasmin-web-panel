@@ -31,6 +31,10 @@ class UserManager(BaseUserManager):
 		extra_fields.setdefault('is_active', True)
 		extra_fields.setdefault('is_staff', True)
 		extra_fields.setdefault('is_superuser', True)
+		# Sign-in refuses unverified emails and there is no verification mail by default: an admin
+		# created with "manage.py createsuperuser" could otherwise never log in.
+		extra_fields.setdefault('is_email', True)
+		extra_fields.setdefault('is_verified', True)
 		if extra_fields.get('is_staff') is not True:
 			raise ValueError('Superuser must have is_staff=True.')
 		if extra_fields.get('is_superuser') is not True:
