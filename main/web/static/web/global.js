@@ -61,6 +61,36 @@
     };
     window.htmlEscape = window.escapeHtml;
 
+    /** A translated interface string from global_trans (set in web/base.html), or the English fallback. */
+    var trans = window.trans = function(key, fallback) {
+        return (window.global_trans && global_trans[key]) || fallback;
+    };
+
+    /** Filter the rows of a table body by the text typed in a [data-table-filter] search box. */
+    window.applyTableFilter = function(input) {
+        var $input = $(input), term = $.trim($input.val()).toLowerCase();
+        var $tbody = $($input.data('table-filter'));
+        $tbody.children('tr.filter-empty').remove();
+        var rows = 0, shown = 0;
+        $tbody.children('tr').each(function() {
+            var $row = $(this);
+            if ($row.children('td[colspan]').length) return;  // loading, empty or error row
+            var match = !term || $row.text().toLowerCase().indexOf(term) !== -1;
+            $row.toggle(match);
+            rows++;
+            if (match) shown++;
+        });
+        if (rows && !shown) {
+            $('<tr class="filter-empty"><td colspan="100" class="text-center text-muted py-3"></td></tr>')
+                .find('td').text(trans('noMatch', 'Nothing matches your search.')).end().appendTo($tbody);
+        }
+    };
+    $(document).on('input', '[data-table-filter]', function() { window.applyTableFilter(this); });
+    // Lists are reloaded over AJAX after every change: keep the current search applied.
+    $(document).ajaxComplete(function() {
+        $('[data-table-filter]').each(function() { window.applyTableFilter(this); });
+    });
+
     window.showThisBox = function(variant_boxes, box) {
         variant_boxes = variant_boxes || [];
         variant_boxes.filter(function(item) { return item !== box; })
@@ -79,8 +109,8 @@
         }
         if (data && data.message) return data.message;
         if (data && data.error) return data.error;
-        if (jqXHR.status === 0) return 'The panel server cannot be reached, check your connection.';
-        return 'Request failed (' + jqXHR.status + ' ' + (jqXHR.statusText || 'error') + ').';
+        if (jqXHR.status === 0) return trans('unreachable', 'The panel server cannot be reached, check your connection.');
+        return trans('requestFailed', 'Request failed') + ' (' + jqXHR.status + ' ' + (jqXHR.statusText || 'error') + ').';
     };
 
     window.showAjaxError = function(jqXHR) {
@@ -106,7 +136,7 @@
     window.tableLoading = function(tbody, colspan) {
         $(tbody).html('<tr><td colspan="' + (colspan || 1) + '" class="text-center text-muted py-4">' +
             '<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>' +
-            (window.global_trans && global_trans.loading || 'Loading...') + '</td></tr>');
+            trans('loading', 'Loading...') + '</td></tr>');
     };
 
     window.tableError = function(tbody, colspan, jqXHR, retry) {
@@ -116,7 +146,7 @@
             .append(document.createTextNode(window.ajaxErrorMessage(jqXHR)));
         if (retry) {
             $('<button type="button" class="btn btn-sm btn-outline-secondary ml-3"></button>')
-                .text(window.global_trans && global_trans.retry || 'Retry')
+                .text(trans('retry', 'Retry'))
                 .on('click', retry)
                 .appendTo($row.find('td'));
         }
@@ -298,7 +328,7 @@
      */
     window.quick_display_modal_error = function(html_response) {
         if (typeof toastr !== 'undefined') {
-            toastr.error('An error occurred, see the details window.');
+            toastr.error(trans('errorDetails', 'An error occurred, see the details window.'));
         }
 
         var html_source = (html_response || '').replace(/["]/g, '&quot;');
@@ -317,7 +347,7 @@
     if ($.fn.validate) {
         $.validator.addMethod('jasminId', function(value, element) {
             return this.optional(element) || /^[A-Za-z0-9_-]+$/.test(value);
-        }, 'Only letters, digits, "_" and "-" are allowed.');
+        }, trans('jasminId', 'Only letters, digits, "_" and "-" are allowed.'));
 
         var jasminRules = {
             cid: { required: true, jasminId: true, rangelength: [3, 25] },

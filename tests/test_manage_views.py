@@ -142,6 +142,14 @@ class TestUserUpdates:
         assert user_updates(post, CURRENT_USER) == [
             ['gid', 'g2'], ['password', 'new'], ['mt_messaging_cred', 'quota', 'sms_count', '50']]
 
+    def test_table_uses_one_jcli_command_and_edit_fetches_details(self, auth_client, fake_manager):
+        calls = fake_manager('main.web.views.content.users', 'Users', {
+            'list_summary': {'users': [{'uid': 'u1'}]}, 'retrieve': {'user': CURRENT_USER}})
+        url = reverse('web:users_view_manage')
+        assert auth_client.post(url, {'s': 'list_summary'}, **AJAX).json()['users'] == [{'uid': 'u1'}]
+        assert auth_client.post(url, {'s': 'get', 'uid': 'u1'}, **AJAX).json()['user']['gid'] == 'g1'
+        assert [c[0] for c in calls] == ['list_summary', 'retrieve']
+
     def test_edit_view_skips_jcli_when_nothing_changed(self, auth_client, fake_manager):
         calls = fake_manager('main.web.views.content.users', 'Users', {'get_user': CURRENT_USER})
         response = auth_client.post(reverse('web:users_view_manage'), {

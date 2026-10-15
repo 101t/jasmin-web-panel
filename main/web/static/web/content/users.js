@@ -24,14 +24,15 @@
             type: "POST",
             data: {
                 csrfmiddlewaretoken: csrfmiddlewaretoken,
-                s: "list",
+                // One jcli command for the whole table; full details are loaded on "edit".
+                s: "list_summary",
             },
             dataType: "json",
             success: function(data){
                 var datalist = data["users"];
                 USERS_DICT = {};
                 var output = $.map(datalist, function(val, i){
-                    var quota = (val.mt_messaging_cred || {}).quota || {};
+                    var quota = {balance: val.balance, sms_count: val.sms_count};
                     USERS_DICT[i+1] = val;
                     return '<tr>' +
                         '<td>' + (i+1) + '</td>' +
@@ -55,6 +56,35 @@
     };
     collectionlist_check();
 
+    var openEditForm = function(data){
+        var cred = data.mt_messaging_cred || {};
+        var quota = cred.quota || {}, authorization = cred.authorization || {};
+        var valuefilter = cred.valuefilter || {}, defaultvalue = cred.defaultvalue || {};
+        var $form = $(edit_modal_form);
+        $form.find("input[name=uid]").val(data.uid);
+        $form.find("input[name=username]").val(data.username);
+        // Jasmin never returns passwords: leave it empty, it is only sent when typed in.
+        $form.find("input[name=password]").val('');
+        $form.find("select[name=gid]").val(data.gid);
+        $.each(["balance", "sms_count", "early_percent", "http_throughput", "smpps_throughput"], function(_, key){
+            $form.find("input[name=" + key + "]").val(quota[key] !== undefined ? quota[key] : '');
+        });
+        $.each(AUTHORIZATIONS, function(_, key){
+            var $box = $form.find("input[name=" + key + "]");
+            $box.prop("checked", authorization[key] === "True");
+            // Older gateways do not know every flag; do not offer what cannot be saved.
+            $box.closest(".form-group").toggle(authorization[key] !== undefined);
+        });
+        $form.find("input[name=src_addr_f]").val(valuefilter.src_addr || '');
+        $form.find("input[name=dst_addr_f]").val(valuefilter.dst_addr || '');
+        $form.find("input[name=content_f]").val(valuefilter.content || '');
+        $form.find("input[name=priority_f]").val(valuefilter.priority || '');
+        $form.find("input[name=validity_period_f]").val(valuefilter.validity_period || '');
+        $form.find("input[name=src_addr_d]").val(defaultvalue.src_addr === "None" ? '' : (defaultvalue.src_addr || ''));
+        showThisBox(variant_boxes, edit_modal_form);
+        $("#collection_modal").modal("show");
+    };
+
     window.collection_manage = function(cmd, index){
         index = index || -1;
         if (cmd == "add") {
@@ -62,33 +92,18 @@
             showThisBox(variant_boxes, add_modal_form);
             $("#collection_modal").modal("show");
         } else if (cmd == "edit") {
-            var data = USERS_DICT[index];
-            var cred = data.mt_messaging_cred || {};
-            var quota = cred.quota || {}, authorization = cred.authorization || {};
-            var valuefilter = cred.valuefilter || {}, defaultvalue = cred.defaultvalue || {};
-            var $form = $(edit_modal_form);
-            $form.find("input[name=uid]").val(data.uid);
-            $form.find("input[name=username]").val(data.username);
-            // Jasmin never returns passwords: leave it empty, it is only sent when typed in.
-            $form.find("input[name=password]").val('');
-            $form.find("select[name=gid]").val(data.gid);
-            $.each(["balance", "sms_count", "early_percent", "http_throughput", "smpps_throughput"], function(_, key){
-                $form.find("input[name=" + key + "]").val(quota[key] !== undefined ? quota[key] : '');
+            // The table only holds the summary: fetch this user's credentials first.
+            var $button = $("#collectionlist tr").eq(index - 1).find("button[title='" + main_trans.edit + "']");
+            $button.prop("disabled", true);
+            $.ajax({
+                url: local_path + 'manage/',
+                type: "POST",
+                data: {csrfmiddlewaretoken: csrfmiddlewaretoken, s: "get", uid: USERS_DICT[index].uid},
+                dataType: "json",
+                success: function(response){ openEditForm(response.user); },
+                error: showAjaxError,
+                complete: function(){ $button.prop("disabled", false); }
             });
-            $.each(AUTHORIZATIONS, function(_, key){
-                var $box = $form.find("input[name=" + key + "]");
-                $box.prop("checked", authorization[key] === "True");
-                // Older gateways do not know every flag; do not offer what cannot be saved.
-                $box.closest(".form-group").toggle(authorization[key] !== undefined);
-            });
-            $form.find("input[name=src_addr_f]").val(valuefilter.src_addr || '');
-            $form.find("input[name=dst_addr_f]").val(valuefilter.dst_addr || '');
-            $form.find("input[name=content_f]").val(valuefilter.content || '');
-            $form.find("input[name=priority_f]").val(valuefilter.priority || '');
-            $form.find("input[name=validity_period_f]").val(valuefilter.validity_period || '');
-            $form.find("input[name=src_addr_d]").val(defaultvalue.src_addr === "None" ? '' : (defaultvalue.src_addr || ''));
-            showThisBox(variant_boxes, edit_modal_form);
-            $("#collection_modal").modal("show");
         } else if (cmd == "delete") {
             var user = USERS_DICT[index];
             confirmAction(function(){

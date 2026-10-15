@@ -3,10 +3,12 @@ from main.core.exceptions import DuplicateEntryError, JasminSyntaxError, Missing
 from .conn import TelnetConnection
 
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
 CREDENTIAL_KEYS = ('mt_messaging_cred', 'smpps_cred')
+USER_ROW_RE = re.compile(r'^(\S+)\s+(\S+)\s+(\S+)\s+(\S+)(?:\s+\(!\))?\s+(\S+)(?:\s+\(!\))?\s+(\S+)$')
 
 
 class Users(TelnetConnection):
@@ -41,17 +43,27 @@ class Users(TelnetConnection):
 
     @staticmethod
     def parse_summary(output):
-        """Parse ``user -l`` rows into uid, gid, username and status, without per-user lookups."""
+        """Parse ``user -l`` rows (one jcli command for all users, no per-user lookups).
+
+        Rows look like ``u1  !g1  bob  100.0  ND (!)  ND/ND``: uid, gid, username, balance,
+        SMS count and HTTP/SMPP throughput; ``!`` marks a disabled user or group and ``(!)``
+        flags a user without any quota.
+        """
         users = []
         for row in table_rows(output):
-            fields = row.split()
-            if len(fields) >= 3:
-                users.append({
-                    'uid': fields[0].lstrip('!'),
-                    'gid': fields[1].lstrip('!'),
-                    'username': fields[2],
-                    'status': 'disabled' if fields[0].startswith('!') else 'enabled',
-                })
+            match = USER_ROW_RE.match(row.strip())
+            fields = match.groups() if match else row.split()[:3]
+            if len(fields) < 3:
+                continue
+            user = {
+                'uid': fields[0].lstrip('!'),
+                'gid': fields[1].lstrip('!'),
+                'username': fields[2],
+                'status': 'disabled' if fields[0].startswith('!') else 'enabled',
+            }
+            if match:
+                user.update(balance=fields[3], sms_count=fields[4], throughput=fields[5])
+            users.append(user)
         return users
 
     def list_summary(self):

@@ -6,10 +6,10 @@
 <h1 class="h3 mb-2 text-gray-800">{% trans "MO Router" %}</h1>
 <p><small class="muted-text">{% trans "MO is referred to Mobile Originated, a SMS-MO is an SMS sent from mobile" %}</small></p>
 <div class="card shadow mb-4">
-    <div class="card-header py-3">
-        <h4>
-            <button class="btn btn-success btn-sm float-right" id="add_new_obj"><i class="fas fa-plus"></i> {% trans "Add New" %}</button>
-        </h4>
+    <div class="card-header py-3 d-flex flex-wrap align-items-center">
+        <input type="search" class="form-control form-control-sm mr-auto my-1" style="max-width: 280px;"
+               data-table-filter="#collectionlist" placeholder="{% trans 'Search' %}" aria-label="{% trans 'Search' %}">
+        <button class="btn btn-success btn-sm my-1" id="add_new_obj"><i class="fas fa-plus"></i> {% trans "Add New" %}</button>
     </div>
     <div class="card-body">
         <div class="table-responsive">

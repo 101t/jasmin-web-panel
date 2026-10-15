@@ -16,7 +16,8 @@ USER_LIST = (
     "#User id          Group id         Username         Balance MT SMS Throughput\n"
     "#u1               g1               user1            ND (!)  ND (!) ND/ND\n"
     "#!usr_01          !grp_01          bob              ND (!)  ND (!) ND/ND\n"
-    "Total Users: 2")
+    "#u3               g1               carol            100.0   42     10.0/ND\n"
+    "Total Users: 3")
 USER_SHOW = (
     "uid usr_01\ngid grp_01\nusername bob\n"
     "mt_messaging_cred authorization http_send True\n"
@@ -67,9 +68,12 @@ class TestListParsers:
             {'name': 'g1', 'status': 'enabled'}, {'name': 'grp_01', 'status': 'disabled'}]
 
     def test_users(self):
-        assert Users.parse_list(USER_LIST) == [('u1', True), ('usr_01', False)]
-        assert Users.parse_summary(USER_LIST)[1] == {
-            'uid': 'usr_01', 'gid': 'grp_01', 'username': 'bob', 'status': 'disabled'}
+        assert Users.parse_list(USER_LIST) == [('u1', True), ('usr_01', False), ('u3', True)]
+        summary = Users.parse_summary(USER_LIST)
+        assert summary[1] == {'uid': 'usr_01', 'gid': 'grp_01', 'username': 'bob', 'status': 'disabled',
+                              'balance': 'ND', 'sms_count': 'ND', 'throughput': 'ND/ND'}
+        assert summary[2]['balance'] == '100.0' and summary[2]['sms_count'] == '42'
+        assert summary[2]['throughput'] == '10.0/ND'
 
     def test_user_details_keep_values_with_spaces(self):
         user = Users.parse_user(USER_SHOW)

@@ -82,7 +82,10 @@ def users_view_manage(request):
         if s == "list":
             response = users.list()
         elif s == "list_summary":
+            # One jcli command for the whole table; "list" runs one more per user.
             response = users.list_summary()
+        elif s == "get":
+            response = users.retrieve(uid)
         elif s == "add":
             gid = request.POST.get("gid")
             username = request.POST.get("username")
