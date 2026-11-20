@@ -18,7 +18,7 @@ spec:
       # Run migrations cleanly before Gunicorn starts (avoids multi-worker startup races)
       initContainers:
         - name: migrate
-          image: tarekaec/jasmin_web_panel:3.1.0
+          image: tarekaec/jasmin_web_panel:3.2.0
           command: ["/app/env/bin/python", "manage.py", "migrate", "--noinput"]
           envFrom:
             - configMapRef:
@@ -31,7 +31,7 @@ spec:
               drop: ["ALL"]
       containers:
         - name: web
-          image: tarekaec/jasmin_web_panel:3.1.0
+          image: tarekaec/jasmin_web_panel:3.2.0
           command:
             - /bin/bash
             - -c

@@ -1,5 +1,30 @@
 # Change history
 
+## 3.2.0 (2026-11-20)
+
+Native `.deb` and `.rpm` packages (amd64 and arm64) are attached to the GitHub release, and
+`scripts/install.sh` installs the panel with Docker or natively. Kubernetes manifests live in `deploy/kubernetes/`.
+
+### Upgrade notes
+- Run the migrations: email server passwords are now encrypted at rest, like Jasmin user passwords.
+- The REST API and the panel pages (dashboard, gateway users, groups, filters, connectors, routers,
+  Send SMS, submit logs) now require a staff/admin account. Give `is_staff` to accounts that need them.
+- Creating an `EvalPyFilter` is refused unless `ALLOW_EVALPY_FILTER=True`; it runs arbitrary Python inside Jasmin.
+- New passwords must be at least 8 characters and pass Django's password validators.
+- Sign-out is a POST request.
+
+### Fixed
+- `sms_logger.py`: messages are requeued instead of dropped when the database is unreachable, failed
+  transactions are rolled back, and delivery receipts update the submit log by message id.
+- The submit log `status` column holds up to 50 characters.
+- SMTP connections time out after 30 seconds.
+
+### Security
+- Sign-in only redirects to same-site `next` URLs.
+- Password reset gives the same answer for unknown accounts, so it cannot be used to find valid ones.
+- Submit log exports escape cells starting with `=`, `+`, `-` or `@` (spreadsheet formula injection).
+- `DB_TABLE` in `sms_logger.py` must be a plain SQL identifier.
+
 ## 3.1.0 (2026-10-15)
 
 Docker images now follow the application version: `tarekaec/jasmin_web_panel:3.1.0` (also `3.1`, `3` and

@@ -2,7 +2,7 @@ name: Release
 
 # master            -> tarekaec/jasmin_web_panel:edge (and sha-<commit>)
 # tag X.Y.Z         -> tarekaec/jasmin_web_panel:X.Y.Z, X.Y, X and latest, plus a GitHub release
-#                      (releases are tagged "3.1.0"; "v3.1.0" is accepted too)
+#                      (releases are tagged "3.2.0"; "v3.2.0" is accepted too)
 #
 # Requires the DOCKERHUB_USERNAME and DOCKERHUB_TOKEN repository secrets (a Docker Hub access
 # token with Read & Write scope).
