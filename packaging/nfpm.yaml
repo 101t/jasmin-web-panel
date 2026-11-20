@@ -29,7 +29,8 @@ overrides:
       - nginx
   rpm:
     depends:
-      - python3 >= 3.11
+      # RHEL/Rocky 9 python3 is 3.9; python3.12 is in AppStream (and the main python3 provides it on Fedora/RHEL 10)
+      - python3.12
       - libpq
       - telnet
       - openssl

@@ -26,7 +26,17 @@ ln -sfn "${ENV_FILE}" "${APP_DIR}/.env"
 
 # Provision Python virtualenv and install dependencies if not present
 if [[ ! -x "${APP_DIR}/env/bin/gunicorn" ]]; then
-    python3 -m venv "${APP_DIR}/env"
+    # Distro python3 may be too old (RHEL/Rocky 9 ship 3.9); take the first interpreter >= 3.11
+    PYTHON=""
+    for candidate in python3.13 python3.12 python3.11 python3; do
+        if command -v "${candidate}" >/dev/null 2>&1 \
+            && "${candidate}" -c 'import sys; sys.exit(sys.version_info < (3, 11))'; then
+            PYTHON="${candidate}"
+            break
+        fi
+    done
+    [[ -n "${PYTHON}" ]] || { echo "Python >= 3.11 is required" >&2; exit 1; }
+    "${PYTHON}" -m venv "${APP_DIR}/env"
     "${APP_DIR}/env/bin/pip" install --quiet --upgrade pip wheel uv
     "${APP_DIR}/env/bin/uv" pip install --python "${APP_DIR}/env/bin/python" -r "${APP_DIR}/pyproject.toml" --extra prod
 fi
