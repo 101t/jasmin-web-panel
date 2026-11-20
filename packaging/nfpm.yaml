@@ -40,8 +40,10 @@ overrides:
 
 contents:
   # Application source tree (staged by packaging/build-packages.sh)
-  - src: ./build/stage/opt/jasmin-web-panel/
-    dst: /opt/jasmin-web-panel/
+  # type: tree keeps the directory structure (plain globbing flattens it in newer nfpm)
+  - src: ./build/stage/opt/jasmin-web-panel
+    dst: /opt/jasmin-web-panel
+    type: tree
     file_info:
       owner: root
       group: root
