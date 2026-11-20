@@ -102,7 +102,6 @@ detect_os() {
     source /etc/os-release
     OS_ID="${ID:-unknown}"
     OS_ID_LIKE="${ID_LIKE:-}"
-    OS_VERSION="${VERSION_ID:-}"
     ARCH="$(uname -m)"
 
     case "${OS_ID}" in
