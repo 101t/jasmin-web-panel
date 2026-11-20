@@ -3,11 +3,10 @@ import time
 from django.utils.translation import gettext as _
 from django.shortcuts import render
 from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
 
 from main.core.exceptions import JasminError
 from main.core.smpp import SMPPCCM
-from main.core.tools import require_post_ajax
+from main.core.tools import require_post_ajax, staff_required
 
 # Fields of the add and edit forms, named like the jcli smppccm keys.
 ADD_FIELDS = ('cid', 'host', 'port', 'username', 'password')
@@ -20,7 +19,7 @@ EDIT_FIELDS = (
 )
 
 
-@login_required
+@staff_required
 def smppccm_view(request):
     return render(request, "web/content/smppccm.html")
 

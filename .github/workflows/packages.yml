@@ -1,0 +1,179 @@
+name: Linux Packages & Installer CI
+
+# Validates scripts/install.sh and packaging scripts, builds native .deb (Debian/Ubuntu)
+# and .rpm (RHEL/Rocky/Alma/Fedora) packages for amd64 & arm64, smoke-tests them in
+# real distro containers, and attaches packages + checksums to GitHub Releases on tags.
+
+on:
+  push:
+    branches: [master]
+    tags: ["[0-9]+.[0-9]+.[0-9]+", "v[0-9]+.[0-9]+.[0-9]+"]
+    paths:
+      - "scripts/install.sh"
+      - "packaging/**"
+      - "deploy/kubernetes/**"
+      - ".github/workflows/packages.yml"
+      - "config/version.py"
+      - "pyproject.toml"
+  pull_request:
+    branches: [master]
+    paths:
+      - "scripts/install.sh"
+      - "packaging/**"
+      - "deploy/kubernetes/**"
+      - ".github/workflows/packages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: packages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  shellcheck:
+    name: Lint installer & packaging scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Bash syntax check
+        run: |
+          bash -n scripts/install.sh
+          bash -n packaging/build-packages.sh
+          bash -n packaging/scripts/postinstall.sh
+          bash -n packaging/scripts/preremove.sh
+          bash -n packaging/scripts/postremove.sh
+
+      - name: Run ShellCheck
+        run: |
+          shellcheck -S warning \
+            scripts/install.sh \
+            packaging/build-packages.sh \
+            packaging/scripts/postinstall.sh \
+            packaging/scripts/preremove.sh \
+            packaging/scripts/postremove.sh
+
+      - name: Validate Kubernetes manifests
+        run: |
+          python3 -c "
+          import glob, yaml
+          for path in sorted(glob.glob('deploy/kubernetes/*.yaml')):
+              with open(path) as f:
+                  docs = list(yaml.safe_load_all(f))
+              assert docs, f'Empty YAML: {path}'
+              print(f'OK: {path} ({len(docs)} doc(s))')
+          "
+
+  build-packages:
+    name: Build .deb & .rpm (${{ matrix.arch }})
+    needs: shellcheck
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install nFPM
+        run: |
+          echo 'deb [trusted=yes] https://repo.goreleaser.com/apt/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq nfpm rsync
+
+      - name: Build native packages
+        run: |
+          chmod +x packaging/build-packages.sh packaging/scripts/*.sh
+          ./packaging/build-packages.sh "${{ matrix.arch }}"
+
+      - name: Upload built packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-packages-${{ matrix.arch }}
+          path: dist/*
+          retention-days: 14
+
+  smoke-test:
+    name: Smoke test (${{ matrix.distro }})
+    needs: build-packages
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - distro: ubuntu-24.04
+            image: ubuntu:24.04
+            kind: deb
+          - distro: debian-12
+            image: debian:12
+            kind: deb
+          - distro: rockylinux-9
+            image: rockylinux:9
+            kind: rpm
+    steps:
+      - name: Download amd64 packages
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-packages-amd64
+          path: dist
+
+      - name: Test .deb installation on ${{ matrix.distro }}
+        if: matrix.kind == 'deb'
+        run: |
+          docker run --rm -v "$PWD/dist:/pkg:ro" "${{ matrix.image }}" bash -euo pipefail -c '
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update -qq
+            apt-get install -y -qq /pkg/jasmin-web-panel_*_amd64.deb
+            test -f /etc/jasmin-web-panel/env
+            test -f /lib/systemd/system/jasmin-web.service
+            test -f /lib/systemd/system/jasmin-celery.service
+            test -x /opt/jasmin-web-panel/env/bin/gunicorn
+            grep -q "^SECRET_KEY=" /etc/jasmin-web-panel/env
+            ! grep -q "^SECRET_KEY=change-me" /etc/jasmin-web-panel/env
+            echo "DEB smoke test passed!"
+          '
+
+      - name: Test .rpm installation on ${{ matrix.distro }}
+        if: matrix.kind == 'rpm'
+        run: |
+          docker run --rm -v "$PWD/dist:/pkg:ro" "${{ matrix.image }}" bash -euo pipefail -c '
+            dnf install -y -q /pkg/jasmin-web-panel-*.x86_64.rpm
+            test -f /etc/jasmin-web-panel/env
+            test -f /lib/systemd/system/jasmin-web.service
+            test -f /lib/systemd/system/jasmin-celery.service
+            test -x /opt/jasmin-web-panel/env/bin/gunicorn
+            grep -q "^SECRET_KEY=" /etc/jasmin-web-panel/env
+            ! grep -q "^SECRET_KEY=change-me" /etc/jasmin-web-panel/env
+            echo "RPM smoke test passed!"
+          '
+
+  publish-release-assets:
+    name: Attach packages to GitHub Release
+    if: startsWith(github.ref, 'refs/tags/') && github.repository == '101t/jasmin-web-panel'
+    needs: [build-packages, smoke-test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all package artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: linux-packages-*
+          path: dist
+          merge-multiple: true
+
+      - name: Merge SHA256SUMS and upload to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat dist/SHA256SUMS-*.txt > dist/SHA256SUMS.txt
+          rm -f dist/SHA256SUMS-*.txt
+          # Ensure release exists (release.yml creates it, or create a minimal one if this finishes first)
+          if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes --verify-tag
+          fi
+          gh release upload "$GITHUB_REF_NAME" dist/*.deb dist/*.rpm dist/SHA256SUMS.txt --clobber

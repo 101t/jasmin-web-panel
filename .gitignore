@@ -76,3 +76,9 @@ celerybeat-schedule
 celerybeat.pid
 
 .vagrant/
+
+# Packaging build outputs & generated video frame previews
+build/
+dist/
+media/previews/
+media/*.mp4

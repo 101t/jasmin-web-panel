@@ -3,6 +3,7 @@ from __future__ import unicode_literals, absolute_import
 from django.utils.translation import gettext_lazy as _
 from django.db import models
 
+from .fields import EncryptedCharField
 from .timestamped import TimeStampedModel
 
 class EmailServer(TimeStampedModel):
@@ -20,7 +21,7 @@ class EmailServer(TimeStampedModel):
     server  = models.CharField(_("Server"), max_length=50)
     port    = models.PositiveIntegerField(_("Port"))
     username = models.CharField(_("Username / Email"), max_length=50)
-    password = models.CharField(_("Password"), max_length=50)
+    password = EncryptedCharField(_("Password"), max_length=255)
     ssl     = models.BooleanField(_("SSL Support"), default=True)
     level   = models.CharField(_("Account Type"), max_length=24, default=INFO, choices=ACCOUNTTYPES)
     active  = models.BooleanField(_("Is Active"), default=True)

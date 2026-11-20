@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: jasmin-web
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jasmin-web-config
+  namespace: jasmin-web
+data:
+  DJANGO_SETTINGS_MODULE: "config.settings.pro"
+  DEBUG: "False"
+  ALLOWED_HOSTS: "sms.example.com"
+  CSRF_TRUSTED_ORIGINS: "https://sms.example.com"
+  HTTPS_ONLY: "True"
+  SECURE_HSTS_SECONDS: "31536000"
+  TIME_ZONE: "UTC"
+  LANGUAGE_CODE: "en"
+  TELNET_HOST: "jasmin-service"
+  TELNET_PORT: "8990"
+  TELNET_TIMEOUT: "10"
+  HTTP_HOST: "http://jasmin-service"
+  HTTP_PORT: "1401"
+  SMPP_HOST: "jasmin-service"
+  SMPP_PORT: "2775"
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  SUBMIT_LOG: "True"
+  API_THROTTLE_ANON: "20/minute"
+  API_THROTTLE_USER: "120/minute"

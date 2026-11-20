@@ -1,10 +1,8 @@
 from rest_framework.viewsets import ViewSet
-from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from rest_framework import status as http_status
 
 from main.core.smpp import Filters
-from main.core.exceptions import MissingKeyError, ActionFailed, ObjectNotFoundError
 
 
 class FiltersViewSet(ViewSet):
@@ -15,107 +13,42 @@ class FiltersViewSet(ViewSet):
     
     **Filter Types:**
     - `TransparentFilter` - Matches all messages
-    - `UserFilter` - Matches by user (requires `uid`)
-    - `GroupFilter` - Matches by group (requires `gid`)
-    - `ConnectorFilter` - Matches by connector (requires `cid`)
-    - `SourceAddrFilter` - Matches source address regex (requires `source_addr`)
-    - `DestinationAddrFilter` - Matches destination regex (requires `destination_addr`)
-    - `ShortMessageFilter` - Matches message content regex (requires `short_message`)
-    - `TagFilter` - Matches by tag (requires `tag`)
+    - `UserFilter` - Matches by user (`parameter`: `uid`)
+    - `GroupFilter` - Matches by group (`parameter`: `gid`)
+    - `ConnectorFilter` - Matches by connector (`parameter`: `cid`)
+    - `SourceAddrFilter` - Matches source address regex (`parameter`: regex)
+    - `DestinationAddrFilter` - Matches destination regex (`parameter`: regex)
+    - `ShortMessageFilter` - Matches message content regex (`parameter`: regex)
+    - `TagFilter` - Matches by tag (`parameter`: tag)
     """
     lookup_field = 'fid'
 
     def list(self, request):
-        """
-        List all Jasmin filters.
-        
-        **Example Request:**
-        ```bash
-        curl -u admin:password http://localhost:8000/api/filters/
-        ```
-        
-        **Example Response:**
-        ```json
-        {"filters": [{"fid": "filter1", "type": "TransparentFilter"}]}
-        ```
-        """
-        try:
-            filters = Filters()
+        """List all Jasmin filters."""
+        with Filters() as filters:
             return Response(data=filters.list(), status=http_status.HTTP_200_OK)
-        except APIException as e:
-            return Response(data={"error": str(e.detail)}, status=e.status_code)
 
     def create(self, request):
         """
         Create a new filter.
-        
+
         **Required Fields:**
         - `fid` - Filter identifier
         - `type` - Filter type (see class docstring for types)
-        
-        **Type-specific fields:**
-        - UserFilter: `uid`
-        - GroupFilter: `gid`
-        - ConnectorFilter: `cid`
-        - SourceAddrFilter: `source_addr` (regex)
-        - DestinationAddrFilter: `destination_addr` (regex)
-        - ShortMessageFilter: `short_message` (regex)
-        - TagFilter: `tag`
-        
-        **Example Request:**
-        ```bash
-        curl -u admin:password -X POST \\
-          -H "Content-Type: application/json" \\
-          -d '{"fid": "myfilter", "type": "TransparentFilter"}' \\
-          http://localhost:8000/api/filters/
-        ```
-        
-        **Example Response:**
-        ```json
-        {"fid": "myfilter"}
-        ```
+        - `parameter` - Type-specific filter value (required for all types except `TransparentFilter`)
         """
-        try:
-            filters = Filters()
-            result = filters.create(data=request.data)
-            return Response(data=result, status=http_status.HTTP_201_CREATED)
-        except MissingKeyError as e:
-            return Response(data={"error": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
-        except APIException as e:
-            return Response(data={"error": str(e.detail)}, status=e.status_code)
+        with Filters() as filters:
+            return Response(data=filters.create(data=request.data), status=http_status.HTTP_201_CREATED)
 
     def retrieve(self, request, fid):
-        """
-        Retrieve details of a single filter.
-        
-        **Example Request:**
-        ```bash
-        curl -u admin:password http://localhost:8000/api/filters/myfilter/
-        ```
-        """
-        try:
-            filters = Filters()
+        """Retrieve details of a single filter."""
+        with Filters() as filters:
             return Response(data=filters.retrieve(fid), status=http_status.HTTP_200_OK)
-        except ObjectNotFoundError as e:
-            return Response(data={"error": str(e)}, status=http_status.HTTP_404_NOT_FOUND)
 
     def destroy(self, request, fid):
-        """
-        Delete a filter.
-        
-        **Example Request:**
-        ```bash
-        curl -u admin:password -X DELETE http://localhost:8000/api/filters/myfilter/
-        ```
-        """
-        try:
-            filters = Filters()
-            result = filters.destroy(fid)
-            return Response(data=result, status=http_status.HTTP_200_OK)
-        except ObjectNotFoundError as e:
-            return Response(data={"error": str(e)}, status=http_status.HTTP_404_NOT_FOUND)
-        except ActionFailed as e:
-            return Response(data={"error": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
+        """Delete a filter."""
+        with Filters() as filters:
+            return Response(data=filters.destroy(fid), status=http_status.HTTP_200_OK)
 
 
 filters_list = FiltersViewSet.as_view({'get': 'list', 'post': 'create'})

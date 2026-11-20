@@ -3,6 +3,8 @@ import re
 from functools import wraps
 
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
@@ -102,9 +104,25 @@ def _ajax_only(methods):
                     'status': 401,
                     'login_url': settings.LOGIN_URL,
                 }, status=401)
+            if not request.user.is_staff:
+                return JsonResponse({
+                    'message': _('You do not have permission to manage gateway resources.'),
+                    'status': 403,
+                }, status=403)
             return json_errors(view_func)(request, *args, **kwargs)
         return _wrapped_view
     return decorator
+
+
+def staff_required(view_func):
+    """Require an authenticated staff/admin user for gateway management pages."""
+    @login_required
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_staff:
+            raise PermissionDenied(_('Staff privileges are required to access this page.'))
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
 
 
 require_post_ajax = _ajax_only(["POST"])

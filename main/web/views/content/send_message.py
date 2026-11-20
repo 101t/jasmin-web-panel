@@ -1,5 +1,4 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -9,10 +8,10 @@ from main.web.helpers import send_smpp, send_http
 from main.core.utils import display_form_validations
 from main.core.smpp import Users
 from main.core.models import UsersModel
-from main.core.tools import require_post_ajax
+from main.core.tools import require_post_ajax, staff_required
 
 
-@login_required
+@staff_required
 def send_message_view(request):
     form = SendMessageForm()
     if request.method == 'POST':

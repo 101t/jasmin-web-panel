@@ -1,0 +1,32 @@
+[Unit]
+Description=Jasmin Web Panel Celery Worker
+Documentation=https://about.supernovasoft.com/jasmin-web-panel/
+After=network-online.target redis-server.service postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=jasminpanel
+Group=jasminpanel
+WorkingDirectory=/opt/jasmin-web-panel
+EnvironmentFile=/etc/jasmin-web-panel/env
+Environment="DJANGO_SETTINGS_MODULE=config.settings.pro"
+Environment="CELERY_LOG_LEVEL=info"
+ExecStart=/opt/jasmin-web-panel/env/bin/celery \
+    --app config worker \
+    --max-tasks-per-child 100 \
+    -l info
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=60
+
+# Systemd sandboxing
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/jasmin-web-panel/logs /var/log/jasmin-web-panel /var/lib/jasmin-web-panel
+SyslogIdentifier=jasmin-celery
+
+[Install]
+WantedBy=multi-user.target

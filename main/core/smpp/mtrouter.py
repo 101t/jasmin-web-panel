@@ -1,4 +1,5 @@
 import logging
+import math
 from typing import List
 
 from main.core.exceptions import (
@@ -78,7 +79,7 @@ class MTRouter(TelnetConnection):
         if not is_int(order) or int(order) < 0:
             raise MissingKeyError('Order must be a positive integer')
         rate = str(data.get('rate') or "0").strip()
-        if not is_float(rate) or float(rate) < 0:
+        if not is_float(rate) or not math.isfinite(float(rate)) or float(rate) < 0:
             raise MissingKeyError('Rate must be a positive number')
         filters = as_list(data.get('filters'))
         connectors = ['smppc(%s)' % c for c in as_list(data.get('smppconnectors'))]

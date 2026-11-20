@@ -43,7 +43,7 @@ class SubmitLog(models.Model):
     pdu_count = models.PositiveIntegerField(_("PDU Count"), default=1, null=True, blank=True)  # Added null=True, blank=True
     short_message = models.BinaryField(_("Short Message"), null=True, blank=True)  # Added null=True, blank=True
     binary_message = models.BinaryField(_("Binary Message"), null=True, blank=True)  # Added null=True, blank=True
-    status = models.CharField(_("Status"), max_length=15, null=False, blank=False, db_index=True)
+    status = models.CharField(_("Status"), max_length=50, null=False, blank=False, db_index=True)
     uid = models.CharField(_("UID"), max_length=15, null=False, blank=False, db_index=True)
     trials = models.PositiveIntegerField(_("Trials"), default=1, null=True, blank=True)  # Added null=True, blank=True
     created_at = models.DateTimeField(_("Created At"), null=False, db_index=True)

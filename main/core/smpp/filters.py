@@ -1,7 +1,9 @@
 import logging
 import re
 
-from main.core.exceptions import DuplicateEntryError, MissingKeyError, ObjectNotFoundError
+from django.conf import settings
+
+from main.core.exceptions import DuplicateEntryError, MissingKeyError, ObjectNotFoundError, ValidationError
 from main.core.tools import table_rows
 from .conn import TelnetConnection
 
@@ -109,6 +111,10 @@ class Filters(TelnetConnection):
         fid = (data.get('fid') or '').strip()
         if not ftype or not fid:
             raise MissingKeyError('Missing parameter: type or fid required')
+        if ftype == 'evalpyfilter' and not getattr(settings, 'ALLOW_EVALPY_FILTER', False):
+            raise ValidationError(
+                'EvalPyFilter is disabled by default for security; set ALLOW_EVALPY_FILTER=True to enable it.'
+            )
         if ftype != 'transparentfilter' and ftype not in self.PARAMETER_KEYS:
             raise MissingKeyError('Unknown filter type: %s' % ftype)
         # jcli silently replaces an existing filter, even with another type.

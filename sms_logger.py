@@ -17,6 +17,7 @@ Notes:
 """
 
 import os
+import re
 import sys
 import time
 import pickle
@@ -50,6 +51,8 @@ DB_TYPE_MYSQL = int(os.getenv("DB_TYPE_MYSQL", "0")) == 1
 DB_HOST = os.getenv("DB_HOST", "db")
 DB_DATABASE = os.getenv("DB_DATABASE", "jasmin")
 DB_TABLE = os.getenv("DB_TABLE", "submit_log")
+if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", DB_TABLE):
+    raise ValueError(f"Invalid DB_TABLE identifier: {DB_TABLE!r}")
 DB_USER = os.getenv("DB_USER", "jasmin")
 DB_PASS = os.getenv("DB_PASS", "jasmin")
 
@@ -355,8 +358,8 @@ def gotConnection(conn, username, password):
                         db_conn = get_mysql_conn()
                     except Exception as e2:
                         logger.exception("Failed to re-get MySQL connection: %s", e2)
-                        # ack message to avoid duplicate stuck processing
-                        yield chan.basic_ack(delivery_tag=msg.delivery_tag)
+                        # Requeue so temporary DB outages do not drop SMS submit logs
+                        yield chan.basic_reject(delivery_tag=msg.delivery_tag, requeue=True)
                         continue
                 cursor = db_conn.cursor()
             else:
@@ -366,6 +369,10 @@ def gotConnection(conn, username, password):
                 except Exception as e:
                     logger.warning("Postgres connection check failed, re-getting connection: %s", e)
                     try:
+                        db_conn.rollback()
+                    except Exception:
+                        pass
+                    try:
                         put_postgres_conn(db_conn)
                     except Exception:
                         pass
@@ -374,7 +381,7 @@ def gotConnection(conn, username, password):
                         cursor = db_conn.cursor()
                     except Exception as e2:
                         logger.exception("Failed to re-get Postgres connection: %s", e2)
-                        yield chan.basic_ack(delivery_tag=msg.delivery_tag)
+                        yield chan.basic_reject(delivery_tag=msg.delivery_tag, requeue=True)
                         continue
 
             # Process submit.sm (new submit)
@@ -501,22 +508,27 @@ def gotConnection(conn, username, password):
                     continue
 
                 message_id = props.get("message-id")
-                if message_id not in qmap:
-                    logger.warning("Got dlr of unknown submit_sm: %s", message_id)
+                if not message_id:
+                    logger.warning("Got DLR without message-id header")
                     yield chan.basic_ack(delivery_tag=msg.delivery_tag)
                     continue
 
                 status_time = datetime.utcnow()
-                # update DB
+                # Update DB directly by msgid (submit.sm.resp already persisted the row and popped qmap)
                 update_sql = f"UPDATE {DB_TABLE} SET status = %s, status_at = %s WHERE msgid = %s;"
                 status_val = headers.get("message_status")
                 try:
                     cursor.execute(update_sql, (status_val, status_time, message_id))
+                    if cursor.rowcount == 0:
+                        logger.warning("DLR arrived for unknown submit_log msgid: %s", message_id)
                     db_conn.commit()
                 except Exception as e:
                     logger.exception("Failed to update DLR status in DB: %s", e)
+                    try:
+                        db_conn.rollback()
+                    except Exception:
+                        pass
 
-                # remove from qmap (we got final status)
                 qmap.pop(message_id, None)
                 yield chan.basic_ack(delivery_tag=msg.delivery_tag)
 
@@ -526,7 +538,11 @@ def gotConnection(conn, username, password):
 
         except Exception as e:
             logger.exception("Error processing message: %s", e)
-            # Reject and requeue? careful: repeated failures will cause loop.
+            try:
+                db_conn.rollback()
+            except Exception:
+                pass
+            # Reject without requeue on malformed payload to avoid poison-pill loops.
             try:
                 yield chan.basic_reject(delivery_tag=msg.delivery_tag, requeue=False)
             except Exception:

@@ -48,35 +48,42 @@ def profile_view(request):
             form = ChangePhotoForm(request.POST, request.FILES)
             if form.is_valid():
                 f = request.FILES.get("avatar_file")
+                if not f:
+                    return JsonResponse(dict(message=str(_("No image file provided.")), state=400), status=400)
+                if f.size > 2 * 1024 * 1024:
+                    return JsonResponse(dict(message=str(_("Avatar image must be 2 MB or smaller.")), state=400), status=400)
                 avatar_data = request.POST.get("avatar_data", "")
                 x, y, w, h = 0.0, 0.0, 0.0, 0.0
                 if is_json(avatar_data):
-                    avatar_data = json.loads(avatar_data)
-                    x = avatar_data.get("x")
-                    y = avatar_data.get("y")
-                    w = avatar_data.get("w")
-                    h = avatar_data.get("h")
-                fn, fx = os.path.splitext(f.name)
-                img_directory = "{}/avatars/".format(settings.MEDIA_ROOT)
-                if not os.path.exists(img_directory):
-                    os.makedirs(img_directory)
-                tmp_filename = "{}/avatars/{}_tmp{}".format(settings.MEDIA_ROOT, request.user.username, fx)
-                jpg_filename = "{}/avatars/{}_tmp.jpg".format(settings.MEDIA_ROOT, request.user.username)
-                with open(tmp_filename, 'wb+') as destination:
-                    for chunk in f.chunks():
-                        destination.write(chunk)
-                im = Image.open(tmp_filename)
-                im = im.convert("RGB")
-                im.save(jpg_filename, "JPEG", optimize=True, quality=95)
-                im = Image.open(jpg_filename)
-                cropped_im = im.crop((x, y, w + x, h + y))
-                cropped_im.thumbnail((512, 512), Image.ANTIALIAS)
-                cropped_im.save(jpg_filename.replace("_tmp", ""), optimize=True, quality=95)
-                if os.path.exists(tmp_filename):
-                    os.remove(tmp_filename)
-                if os.path.exists(jpg_filename):
-                    os.remove(jpg_filename)
-                filename = "{}avatars/{}.jpg".format(settings.MEDIA_URL, request.user.username)
+                    parsed = json.loads(avatar_data)
+                    try:
+                        x = float(parsed.get("x") or 0.0)
+                        y = float(parsed.get("y") or 0.0)
+                        w = float(parsed.get("w") or 0.0)
+                        h = float(parsed.get("h") or 0.0)
+                    except (TypeError, ValueError):
+                        x, y, w, h = 0.0, 0.0, 0.0, 0.0
+                img_directory = os.path.join(settings.MEDIA_ROOT, "avatars")
+                os.makedirs(img_directory, exist_ok=True)
+                final_path = os.path.join(img_directory, f"user_{request.user.pk}.jpg")
+                try:
+                    with Image.open(f) as im:
+                        if im.format not in ("JPEG", "PNG", "WEBP"):
+                            return JsonResponse(
+                                dict(message=str(_("Only JPEG, PNG, and WEBP avatars are allowed.")), state=400),
+                                status=400,
+                            )
+                        rgb_im = im.convert("RGB")
+                        if w > 0 and h > 0:
+                            rgb_im = rgb_im.crop((x, y, w + x, h + y))
+                        rgb_im.thumbnail((512, 512), Image.Resampling.LANCZOS)
+                        rgb_im.save(final_path, "JPEG", optimize=True, quality=95)
+                except Exception:
+                    return JsonResponse(
+                        dict(message=str(_("Invalid or unsupported image file.")), state=400),
+                        status=400,
+                    )
+                filename = f"{settings.MEDIA_URL}avatars/user_{request.user.pk}.jpg"
                 user = User.objects.filter(pk=request.user.pk).first()
                 if user:
                     user.img = filename

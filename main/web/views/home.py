@@ -1,6 +1,5 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.db.models import Count, Q
 from django.db.models.functions import TruncDate, TruncWeek, TruncMonth, TruncYear
@@ -9,11 +8,11 @@ from django.utils import timezone
 import json
 
 from main.core.utils import get_client_ip, is_online
-from main.core.tools import require_get_ajax
+from main.core.tools import require_get_ajax, staff_required
 from main.core.models import SubmitLog
 
 
-@login_required
+@staff_required
 def dashboard_view(request):
     ip_address = get_client_ip(request)
 

@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jasmin-celery
+  namespace: jasmin-web
+  labels:
+    app: jasmin-celery
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jasmin-celery
+  template:
+    metadata:
+      labels:
+        app: jasmin-celery
+    spec:
+      containers:
+        - name: worker
+          image: tarekaec/jasmin_web_panel:3.1.0
+          command: ["bash", "./docker-entrypoint-celery.sh"]
+          envFrom:
+            - configMapRef:
+                name: jasmin-web-config
+            - secretRef:
+                name: jasmin-web-secret
+          resources:
+            requests:
+              cpu: "150m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]

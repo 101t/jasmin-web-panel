@@ -1,0 +1,35 @@
+[Unit]
+Description=Jasmin Web Panel (Gunicorn WSGI)
+Documentation=https://about.supernovasoft.com/jasmin-web-panel/
+After=network-online.target postgresql.service redis-server.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=jasminpanel
+Group=jasminpanel
+WorkingDirectory=/opt/jasmin-web-panel
+EnvironmentFile=/etc/jasmin-web-panel/env
+Environment="DJANGO_SETTINGS_MODULE=config.settings.pro"
+ExecStart=/opt/jasmin-web-panel/env/bin/gunicorn \
+    --bind 127.0.0.1:8000 \
+    --workers 4 \
+    --timeout 120 \
+    --log-level info \
+    --access-logfile - \
+    --error-logfile - \
+    config.wsgi:application
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+
+# Systemd sandboxing
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/jasmin-web-panel/logs /opt/jasmin-web-panel/public /var/log/jasmin-web-panel /var/lib/jasmin-web-panel
+SyslogIdentifier=jasmin-web
+
+[Install]
+WantedBy=multi-user.target

@@ -19,6 +19,9 @@ Watch the quick-start walkthrough to see Jasmin Web Panel in action:
 
 > Prefer a direct link? Watch on YouTube: <https://youtu.be/z-BFJzWtq1M>
 
+Want the full step-by-step setup (installer, Docker, systemd, Kubernetes, packages and production hardening)?
+Watch the **[Installation Video Tutorial](video-tutorial.md)**.
+
 ## Key Features
 
 - **User Management**: Create and manage Jasmin groups and users, with every `mt_messaging_cred` authorization, value filter and quota.

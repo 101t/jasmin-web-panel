@@ -1,13 +1,12 @@
 from django.utils.translation import gettext as _
 from django.shortcuts import render
 from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
 
 from main.core.smpp import HTTPCCM
-from main.core.tools import require_post_ajax
+from main.core.tools import require_post_ajax, staff_required
 
 
-@login_required
+@staff_required
 def httpccm_view(request):
     return render(request, "web/content/httpccm.html")
 

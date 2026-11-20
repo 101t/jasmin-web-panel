@@ -1,13 +1,12 @@
 from django.utils.translation import gettext as _
 from django.shortcuts import render
 from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
 
 from main.core.smpp import MTRouter
-from main.core.tools import require_post_ajax
+from main.core.tools import require_post_ajax, staff_required
 
 
-@login_required
+@staff_required
 def mtrouter_view(request):
     context = {
         "mt_router_types": MTRouter.MT_ROUTER_TYPES,

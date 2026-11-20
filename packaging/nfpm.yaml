@@ -1,0 +1,88 @@
+# nFPM package definition for Debian (.deb) and RHEL/Rocky/Fedora (.rpm)
+# Docs: https://nfpm.goreleaser.com/configuration/
+name: "jasmin-web-panel"
+arch: "${PKG_ARCH}"
+platform: "linux"
+version: "${PKG_VERSION}"
+release: "1"
+section: "web"
+priority: "optional"
+maintainer: "Tarek Kalaji <tarek.it.eng@gmail.com>"
+description: |
+  Modern web management interface and REST API for Jasmin SMS Gateway.
+  Includes Gunicorn web service, Celery background worker, and Nginx template.
+vendor: "Jasmin Web Panel Contributors"
+homepage: "https://github.com/101t/jasmin-web-panel"
+license: "MIT"
+
+overrides:
+  deb:
+    depends:
+      - python3 (>= 3.11)
+      - python3-venv
+      - libpq5
+      - telnet
+      - openssl
+    recommends:
+      - postgresql
+      - redis-server
+      - nginx
+  rpm:
+    depends:
+      - python3 >= 3.11
+      - libpq
+      - telnet
+      - openssl
+    recommends:
+      - postgresql-server
+      - redis
+      - nginx
+
+contents:
+  # Application source tree (staged by packaging/build-packages.sh)
+  - src: ./build/stage/opt/jasmin-web-panel/
+    dst: /opt/jasmin-web-panel/
+    file_info:
+      owner: root
+      group: root
+
+  # Default environment config template (preserved across upgrades)
+  - src: ./sample.env
+    dst: /etc/jasmin-web-panel/env.example
+    type: config|noreplace
+    file_info:
+      mode: 0640
+
+  # Nginx reverse proxy sample
+  - src: ./packaging/nginx/jasmin-web-panel.conf
+    dst: /etc/jasmin-web-panel/nginx.conf.example
+    type: config|noreplace
+    file_info:
+      mode: 0644
+
+  # Systemd service units
+  - src: ./packaging/systemd/jasmin-web.service
+    dst: /lib/systemd/system/jasmin-web.service
+    file_info:
+      mode: 0644
+
+  - src: ./packaging/systemd/jasmin-celery.service
+    dst: /lib/systemd/system/jasmin-celery.service
+    file_info:
+      mode: 0644
+
+  # Runtime directories
+  - dst: /var/log/jasmin-web-panel
+    type: dir
+    file_info:
+      mode: 0750
+
+  - dst: /var/lib/jasmin-web-panel
+    type: dir
+    file_info:
+      mode: 0750
+
+scripts:
+  postinstall: ./packaging/scripts/postinstall.sh
+  preremove: ./packaging/scripts/preremove.sh
+  postremove: ./packaging/scripts/postremove.sh

@@ -179,7 +179,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.IsAdminUser',
     ),
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
@@ -232,6 +232,9 @@ SUBMIT_LOG = env.bool('SUBMIT_LOG', default=False)
 # Key for secrets stored encrypted in the database (Jasmin user passwords for Send SMS).
 # Defaults to SECRET_KEY; set it to keep those secrets readable when SECRET_KEY is rotated.
 FIELD_ENCRYPTION_KEY = os.environ.get('FIELD_ENCRYPTION_KEY', '')
+
+# EvalPyFilter executes arbitrary Python inside Jasmin; keep disabled unless explicitly opted in.
+ALLOW_EVALPY_FILTER = env.bool('ALLOW_EVALPY_FILTER', default=False)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 

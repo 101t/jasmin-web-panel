@@ -18,14 +18,14 @@ def reset_view(request):
         username = request.POST.get("username")
         if form.is_valid():
             user = User.objects.filter(Q(username=username) | Q(email=username)).first()
-            if user and send_mail_reset_password(request=request, user=user):
-                messages.success(
-                    request,
-                    _("Success, reset password email has been sent, please check your email inbox")
-                )
-                return redirect(reverse("users:signin_view"))
-            else:
-                messages.warning(request, _("Warning, invalid username or email address"))
+            if user:
+                send_mail_reset_password(request=request, user=user)
+            # Always return the same response so callers cannot enumerate valid accounts.
+            messages.success(
+                request,
+                _("If an account matches that username or email, a password reset link has been sent.")
+            )
+            return redirect(reverse("users:signin_view"))
         else:
             display_form_validations(form=form, request=request)
     return render(request, "auth/reset.html")

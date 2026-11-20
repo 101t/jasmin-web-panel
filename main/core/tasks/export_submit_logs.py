@@ -4,6 +4,9 @@ from datetime import datetime
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.core.cache import cache
+from django.db import connection
+from django.db.models import F, Func, Q, TextField, Value
+from django.utils import timezone
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
@@ -12,15 +15,26 @@ from main.core.models import SubmitLog
 
 logger = get_task_logger(__name__)
 
+ALLOWED_DATE_COLUMNS = ('created_at', 'status_at')
+FORMULA_PREFIXES = ('=', '+', '-', '@', '\t', '\r')
+
+
+def sanitize_spreadsheet_cell(value):
+    """Prevent CSV/Excel formula injection (DDE/spreadsheet formula execution)."""
+    if isinstance(value, str) and value and value[0] in FORMULA_PREFIXES:
+        return "'" + value
+    return value
+
 
 @shared_task(bind=True)
-def export_submit_logs_task(self, filters, export_format='csv'):
+def export_submit_logs_task(self, filters, export_format='csv', owner_id=None):
     """
     Export submit logs to CSV or Excel format.
     
     Args:
         filters: Dictionary containing filter parameters
         export_format: 'csv' or 'xlsx'
+        owner_id: Django user PK who initiated the export
     
     Returns:
         Dictionary with status and file path or error message
@@ -28,20 +42,21 @@ def export_submit_logs_task(self, filters, export_format='csv'):
     task_id = None
     try:
         task_id = self.request.id
+        if export_format not in ('csv', 'xlsx'):
+            export_format = 'csv'
         logger.info(f"=== TASK STARTED === ID: {task_id}")
         logger.info(f"Export format: {export_format}")
         logger.info(f"Filters: {filters}")
 
         # Test database connection
         logger.info("Testing database connection...")
-        from django.db import connection
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
             logger.info("Database connection OK")
 
         # Update progress: Starting
         logger.info("Setting initial cache progress...")
-        cache.set(f'export_progress_{task_id}', {'status': 'processing', 'progress': 0}, 300)
+        cache.set(f'export_progress_{task_id}', {'status': 'processing', 'progress': 0, 'owner_id': owner_id}, 300)
         logger.info("Cache progress set successfully")
 
         # Build queryset based on filters
@@ -49,28 +64,43 @@ def export_submit_logs_task(self, filters, export_format='csv'):
         queryset = SubmitLog.objects.all()
         logger.info("Initial queryset created")
 
-        # Apply date range filters
-        if filters.get('date_column') and filters.get('date_from'):
-            date_column = filters['date_column']  # 'created_at' or 'status_at'
+        # Apply date range filters (defense-in-depth column allowlist)
+        date_column = filters.get('date_column')
+        if date_column not in ALLOWED_DATE_COLUMNS:
+            date_column = 'created_at'
+
+        if filters.get('date_from'):
             date_from = datetime.fromisoformat(filters['date_from'])
+            if timezone.is_naive(date_from):
+                date_from = timezone.make_aware(date_from, timezone.get_current_timezone())
             queryset = queryset.filter(**{f'{date_column}__gte': date_from})
 
-        if filters.get('date_column') and filters.get('date_to'):
-            date_column = filters['date_column']
+        if filters.get('date_to'):
             date_to = datetime.fromisoformat(filters['date_to'])
+            if timezone.is_naive(date_to):
+                date_to = timezone.make_aware(date_to, timezone.get_current_timezone())
             queryset = queryset.filter(**{f'{date_column}__lte': date_to})
 
-        # Apply search filter
+        # Apply search filter (safe across SQLite, MySQL, and PostgreSQL BYTEA)
         if filters.get('search'):
-            from django.db.models import Q
             search_query = filters['search']
-            queryset = queryset.filter(
+            base_q = (
                 Q(msgid__icontains=search_query) |
                 Q(source_addr__icontains=search_query) |
                 Q(destination_addr__icontains=search_query) |
-                Q(short_message__icontains=search_query) |
                 Q(uid__icontains=search_query)
             )
+            if connection.vendor == 'postgresql':
+                queryset = queryset.annotate(
+                    short_message_text=Func(
+                        F('short_message'),
+                        Value('escape'),
+                        function='encode',
+                        output_field=TextField(),
+                    )
+                ).filter(base_q | Q(short_message_text__icontains=search_query))
+            else:
+                queryset = queryset.filter(base_q | Q(short_message__icontains=search_query))
 
         # Apply status filter
         if filters.get('status_filter') == 'success':
@@ -92,12 +122,13 @@ def export_submit_logs_task(self, filters, export_format='csv'):
             cache.set(f'export_progress_{task_id}', {
                 'status': 'completed',
                 'progress': 100,
-                'error': 'No records found with the given filters'
+                'error': 'No records found with the given filters',
+                'owner_id': owner_id,
             }, 300)
             return {'status': 'error', 'message': 'No records found'}
 
         # Update progress: Fetching data
-        cache.set(f'export_progress_{task_id}', {'status': 'processing', 'progress': 10}, 300)
+        cache.set(f'export_progress_{task_id}', {'status': 'processing', 'progress': 10, 'owner_id': owner_id}, 300)
 
         # Define headers
         headers = [
@@ -118,16 +149,16 @@ def export_submit_logs_task(self, filters, export_format='csv'):
 
             for record in queryset.iterator(chunk_size=batch_size):
                 writer.writerow([
-                    record.msgid,
-                    record.source_connector,
-                    record.routed_cid,
-                    record.decoded_source_addr,
-                    record.decoded_destination_addr,
+                    sanitize_spreadsheet_cell(record.msgid),
+                    sanitize_spreadsheet_cell(record.source_connector),
+                    sanitize_spreadsheet_cell(record.routed_cid),
+                    sanitize_spreadsheet_cell(record.decoded_source_addr),
+                    sanitize_spreadsheet_cell(record.decoded_destination_addr),
                     str(record.rate),
                     record.pdu_count,
-                    record.decoded_short_message,
-                    record.status,
-                    record.uid,
+                    sanitize_spreadsheet_cell(record.decoded_short_message),
+                    sanitize_spreadsheet_cell(record.status),
+                    sanitize_spreadsheet_cell(record.uid),
                     record.trials,
                     record.created_at.strftime('%Y-%m-%d %H:%M:%S') if record.created_at else '',
                     record.status_at.strftime('%Y-%m-%d %H:%M:%S') if record.status_at else '',
@@ -140,7 +171,8 @@ def export_submit_logs_task(self, filters, export_format='csv'):
                         'status': 'processing',
                         'progress': progress,
                         'processed': processed,
-                        'total': total_records
+                        'total': total_records,
+                        'owner_id': owner_id,
                     }, 300)
 
             content = output.getvalue()
@@ -172,16 +204,16 @@ def export_submit_logs_task(self, filters, export_format='csv'):
             row_num = 2
 
             for record in queryset.iterator(chunk_size=batch_size):
-                ws.cell(row=row_num, column=1, value=record.msgid)
-                ws.cell(row=row_num, column=2, value=record.source_connector)
-                ws.cell(row=row_num, column=3, value=record.routed_cid)
-                ws.cell(row=row_num, column=4, value=record.decoded_source_addr)
-                ws.cell(row=row_num, column=5, value=record.decoded_destination_addr)
+                ws.cell(row=row_num, column=1, value=sanitize_spreadsheet_cell(record.msgid))
+                ws.cell(row=row_num, column=2, value=sanitize_spreadsheet_cell(record.source_connector))
+                ws.cell(row=row_num, column=3, value=sanitize_spreadsheet_cell(record.routed_cid))
+                ws.cell(row=row_num, column=4, value=sanitize_spreadsheet_cell(record.decoded_source_addr))
+                ws.cell(row=row_num, column=5, value=sanitize_spreadsheet_cell(record.decoded_destination_addr))
                 ws.cell(row=row_num, column=6, value=float(record.rate) if record.rate else 0.0)
                 ws.cell(row=row_num, column=7, value=record.pdu_count)
-                ws.cell(row=row_num, column=8, value=record.decoded_short_message)
-                ws.cell(row=row_num, column=9, value=record.status)
-                ws.cell(row=row_num, column=10, value=record.uid)
+                ws.cell(row=row_num, column=8, value=sanitize_spreadsheet_cell(record.decoded_short_message))
+                ws.cell(row=row_num, column=9, value=sanitize_spreadsheet_cell(record.status))
+                ws.cell(row=row_num, column=10, value=sanitize_spreadsheet_cell(record.uid))
                 ws.cell(row=row_num, column=11, value=record.trials)
                 ws.cell(row=row_num, column=12, value=record.created_at.strftime('%Y-%m-%d %H:%M:%S') if record.created_at else '')
                 ws.cell(row=row_num, column=13, value=record.status_at.strftime('%Y-%m-%d %H:%M:%S') if record.status_at else '')
@@ -195,7 +227,8 @@ def export_submit_logs_task(self, filters, export_format='csv'):
                         'status': 'processing',
                         'progress': progress,
                         'processed': processed,
-                        'total': total_records
+                        'total': total_records,
+                        'owner_id': owner_id,
                     }, 300)
 
             # Auto-size columns
@@ -213,7 +246,8 @@ def export_submit_logs_task(self, filters, export_format='csv'):
         cache.set(f'export_file_{task_id}', {
             'content': content,
             'content_type': content_type,
-            'filename': filename
+            'filename': filename,
+            'owner_id': owner_id,
         }, 300)
 
         # Update progress: Completed
@@ -221,7 +255,8 @@ def export_submit_logs_task(self, filters, export_format='csv'):
             'status': 'completed',
             'progress': 100,
             'total': total_records,
-            'filename': filename
+            'filename': filename,
+            'owner_id': owner_id,
         }, 300)
 
         logger.info(f"Export completed: {filename} ({total_records} records)")
@@ -238,6 +273,7 @@ def export_submit_logs_task(self, filters, export_format='csv'):
             cache.set(f'export_progress_{task_id}', {
                 'status': 'failed',
                 'progress': 0,
-                'error': str(e)
+                'error': str(e),
+                'owner_id': owner_id,
             }, 300)
         return {'status': 'error', 'message': str(e)}

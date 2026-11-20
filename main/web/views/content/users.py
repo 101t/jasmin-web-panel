@@ -1,11 +1,10 @@
 from django.utils.translation import gettext as _
 from django.shortcuts import render
 from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
 
 from main.core.smpp import Users
 from main.core.models import UsersModel, GroupsModel
-from main.core.tools import require_post_ajax
+from main.core.tools import require_post_ajax, staff_required
 
 # The edit form has one checkbox per jcli "mt_messaging_cred authorization" key.
 AUTHORIZATIONS = (
@@ -68,7 +67,7 @@ def user_updates(post, current):
     return updates
 
 
-@login_required
+@staff_required
 def users_view(request):
     return render(request, "web/content/users.html")
 
@@ -87,8 +86,8 @@ def users_view_manage(request):
         elif s == "get":
             response = users.retrieve(uid)
         elif s == "add":
-            gid = request.POST.get("gid")
-            username = request.POST.get("username")
+            gid = (request.POST.get("gid") or "").strip()
+            username = (request.POST.get("username") or "").strip()
             password = request.POST.get("password")
             users.create(data=dict(uid=uid, gid=gid, username=username, password=password))
 
@@ -106,14 +105,30 @@ def users_view_manage(request):
             )
             response["message"] = _("User added successfully!")
         elif s == "edit":
-            updates = user_updates(request.POST, users.get_user(uid))
+            current_user = users.get_user(uid)
+            updates = user_updates(request.POST, current_user)
             if not updates:
                 return JsonResponse({"message": _("Nothing changed, there is nothing to save."), "status": 200})
             users.partial_update(updates, uid=uid)
 
             password = request.POST.get("password", "")
             if password:
-                UsersModel.objects.filter(uid=uid).update(password=password)
+                gid_value = (request.POST.get("gid") or current_user.get("gid") or "").strip()
+                username_value = (current_user.get("username") or uid).strip()
+                if gid_value:
+                    group_model, _created = GroupsModel.objects.get_or_create(gid=gid_value)
+                    UsersModel.objects.update_or_create(
+                        uid=uid,
+                        defaults={
+                            'gid': group_model,
+                            'username': username_value,
+                            'password': password,
+                            'parameters': '',
+                            'user': request.user,
+                        },
+                    )
+                else:
+                    UsersModel.objects.filter(uid=uid).update(password=password)
             response["message"] = _("User edited successfully!")
         elif s == "delete":
             response = users.destroy(uid=uid)

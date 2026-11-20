@@ -1,13 +1,16 @@
+from concurrent.futures import ThreadPoolExecutor
+import hashlib
+import json
+import logging
+
 from django.utils.deprecation import MiddlewareMixin
 from django.core.cache import cache
 from django.db import transaction, connection
 from .utils import get_user_agent, get_client_ip, LazyEncoder
 from .models import ActivityLog
 
-import logging
-import json
-
 logger = logging.getLogger(__name__)
+_ACTIVITY_EXECUTOR = ThreadPoolExecutor(max_workers=4, thread_name_prefix="activity-log")
 
 
 class UserAgentMiddleware(MiddlewareMixin):
@@ -29,10 +32,12 @@ class UserAgentMiddleware(MiddlewareMixin):
     def process_request(self, request):
         user_agent_header = request.META.get('HTTP_USER_AGENT', '')
         if user_agent_header:
-            cached_user_agent = cache.get('user_agent_' + user_agent_header)
+            ua_hash = hashlib.sha256(user_agent_header.encode('utf-8', 'ignore')).hexdigest()[:32]
+            cache_key = f'user_agent_{ua_hash}'
+            cached_user_agent = cache.get(cache_key)
             if not cached_user_agent:
                 user_agent = get_user_agent(request)
-                cache.set('user_agent_' + user_agent_header, user_agent, 120)  # Cache for 2 minutes
+                cache.set(cache_key, user_agent, 120)  # Cache for 2 minutes
             else:
                 user_agent = cached_user_agent
         else:
@@ -52,10 +57,7 @@ class UserAgentMiddleware(MiddlewareMixin):
             'user_agent': user_agent,
         }
 
-        # Use threading.Thread instead of ThreadPoolExecutor for simpler lifecycle
-        import threading
-        thread = threading.Thread(target=self._create_activity_log_safe, args=(log_data,), daemon=True)
-        thread.start()
+        _ACTIVITY_EXECUTOR.submit(self._create_activity_log_safe, log_data)
 
     def clean_params(self, params):
         """Clean sensitive parameters before logging."""

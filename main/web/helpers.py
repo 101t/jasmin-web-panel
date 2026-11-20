@@ -2,11 +2,10 @@
 SMS sending helpers for SMPP and HTTP protocols.
 """
 import logging
-import urllib.error
 import urllib.parse
-import urllib.request
 from typing import Tuple
 
+import requests
 import smpplib.client
 import smpplib.consts
 import smpplib.gsm
@@ -68,11 +67,12 @@ def send_smpp(
                 destination_addr=dst_addr,
                 short_message=part,
                 data_coding=encoding_flag,
-                esm_class=smpplib.consts.SMPP_MSGMODE_FORWARD,
+                esm_class=smpplib.consts.SMPP_MSGMODE_FORWARD | msg_type_flag,
                 registered_delivery=False,
             )
 
-        client.read_once()
+        for _ in parts:
+            client.read_once()
         return 200, "OK"
     except smpplib.exceptions.ConnectionError as e:
         logger.error(f"SMPP Connection Error: {e}")
@@ -122,19 +122,21 @@ def send_http(
         'to': dst_addr,
         'content': text
     }
-    encoded_params = urllib.parse.urlencode(params)
-    url = f"{settings.HTTP_HOST}:{settings.HTTP_PORT}/send?{encoded_params}"
+    base_host = settings.HTTP_HOST.rstrip('/')
+    parsed = urllib.parse.urlparse(base_host)
+    if parsed.scheme not in ('http', 'https'):
+        return 400, "Invalid HTTP_HOST scheme (must be http or https)"
+    url = f"{base_host}:{settings.HTTP_PORT}/send"
 
     try:
-        req = urllib.request.urlopen(url, timeout=30)
-        return req.getcode(), req.read().decode('utf-8')
-    except urllib.error.HTTPError as e:
-        error_body = e.read().decode('utf-8')
-        logger.error(f"HTTP Error {e.code}: {error_body}")
-        return e.code, error_body
-    except urllib.error.URLError as e:
-        logger.error(f"URL Error: {e.reason}")
-        return 400, f"Connection failed: {e.reason}"
+        # Send credentials in the POST body instead of the URL query string so proxies/logs don't record them.
+        resp = requests.post(url, data=params, timeout=30)
+        if resp.status_code >= 400:
+            logger.error(f"HTTP Error {resp.status_code}: {resp.text}")
+        return resp.status_code, resp.text
+    except requests.RequestException as e:
+        logger.error(f"HTTP Send Error: {e}")
+        return 400, f"Connection failed: {e}"
     except Exception as e:
         logger.error(f"HTTP Send Error: {e}")
         return 400, str(e)
